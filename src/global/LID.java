@@ -1,7 +1,7 @@
 package global;
 import java.io.*;
 
-public class LID {
+public class LID implements Serializable {
     public int slotNo;
     public PageId pageNo = new PageId();
 

@@ -2,25 +2,25 @@ package global;
 
 import java.io.Serializable;
 
-public class PID implements Serializable {
+public class QID implements Serializable {
     public int slotNo;
     public PageId pageNo = new PageId();
 
-    public PID () {
+    public QID () {
 
     }
 
-    public PID (PageId pageno, int slotno) {
+    public QID (PageId pageno, int slotno) {
         pageNo = pageno;
         slotNo = slotno;
     }
 
-    public void copyEid (PID pid) {
-        pageNo = pid.pageNo;
-        slotNo = pid.slotNo;
+    public void copyEid (QID qid) {
+        pageNo = qid.pageNo;
+        slotNo = qid.slotNo;
     }
 
-    /** Write the pid into a byte array at offset
+    /** Write the qid into a byte array at offset
      * @param ary the specified byte array
      * @param offset the offset of byte array to write
      * @exception java.io.IOException I/O errors
@@ -32,24 +32,16 @@ public class PID implements Serializable {
     }
 
 
-    /** Compares two PID object by value
-     * @param pid PID object to be compared to
+    /** Compares two QID object by value
+     * @param qid QID object to be compared to
      * @return true is they are equal
      *         false if not.
      */
-    public boolean equals(PID pid) {
-        if ((this.pageNo.pid == pid.pageNo.pid) &&(this.slotNo == pid.slotNo))
+    public boolean equals(QID qid) {
+        if ((this.pageNo.pid == qid.pageNo.pid) &&(this.slotNo == qid.slotNo))
             return true;
         else
             return false;
-    }
-
-    /**
-     * Casts EID object to LID object
-     * @return new LID object
-     */
-    public LID returnLid() {
-        return new LID(this.pageNo, this.slotNo);
     }
 }
 
