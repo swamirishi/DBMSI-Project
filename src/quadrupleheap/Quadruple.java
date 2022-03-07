@@ -3,7 +3,10 @@ package quadrupleheap;
 import global.*;
 import heap.FieldNumberOutOfBoundException;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 public class Quadruple implements GlobalConst {
     private EID subject;
@@ -27,6 +30,40 @@ public class Quadruple implements GlobalConst {
         data = aQuadruple;
         quadruple_offset = offset;
         quadruple_length = length;
+    }
+
+    public int writeAttributeArrayToByteArray
+            (byte[] attrArray, int srcPos, byte[] data, int dstOffset, int length, short[] fldOffset, int fldIndex){
+        System.arraycopy(attrArray, srcPos, data, dstOffset, length);
+        fldOffset[fldIndex] = (short) dstOffset;
+        return dstOffset + length;
+    }
+
+    public Quadruple(EID subject, PID predicate, EID object, double value) throws IOException {
+        byte[] subjectArray = Convert.convertToBytes(subject.returnLid());
+        byte[] predicateArray = Convert.convertToBytes(predicate.returnLid());
+        byte[] objectArray = Convert.convertToBytes(object.returnLid());
+        OutputStream out = new ByteArrayOutputStream();
+        DataOutputStream outstr = new DataOutputStream (out);
+        outstr.writeDouble(value);
+        byte[] doubleArray = ((ByteArrayOutputStream) out).toByteArray();
+        int size = subjectArray.length + predicateArray.length + objectArray.length + doubleArray.length;
+        data = new byte[size];
+        quadruple_offset = 0;
+        fldOffset = new short[fldCnt + 1];
+        quadruple_offset +=
+                writeAttributeArrayToByteArray(
+                        subjectArray, 0, data, quadruple_offset, subjectArray.length, fldOffset, 0);
+        quadruple_offset +=
+                writeAttributeArrayToByteArray(
+                        predicateArray, 0, data, quadruple_offset, predicateArray.length, fldOffset, 1);
+        quadruple_offset +=
+                writeAttributeArrayToByteArray(
+                        objectArray, 0, data, quadruple_offset, objectArray.length,  fldOffset, 2);
+        quadruple_offset +=
+                writeAttributeArrayToByteArray(
+                        doubleArray, 0, data, quadruple_offset, doubleArray.length,  fldOffset, 2);
+        fldOffset[fldOffset.length - 1] = (short) quadruple_offset;
     }
 
     public Quadruple(Quadruple fromQuadruple) {
@@ -81,7 +118,7 @@ public class Quadruple implements GlobalConst {
         quadruple_length = length;
     }
 
-    public LID getObjectFld(int fldNo)
+    public LID getLIDFld(int fldNo)
             throws IOException, FieldNumberOutOfBoundException, ClassNotFoundException {
         LID val;
         if ( (fldNo > 0) && (fldNo <= fldCnt)) {
