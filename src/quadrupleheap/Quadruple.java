@@ -62,8 +62,9 @@ public class Quadruple implements GlobalConst {
                         objectArray, 0, data, quadruple_offset, objectArray.length,  fldOffset, 2);
         quadruple_offset +=
                 writeAttributeArrayToByteArray(
-                        doubleArray, 0, data, quadruple_offset, doubleArray.length,  fldOffset, 2);
+                        doubleArray, 0, data, quadruple_offset, doubleArray.length,  fldOffset, 3);
         fldOffset[fldOffset.length - 1] = (short) quadruple_offset;
+        quadruple_length = data.length;
     }
 
     public Quadruple(Quadruple fromQuadruple) {
@@ -75,7 +76,7 @@ public class Quadruple implements GlobalConst {
 
     public byte [] getQuadrupleByteArray() {
         byte [] quadruple_copy = new byte [quadruple_length];
-        System.arraycopy(data, quadruple_offset, quadruple_copy, 0, quadruple_length);
+        System.arraycopy(data, 0, quadruple_copy, 0, quadruple_length);
         return quadruple_copy;
     }
 

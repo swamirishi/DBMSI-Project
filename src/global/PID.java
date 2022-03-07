@@ -31,6 +31,10 @@ public class PID implements Serializable {
         Convert.setIntValue ( pageNo.pid, offset+4, ary);
     }
 
+    public String toString(){
+        return slotNo + pageNo.toString();
+    }
+
 
     /** Compares two PID object by value
      * @param pid PID object to be compared to

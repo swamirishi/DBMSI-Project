@@ -10,6 +10,10 @@ public class EID implements Serializable {
 
     }
 
+    public String toString(){
+        return slotNo + pageNo.toString();
+    }
+
     public EID (PageId pageno, int slotno) {
         pageNo = pageno;
         slotNo = slotno;
