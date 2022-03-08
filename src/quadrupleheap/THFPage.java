@@ -139,7 +139,7 @@ public class THFPage extends Page
      * @return byte array
      */
 
-    public byte [] getHFpageArray()
+    public byte [] getTHFpageArray()
     {
         return data;
     }
