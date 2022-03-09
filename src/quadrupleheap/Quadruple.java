@@ -295,7 +295,7 @@ public class Quadruple implements GlobalConst {
 
 
     /**
-     * setHdr will set the header of this tuple.
+     * setHdr will set the header of this quadruple.
      *
      * @param	numFlds	  number of fields
      * @param	types[]	  contains the types that will be in this tuple

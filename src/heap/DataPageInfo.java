@@ -6,6 +6,7 @@ package heap;
 
 import global.*;
 import quadrupleheap.Quadruple;
+import labelheap.*;
 
 import java.io.*;
 
@@ -72,7 +73,7 @@ public class DataPageInfo implements GlobalConst{
       
   /** constructor: translate a tuple to a DataPageInfo object
    *  it will make a copy of the data in the tuple
-   * @param atuple: the input tuple
+   * @param _atuple: the input tuple
    */
   public DataPageInfo(Tuple _atuple)
        throws InvalidTupleSizeException, IOException
@@ -112,6 +113,25 @@ public class DataPageInfo implements GlobalConst{
 
     }
   }
+
+  public DataPageInfo(Label _atuple)
+          throws InvalidTupleSizeException, IOException {
+    // need check _atuple size == this.size ?otherwise, throw new exception
+    if (_atuple.getLength()!=12){
+      throw new InvalidTupleSizeException(null, "HEAPFILE: TUPLE SIZE ERROR");
+    }
+
+    else{
+      data = _atuple.returnLabelByteArray();
+      offset = _atuple.getOffset();
+
+      availspace = Convert.getIntValue(offset, data);
+      recct = Convert.getIntValue(offset+4, data);
+      pageId = new PageId();
+      pageId.pid = Convert.getIntValue(offset+8, data);
+
+    }
+  }
   
   
   /** convert this class objcet to a tuple(like cast a DataPageInfo to Tuple)
@@ -136,6 +156,24 @@ public class DataPageInfo implements GlobalConst{
 
   }
 
+  public Label convertToLabel()
+          throws IOException
+  {
+
+    // 1) write availspace, recct, pageId into data []
+    Convert.setIntValue(availspace, offset, data);
+    Convert.setIntValue(recct, offset+4, data);
+    Convert.setIntValue(pageId.pid, offset+8, data);
+
+
+    // 2) creat a Tuple object using this array
+    Label aLabel = new Label(data, offset, size);
+
+    // 3) return tuple object
+    return aLabel;
+
+  }
+
   public Quadruple convertToQuadruple()
           throws IOException
   {
@@ -147,10 +185,10 @@ public class DataPageInfo implements GlobalConst{
 
 
     // 2) creat a Tuple object using this array
-    Quadruple atuple = new Quadruple(data, offset, size);
+    Quadruple aQuadruple = new Quadruple(data, offset, size);
 
     // 3) return tuple object
-    return atuple;
+    return aQuadruple;
 
   }
   
@@ -171,14 +209,15 @@ public class DataPageInfo implements GlobalConst{
 
   public void flushToQuadruple() throws IOException {
     // write availspace, recct, pageId into "data[]"
-    Convert.setIntValue(availspace, offset, data);
-    Convert.setIntValue(recct, offset+4, data);
-    Convert.setIntValue(pageId.pid, offset+8, data);
+    flushToTuple();
 
     // here we assume data[] already points to buffer pool
 
   }
-  
+
+  public void flushToLabel() throws IOException {
+    flushToTuple();
+  }
 }
 
 

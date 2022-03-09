@@ -2,7 +2,7 @@ package global;
 import java.io.*;
 
 public class LID implements Serializable {
-    private int slotNo;
+    public int slotNo;
 
     public int getSlotNo() {
         return slotNo;
@@ -20,7 +20,7 @@ public class LID implements Serializable {
         this.pageNo = pageNo;
     }
 
-    private PageId pageNo = new PageId();
+    public PageId pageNo = new PageId();
 
     public LID () {
 

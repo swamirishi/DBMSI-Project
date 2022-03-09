@@ -1,12 +1,10 @@
-package quadrupleheap;
+package labelheap;
 
 import java.io.*;
 import global.*;
 import bufmgr.*;
 import diskmgr.*;
 import heap.*;
-        
-
 
 /**
  * A Scan object is created ONLY through the function openScan
@@ -16,7 +14,7 @@ import heap.*;
  * An object of type scan will always have pinned one directory page
  * of the heapfile.
  */
-public class TScan implements GlobalConst {
+public class LScan implements GlobalConst {
 
     /**
      * Note that one record in our way-cool HeapFile implementation is
@@ -25,27 +23,27 @@ public class TScan implements GlobalConst {
      */
 
     /** The heapfile we are using. */
-    private QuadrupleHeapFile _hf;
+    private LabelHeapFile _hf;
 
-    /** PageId of current directory page (which is itself an THFPage) */
+    /** PageId of current directory page (which is itself an LHFPage) */
     private PageId dirpageId = new PageId();
 
     /** pointer to in-core data of dirpageId (page is pinned) */
-    private THFPage dirpage = new THFPage();
+    private LHFPage dirpage = new LHFPage();
 
     /** record ID of the DataPageInfo struct (in the directory page) which
      * describes the data page where our current record lives.
      */
-    private QID datapageQid = new QID();
+    private LID datapageLid = new LID();
 
     /** the actual PageId of the data page with the current record */
     private PageId datapageId = new PageId();
 
     /** in-core copy (pinned) of the same */
-    private THFPage datapage = new THFPage();
+    private LHFPage datapage = new LHFPage();
 
     /** record ID of the current record (from the current data page) */
-    private QID userrid = new QID();
+    private LID userlid = new LID();
 
     /** Status of next user status */
     private boolean nextUserStatus;
@@ -60,7 +58,7 @@ public class TScan implements GlobalConst {
      *
      * @param hf A HeapFile object
      */
-    public TScan(QuadrupleHeapFile hf)
+    public LScan(LabelHeapFile hf)
             throws InvalidTupleSizeException,
             IOException
     {
@@ -74,14 +72,14 @@ public class TScan implements GlobalConst {
      * @exception InvalidTupleSizeException Invalid tuple size
      * @exception IOException I/O errors
      *
-     * @param rid Record ID of the record
-     * @return the Quadruple of the retrieved record.
+     * @param lid Record ID of the record
+     * @return the Label of the retrieved record.
      */
-    public Quadruple getNext(QID rid)
+    public Label getNext(LID lid)
             throws InvalidTupleSizeException,
             IOException
     {
-        Quadruple recptrtuple = null;
+        Label recptrtuple = null;
 
         if (nextUserStatus != true) {
             nextDataPage();
@@ -90,11 +88,11 @@ public class TScan implements GlobalConst {
         if (datapage == null)
             return null;
 
-        rid.pageNo.pid = userrid.pageNo.pid;
-        rid.slotNo = userrid.slotNo;
+        lid.pageNo.pid = userlid.pageNo.pid;
+        lid.slotNo = userlid.slotNo;
 
         try {
-            recptrtuple = datapage.getRecord(rid);
+            recptrtuple = datapage.getRecord(lid);
         }
 
         catch (Exception e) {
@@ -102,37 +100,37 @@ public class TScan implements GlobalConst {
             e.printStackTrace();
         }
 
-        userrid = datapage.nextRecord(rid);
-        if(userrid == null) nextUserStatus = false;
+        userlid = datapage.nextRecord(lid);
+        if(userlid == null) nextUserStatus = false;
         else nextUserStatus = true;
 
         return recptrtuple;
     }
 
 
-    /** Position the scan cursor to the record with the given rid.
+    /** Position the scan cursor to the record with the given lid.
      *
      * @exception InvalidTupleSizeException Invalid tuple size
      * @exception IOException I/O errors
-     * @param rid Record ID of the given record
-     * @return 	true if successful, 
+     * @param lid Record ID of the given record
+     * @return 	true if successful,
      *			false otherwise.
      */
-    public boolean position(QID rid)
+    public boolean position(LID lid)
             throws InvalidTupleSizeException,
             IOException
     {
-        QID    nxtrid = new QID();
+        LID    nxtlid = new LID();
         boolean bst;
 
-        bst = peekNext(nxtrid);
+        bst = peekNext(nxtlid);
 
-        if (nxtrid.equals(rid)==true)
+        if (nxtlid.equals(lid)==true)
             return true;
 
         // This is kind lame, but otherwise it will take all day.
         PageId pgid = new PageId();
-        pgid.pid = rid.pageNo.pid;
+        pgid.pid = lid.pageNo.pid;
 
         if (!datapageId.equals(pgid)) {
 
@@ -154,23 +152,23 @@ public class TScan implements GlobalConst {
         // Now we are on the correct page.
 
         try{
-            userrid = datapage.firstRecord();
+            userlid = datapage.firstRecord();
         }
         catch (Exception e) {
             e.printStackTrace();
         }
 
 
-        if (userrid == null)
+        if (userlid == null)
         {
             bst = false;
             return bst;
         }
 
-        bst = peekNext(nxtrid);
+        bst = peekNext(nxtlid);
 
-        while ((bst == true) && (nxtrid != rid))
-            bst = mvNext(nxtrid);
+        while ((bst == true) && (nxtlid != lid))
+            bst = mvNext(nxtlid);
 
         return bst;
     }
@@ -183,7 +181,7 @@ public class TScan implements GlobalConst {
      *
      * @param hf A HeapFile object
      */
-    private void init(QuadrupleHeapFile hf)
+    private void init(LabelHeapFile hf)
             throws InvalidTupleSizeException,
             IOException
     {
@@ -234,7 +232,7 @@ public class TScan implements GlobalConst {
     }
 
 
-    /** Move to the first data page in the file. 
+    /** Move to the first data page in the file.
      * @exception InvalidTupleSizeException Invalid tuple size
      * @exception IOException I/O errors
      * @return true if successful
@@ -245,7 +243,7 @@ public class TScan implements GlobalConst {
             IOException
     {
         DataPageInfo dpinfo;
-        Quadruple        rectuple = null;
+        Label        rectuple = null;
         Boolean      bst;
 
         /** copy data about first directory page */
@@ -255,7 +253,7 @@ public class TScan implements GlobalConst {
 
         /** get first directory page and pin it */
         try {
-            dirpage  = new THFPage();
+            dirpage  = new LHFPage();
             pinPage(dirpageId, (Page) dirpage, false);
         }
 
@@ -265,13 +263,13 @@ public class TScan implements GlobalConst {
         }
 
         /** now try to get a pointer to the first datapage */
-        datapageQid = dirpage.firstRecord();
+        datapageLid = dirpage.firstRecord();
 
-        if (datapageQid != null) {
+        if (datapageLid != null) {
             /** there is a datapage record on the first directory page: */
 
             try {
-                rectuple = dirpage.getRecord(datapageQid);
+                rectuple = dirpage.getRecord(datapageLid);
             }
 
             catch (Exception e) {
@@ -307,7 +305,7 @@ public class TScan implements GlobalConst {
 
                 try {
 
-                    dirpage = new THFPage();
+                    dirpage = new LHFPage();
                     pinPage(nextDirPageId, (Page )dirpage, false);
 
                 }
@@ -320,7 +318,7 @@ public class TScan implements GlobalConst {
                 /** now try again to read a data record: */
 
                 try {
-                    datapageQid = dirpage.firstRecord();
+                    datapageLid = dirpage.firstRecord();
                 }
 
                 catch (Exception e) {
@@ -329,11 +327,11 @@ public class TScan implements GlobalConst {
                     datapageId.pid = INVALID_PAGE;
                 }
 
-                if(datapageQid != null) {
+                if(datapageLid != null) {
 
                     try {
 
-                        rectuple = dirpage.getRecord(datapageQid);
+                        rectuple = dirpage.getRecord(datapageLid);
                     }
 
                     catch (Exception e) {
@@ -377,15 +375,15 @@ public class TScan implements GlobalConst {
          * - if heapfile empty:
          *    - this->datapage == NULL, this->datapageId==INVALID_PAGE
          * - if heapfile nonempty:
-         *    - this->datapage == NULL, this->datapageId, this->datapageQid valid
+         *    - this->datapage == NULL, this->datapageId, this->datapageLid valid
          *    - first datapage is not yet pinned
          */
 
     }
 
 
-    /** Move to the next data page in the file and 
-     * retrieve the next data page. 
+    /** Move to the next data page in the file and
+     * retrieve the next data page.
      *
      * @return 		true if successful
      *			false if unsuccessful
@@ -398,7 +396,7 @@ public class TScan implements GlobalConst {
 
         boolean nextDataPageStatus;
         PageId nextDirPageId = new PageId();
-        Quadruple rectuple = null;
+        Label rectuple = null;
 
         // ASSERTIONS:
         // - this->dirpageId has Id of current directory page
@@ -407,10 +405,10 @@ public class TScan implements GlobalConst {
         //    - this->datapage==NULL; this->datapageId == INVALID_PAGE
         // (2) if overall first record in heapfile:
         //    - this->datapage==NULL, but this->datapageId valid
-        //    - this->datapageQid valid
+        //    - this->datapageLid valid
         //    - current data page unpinned !!!
         // (3) if somewhere in heapfile
-        //    - this->datapageId, this->datapage, this->datapageQid valid
+        //    - this->datapageId, this->datapage, this->datapageLid valid
         //    - current data page pinned
         // (4)- if the scan had already been done,
         //        dirpage = NULL;  datapageId = INVALID_PAGE
@@ -435,7 +433,7 @@ public class TScan implements GlobalConst {
 
                 // pin first data page
                 try {
-                    datapage  = new THFPage();
+                    datapage  = new LHFPage();
                     pinPage(datapageId, (Page) datapage, false);
                 }
                 catch (Exception e){
@@ -443,7 +441,7 @@ public class TScan implements GlobalConst {
                 }
 
                 try {
-                    userrid = datapage.firstRecord();
+                    userlid = datapage.firstRecord();
                 }
                 catch (Exception e) {
                     e.printStackTrace();
@@ -454,7 +452,7 @@ public class TScan implements GlobalConst {
         }
 
         // ASSERTIONS:
-        // - this->datapage, this->datapageId, this->datapageQid valid
+        // - this->datapage, this->datapageId, this->datapageLid valid
         // - current datapage pinned
 
         // unpin the current datapage
@@ -473,9 +471,9 @@ public class TScan implements GlobalConst {
             return false;
         }
 
-        datapageQid = dirpage.nextRecord(datapageQid);
+        datapageLid = dirpage.nextRecord(datapageLid);
 
-        if (datapageQid == null) {
+        if (datapageLid == null) {
             nextDataPageStatus = false;
             // we have read all datapage records on the current directory page
 
@@ -503,7 +501,7 @@ public class TScan implements GlobalConst {
                 dirpageId = nextDirPageId;
 
                 try {
-                    dirpage  = new THFPage();
+                    dirpage  = new LHFPage();
                     pinPage(dirpageId, (Page)dirpage, false);
                 }
 
@@ -515,7 +513,7 @@ public class TScan implements GlobalConst {
                     return false;
 
                 try {
-                    datapageQid = dirpage.firstRecord();
+                    datapageLid = dirpage.firstRecord();
                     nextDataPageStatus = true;
                 }
                 catch (Exception e){
@@ -529,12 +527,12 @@ public class TScan implements GlobalConst {
         // - this->dirpageId, this->dirpage valid
         // - this->dirpage pinned
         // - the new datapage to be read is on dirpage
-        // - this->datapageQid has the Qid of the next datapage to be read
+        // - this->datapageLid has the Lid of the next datapage to be read
         // - this->datapage, this->datapageId invalid
 
         // data page is not yet loaded: read its record from the directory page
         try {
-            rectuple = dirpage.getRecord(datapageQid);
+            rectuple = dirpage.getRecord(datapageLid);
         }
 
         catch (Exception e) {
@@ -548,7 +546,7 @@ public class TScan implements GlobalConst {
         datapageId.pid = dpinfo.pageId.pid;
 
         try {
-            datapage = new THFPage();
+            datapage = new LHFPage();
             pinPage(dpinfo.pageId, (Page) datapage, false);
         }
 
@@ -560,11 +558,11 @@ public class TScan implements GlobalConst {
         // - directory page is pinned
         // - datapage is pinned
         // - this->dirpageId, this->dirpage correct
-        // - this->datapageId, this->datapage, this->datapageQid correct
+        // - this->datapageId, this->datapage, this->datapageLid correct
 
-        userrid = datapage.firstRecord();
+        userlid = datapage.firstRecord();
 
-        if(userrid == null)
+        if(userlid == null)
         {
             nextUserStatus = false;
             return false;
@@ -574,41 +572,41 @@ public class TScan implements GlobalConst {
     }
 
 
-    private boolean peekNext(QID rid) {
+    private boolean peekNext(LID lid) {
 
-        rid.pageNo.pid = userrid.pageNo.pid;
-        rid.slotNo = userrid.slotNo;
+        lid.pageNo.pid = userlid.pageNo.pid;
+        lid.slotNo = userlid.slotNo;
         return true;
 
     }
 
 
     /** Move to the next record in a sequential scan.
-     * Also returns the QID of the (new) current record.
+     * Also returns the LID of the (new) current record.
      */
-    private boolean mvNext(QID rid)
+    private boolean mvNext(LID lid)
             throws InvalidTupleSizeException,
             IOException
     {
-        QID nextrid;
+        LID nextlid;
         boolean status;
 
         if (datapage == null)
             return false;
 
-        nextrid = datapage.nextRecord(rid);
+        nextlid = datapage.nextRecord(lid);
 
-        if( nextrid != null ){
-            userrid.pageNo.pid = nextrid.pageNo.pid;
-            userrid.slotNo = nextrid.slotNo;
+        if( nextlid != null ){
+            userlid.pageNo.pid = nextlid.pageNo.pid;
+            userlid.slotNo = nextlid.slotNo;
             return true;
         } else {
 
             status = nextDataPage();
 
             if (status==true){
-                rid.pageNo.pid = userrid.pageNo.pid;
-                rid.slotNo = userrid.slotNo;
+                lid.pageNo.pid = userlid.pageNo.pid;
+                lid.slotNo = userlid.slotNo;
             }
 
         }
@@ -649,4 +647,5 @@ public class TScan implements GlobalConst {
 
 
 }
+
 
