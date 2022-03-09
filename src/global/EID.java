@@ -1,11 +1,17 @@
 package global;
 
-public class EID {
+import java.io.Serializable;
+
+public class EID implements Serializable {
     public int slotNo;
     public PageId pageNo = new PageId();
 
     public EID () {
 
+    }
+
+    public String toString(){
+        return slotNo + pageNo.toString();
     }
 
     public EID (PageId pageno, int slotno) {

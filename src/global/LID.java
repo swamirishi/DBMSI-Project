@@ -1,8 +1,25 @@
 package global;
 import java.io.*;
 
-public class LID {
+public class LID implements Serializable {
     public int slotNo;
+
+    public int getSlotNo() {
+        return slotNo;
+    }
+
+    public void setSlotNo(int slotNo) {
+        this.slotNo = slotNo;
+    }
+
+    public PageId getPageNo() {
+        return pageNo;
+    }
+
+    public void setPageNo(PageId pageNo) {
+        this.pageNo = pageNo;
+    }
+
     public PageId pageNo = new PageId();
 
     public LID () {
@@ -12,6 +29,10 @@ public class LID {
     public LID (PageId pageno, int slotno) {
         pageNo = pageno;
         slotNo = slotno;
+    }
+
+    public String toString(){
+        return slotNo + pageNo.toString();
     }
 
     public void copyLid (LID lid) {
