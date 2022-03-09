@@ -302,4 +302,76 @@ public class Convert{
       System.arraycopy (B, 0, data, position, 2);
       
     }
+
+    public static LID getLIDValue(short position, byte[] data, int length) throws java.io.IOException, ClassNotFoundException {
+      InputStream in;
+      DataInputStream instr;
+      String value;
+      byte tmp[] = new byte[length];
+
+      System.arraycopy (data, position, tmp, 0, length);
+
+      LID convertAgainObj = (LID) convertFromBytes(tmp);
+      return convertAgainObj;
+    }
+
+  public static void setLIDValue (LID obj, int position, byte []data)
+          throws java.io.IOException {
+    byte[] byteArrayOfLIDObject = convertToBytes(obj);
+    int size = byteArrayOfLIDObject.length;
+    System.arraycopy (byteArrayOfLIDObject, 0, data, position, size);
+  }
+
+    public static byte[] convertToBytes(Object object) throws IOException {
+      try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+           ObjectOutputStream out = new ObjectOutputStream(bos)) {
+        out.writeObject(object);
+        return bos.toByteArray();
+      }
+    }
+
+    public static Object convertFromBytes(byte[] bytes) throws IOException, ClassNotFoundException {
+      try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+           ObjectInputStream in = new ObjectInputStream(bis)) {
+        return in.readObject();
+      }
+    }
+
+  public static double getDoubleValue(short position, byte[] data) throws IOException {
+    InputStream in;
+    DataInputStream instr;
+    double value;
+    byte tmp[] = new byte[8];
+
+    // copy the value from data array out to a tmp byte array
+    System.arraycopy (data, position, tmp, 0, 4);
+
+    in = new ByteArrayInputStream(tmp);
+    instr = new DataInputStream(in);
+    value = instr.readDouble();
+
+    return value;
+  }
+
+  public static void setDoubleValue (double value, int position, byte []data)
+          throws java.io.IOException {
+    /* creates a new data output stream to write data to
+     * underlying output stream
+     */
+
+    OutputStream out = new ByteArrayOutputStream();
+    DataOutputStream outstr = new DataOutputStream (out);
+
+    // write the value to the output stream
+
+    outstr.writeDouble(value);
+
+    // creates a byte array with this output stream size and the
+    // valid contents of the buffer have been copied into it
+    byte []B = ((ByteArrayOutputStream) out).toByteArray();
+
+    // copies the first 4 bytes of this byte array into data[]
+    System.arraycopy (B, 0, data, position, 4);
+
+  }
 }

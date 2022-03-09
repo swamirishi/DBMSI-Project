@@ -1,6 +1,8 @@
 package global;
 
-public class PID {
+import java.io.Serializable;
+
+public class PID implements Serializable {
     public int slotNo;
     public PageId pageNo = new PageId();
 
@@ -27,6 +29,10 @@ public class PID {
             throws java.io.IOException {
         Convert.setIntValue ( slotNo, offset, ary);
         Convert.setIntValue ( pageNo.pid, offset+4, ary);
+    }
+
+    public String toString(){
+        return slotNo + pageNo.toString();
     }
 
 

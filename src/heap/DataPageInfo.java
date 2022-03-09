@@ -5,6 +5,8 @@ package heap;
 
 
 import global.*;
+import quadrupleheap.Quadruple;
+
 import java.io.*;
 
 /** DataPageInfo class : the type of records stored on a directory page.
@@ -12,17 +14,17 @@ import java.io.*;
 * April 9, 1998
 */
 
-class DataPageInfo implements GlobalConst{
+public class DataPageInfo implements GlobalConst{
 
 
   /** HFPage returns int for avail space, so we use int here */
-  int    availspace; 
+  public int    availspace;
   
   /** for efficient implementation of getRecCnt() */
-  int    recct;    
+  public int    recct;
   
   /** obvious: id of this particular data page (a HFPage) */
-  PageId pageId = new PageId();   
+  public PageId pageId = new PageId();
     
   /** auxiliary fields of DataPageInfo */
 
@@ -91,6 +93,25 @@ class DataPageInfo implements GlobalConst{
       
     }
   }
+
+  public DataPageInfo(Quadruple _atuple)
+          throws InvalidTupleSizeException, IOException {
+    // need check _atuple size == this.size ?otherwise, throw new exception
+    if (_atuple.getLength()!=12){
+      throw new InvalidTupleSizeException(null, "HEAPFILE: TUPLE SIZE ERROR");
+    }
+
+    else{
+      data = _atuple.returnQuadrupleByteArray();
+      offset = _atuple.getOffset();
+
+      availspace = Convert.getIntValue(offset, data);
+      recct = Convert.getIntValue(offset+4, data);
+      pageId = new PageId();
+      pageId.pid = Convert.getIntValue(offset+8, data);
+
+    }
+  }
   
   
   /** convert this class objcet to a tuple(like cast a DataPageInfo to Tuple)
@@ -114,14 +135,31 @@ class DataPageInfo implements GlobalConst{
     return atuple;
 
   }
+
+  public Quadruple convertToQuadruple()
+          throws IOException
+  {
+
+    // 1) write availspace, recct, pageId into data []
+    Convert.setIntValue(availspace, offset, data);
+    Convert.setIntValue(recct, offset+4, data);
+    Convert.setIntValue(pageId.pid, offset+8, data);
+
+
+    // 2) creat a Tuple object using this array
+    Quadruple atuple = new Quadruple(data, offset, size);
+
+    // 3) return tuple object
+    return atuple;
+
+  }
   
     
   /** write this object's useful fields(availspace, recct, pageId) 
    *  to the data[](may be in buffer pool)
    *  
    */
-  public void flushToTuple() throws IOException
-  {
+  public void flushToTuple() throws IOException {
      // write availspace, recct, pageId into "data[]"
     Convert.setIntValue(availspace, offset, data);
     Convert.setIntValue(recct, offset+4, data);
@@ -129,6 +167,16 @@ class DataPageInfo implements GlobalConst{
 
     // here we assume data[] already points to buffer pool
   
+  }
+
+  public void flushToQuadruple() throws IOException {
+    // write availspace, recct, pageId into "data[]"
+    Convert.setIntValue(availspace, offset, data);
+    Convert.setIntValue(recct, offset+4, data);
+    Convert.setIntValue(pageId.pid, offset+8, data);
+
+    // here we assume data[] already points to buffer pool
+
   }
   
 }
