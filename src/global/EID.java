@@ -2,12 +2,12 @@ package global;
 
 import java.io.Serializable;
 
-public class EID implements Serializable {
+public class EID implements ID<EID> {
     public int slotNo;
-    public PageId pageNo = new PageId();
+    public PageId pageNo;
 
     public EID () {
-
+        this(new PageId(),0);
     }
 
     public String toString(){
@@ -26,12 +26,27 @@ public class EID implements Serializable {
         pageNo = pageno;
         slotNo = slotno;
     }
-
-    public void copyEid (EID eid) {
-        pageNo = eid.pageNo;
-        slotNo = eid.slotNo;
+    
+    @Override
+    public int getSlotNo() {
+        return this.slotNo;
     }
-
+    
+    @Override
+    public PageId getPageNo() {
+        return this.pageNo;
+    }
+    
+    @Override
+    public void setSlotNo(int slotNo) {
+        this.slotNo = slotNo;
+    }
+    
+    @Override
+    public void setPageNo(PageId pageId) {
+        this.pageNo = pageId;
+    }
+    
     /** Write the eid into a byte array at offset
      * @param ary the specified byte array
      * @param offset the offset of byte array to write
@@ -54,14 +69,6 @@ public class EID implements Serializable {
             return true;
         else
             return false;
-    }
-
-    /**
-     * Casts EID object to LID object
-     * @return new LID object
-     */
-    public LID returnLid() {
-        return new LID(this.pageNo, this.slotNo);
     }
 }
 
