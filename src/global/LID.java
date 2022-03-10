@@ -1,8 +1,9 @@
 package global;
 import java.io.*;
 
-public class LID implements Serializable {
+public class LID implements ID<LID> {
     public int slotNo;
+    public PageId pageNo;
 
     public int getSlotNo() {
         return slotNo;
@@ -20,10 +21,14 @@ public class LID implements Serializable {
         this.pageNo = pageNo;
     }
 
-    public PageId pageNo = new PageId();
-
+    public LID(PID pid){
+        this(pid.getPageNo(),pid.getSlotNo());
+    }
+    public LID(EID eid){
+        this(eid.getPageNo(),eid.getSlotNo());
+    }
     public LID () {
-
+        this(new PageId(),0);
     }
 
     public LID (PageId pageno, int slotno) {
@@ -33,11 +38,6 @@ public class LID implements Serializable {
 
     public String toString(){
         return slotNo + pageNo.toString();
-    }
-
-    public void copyLid (LID lid) {
-        pageNo = lid.pageNo;
-        slotNo = lid.slotNo;
     }
 
     /** Write the lid into a byte array at offset

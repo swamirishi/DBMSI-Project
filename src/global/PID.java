@@ -2,12 +2,12 @@ package global;
 
 import java.io.Serializable;
 
-public class PID implements Serializable {
+public class PID implements ID<PID> {
     public int slotNo;
-    public PageId pageNo = new PageId();
+    public PageId pageNo;
 
     public PID () {
-
+        this(new PageId(),0);
     }
 
     public PID (PageId pageno, int slotno) {
@@ -19,7 +19,27 @@ public class PID implements Serializable {
         pageNo = pid.pageNo;
         slotNo = pid.slotNo;
     }
-
+    
+    @Override
+    public int getSlotNo() {
+        return this.slotNo;
+    }
+    
+    @Override
+    public PageId getPageNo() {
+        return this.pageNo;
+    }
+    
+    @Override
+    public void setSlotNo(int slotNo) {
+        this.slotNo = slotNo;
+    }
+    
+    @Override
+    public void setPageNo(PageId pageId) {
+        this.pageNo = pageId;
+    }
+    
     /** Write the pid into a byte array at offset
      * @param ary the specified byte array
      * @param offset the offset of byte array to write
@@ -46,14 +66,6 @@ public class PID implements Serializable {
             return true;
         else
             return false;
-    }
-
-    /**
-     * Casts EID object to LID object
-     * @return new LID object
-     */
-    public LID returnLid() {
-        return new LID(this.pageNo, this.slotNo);
     }
 }
 
