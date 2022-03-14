@@ -339,9 +339,36 @@ public class Tuple implements GlobalConst{
      else 
        throw new FieldNumberOutOfBoundException (null, "TUPLE:TUPLE_FLDNO_OUT_OF_BOUND");
     }
-
-
-   /**
+    
+    public byte[] getData() {
+        return data;
+    }
+    
+    protected void setData(byte[] data) {
+        this.data = data;
+    }
+    
+    protected void setTuple_offset(int tuple_offset) {
+        this.tuple_offset = tuple_offset;
+    }
+    
+    protected void setTuple_length(int tuple_length) {
+        this.tuple_length = tuple_length;
+    }
+    
+    protected void setFldCnt(short fldCnt) {
+        this.fldCnt = fldCnt;
+    }
+    
+    protected void setFldOffset(short[] fldOffset) {
+        this.fldOffset = fldOffset;
+    }
+    
+    public short[] getFldOffset() {
+        return fldOffset;
+    }
+    
+    /**
     * setHdr will set the header of this tuple.   
     *
     * @param	numFlds	  number of fields
@@ -520,8 +547,12 @@ public void setHdr (short numFlds,  AttrType types[], short strSizes[])
    System.out.println("]");
 
  }
-
-  /**
+    
+    protected short getFldCnt() {
+        return fldCnt;
+    }
+    
+    /**
    * private method
    * Padding must be used when storing different types.
    * 

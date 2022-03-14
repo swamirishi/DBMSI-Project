@@ -13,13 +13,12 @@ import global.*;
 import diskmgr.*;
 import heap.*;
 
-
 /**
  * BTsortedPage class 
  * just holds abstract records in sorted order, based 
  * on how they compare using the key interface from BT.java.
  */
-public class BTSortedPage  extends HFPage{
+public class BTSortedPage  extends HFPage {
 
   
   int keyType; //it will be initialized in BTFile
@@ -189,7 +188,6 @@ public class BTSortedPage  extends HFPage{
     } // end of deleteSortedRecord
   
   /** How many records are in the page
-   *@param return the number of records.
    *@exception IOException I/O errors
    */
   protected int numberOfRecords() 
