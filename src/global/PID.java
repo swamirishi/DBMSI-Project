@@ -67,6 +67,15 @@ public class PID implements ID<PID> {
         else
             return false;
     }
+    
+    /**
+     * Casts EID object to LID object
+     * @return new LID object
+     */
+    public LID returnLid() {
+        return new LID(this.pageNo, this.slotNo);
+    }
+    
 }
 
 

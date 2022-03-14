@@ -13,28 +13,16 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-public class Quadruple implements GlobalConst {
-    /**
-        Quadruple class needs to store 4 attributes. EID is represented by 2 integers pid and slotNo.
-        pid is stored first and then slotNo. Field count is 1 indexed.
-        Quadruple : [Subject, Predicate, Object, Value]
-     */
+public class Quadruple extends Tuple {
     private EID subject;
     private PID predicate;
     private EID object;
     private double value;
-    public static final int max_size = MINIBASE_PAGESIZE;
-    public byte[] data;
-    private int quadruple_offset;
-    private int quadruple_length;
-    private final int fixed_quadruple_length = 32;
-    private static short fldCnt = 7;
-    private short [] fldOffset;
-
+    private static final int fixed_quadruple_length = 32;
+    
     public Quadruple() {
-        data = new byte[max_size];
-        quadruple_offset = 0;
-        quadruple_length = max_size;
+        super();
+        super.setFldCnt((short) 7);
     }
     /**
      * This method verifies whether the Quadruple stores quadruple or metadata.
@@ -47,10 +35,9 @@ public class Quadruple implements GlobalConst {
     }
 
     public Quadruple(byte [] aQuadruple, int offset, int length) {
-        data = aQuadruple;
-        quadruple_offset = offset;
-        quadruple_length = length;
-        if(isQuadruple(quadruple_length)){
+        super(aQuadruple,offset,length);
+        super.setFldCnt((short) 7);
+        if(isQuadruple(length)){
             try {
                 setAttributes();
             } catch (FieldNumberOutOfBoundException e) {
@@ -62,7 +49,7 @@ public class Quadruple implements GlobalConst {
     }
 
     public int writeAttributeArrayToByteArray
-            (byte[] attrArray, int srcPos, byte[] data, int dstOffset, int length, short[] fldOffset, int fldIndex) {
+            (byte[] attrArray, int srcPos, byte[] data, int dstOffset, int length, short[] fldOffset, int fldIndex){
         System.arraycopy(attrArray, srcPos, data, dstOffset, length);
         fldOffset[fldIndex] = (short) dstOffset;
         return dstOffset + length;
@@ -150,9 +137,9 @@ public class Quadruple implements GlobalConst {
     }
 
     public int getLength() {
-        return quadruple_length;
+        return super.getLength();
     }
-
+    //TODO: Check this
     public Quadruple(int size) {
         data = new byte[size];
         quadruple_offset = 0;
@@ -193,7 +180,7 @@ public class Quadruple implements GlobalConst {
      */
     public double getDoubleFld()
             throws IOException, FieldNumberOutOfBoundException {
-        final int fldNo = 4;
+        final int fldNo = 7;
         double val;
         if ((fldNo > 0) && (fldNo <= fldCnt)) {
             val = Convert.getDoubleValue(fldOffset[fldNo - 1], data);
