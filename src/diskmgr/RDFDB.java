@@ -97,7 +97,9 @@ public class RDFDB extends DB {
 
     public Stream openStream(int orderType, String subjectFilter, String predicateFilter,
                              String objectFilter, double confidenceFilter) {
-        return null;
+        Stream stream = new Stream(this, orderType, subjectFilter, predicateFilter, objectFilter, confidenceFilter);
+        System.out.println("Opened new stream: ");
+        return stream;
     }
 
     private LID getLIDFromHeapFileScan(String inputLabel) throws InvalidTupleSizeException, IOException {

@@ -2,12 +2,13 @@ package diskmgr;
 
 import global.*;
 import heap.*;
+import labelheap.LabelHeapFile;
 import quadrupleheap.Quadruple;
 import quadrupleheap.QuadrupleHeapFile;
 import quadrupleheap.THFPage;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.*;
 
 import static global.GlobalConst.INVALID_PAGE;
 
@@ -54,23 +55,109 @@ public class Stream {
      */
     private boolean nextUserStatus;
 
-    private Collection<Quadruple> quadrupleList;
+    //using list instead of collection?
+    private final List<Quadruple> quadrupleList = new ArrayList<>();
 
+    private Iterator<Quadruple> iterator;
+    
     public Stream(RDFDB rdfDB, int orderType, String subjectFilter, String predicateFilter,
-                  String objectFilter, double confidenceFilter) throws InvalidTupleSizeException, IOException {
+                  String objectFilter, double confidenceFilter) throws Exception {
         this.quadrupleHeapFile = rdfDB.getQuadrupleHeapFile();
+
+        //get to the first data page.
         firstDataPage();
+
+        Quadruple currQuadruple = null;
+        LabelHeapFile entityLabelHeapFile = null;
+        LabelHeapFile predicateLabelHeapFile = null;
+        EID currSubjectID;
+        EID currObjectID;
+        PID currPredicateID;
+
+        //assuming last record is null.
+        try {
+            currQuadruple = this.quadrupleHeapFile.getRecord(userqid);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+
+        do{
+
+            try {
+                entityLabelHeapFile = new LabelHeapFile("entityLabelHeapFile");
+                predicateLabelHeapFile = new LabelHeapFile("predicateLabelHeapFile");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            currSubjectID = currQuadruple.getSubject();
+            currObjectID = currQuadruple.getObject();
+            currPredicateID = currQuadruple.getPredicate();
+
+
+
+            //filters
+            //ignoring ordertype
+
+            //subject filter
+            if(subjectFilter != null){
+              if(entityLabelHeapFile.getRecord(currSubjectID.returnLid()).getLabel().compareTo(subjectFilter) != 0){
+                  currQuadruple = getNextInternal(userqid);
+                  continue;
+                }
+            }
+            //predicate filter
+            if(predicateFilter != null){
+                if(predicateLabelHeapFile.getRecord(currPredicateID.returnLid()).getLabel().compareTo(predicateFilter) != 0){
+                    currQuadruple = getNextInternal(userqid);
+                    continue;
+                }
+            }
+            //object filter
+            if(objectFilter != null){
+                if(entityLabelHeapFile.getRecord(currObjectID.returnLid()).getLabel().compareTo(objectFilter) != 0){
+                    currQuadruple = getNextInternal(userqid);
+                    continue;
+                }
+            }
+
+            //confidence filter
+            if(confidenceFilter != 0){
+                if(currQuadruple.getValue() < confidenceFilter){
+                    currQuadruple = getNextInternal(userqid);
+                    continue;
+                }
+            }
+
+            //passed all filters => store this quadruple in collection
+            quadrupleList.add(currQuadruple);
+            currQuadruple = getNextInternal(userqid);
+        } while(userqid != null);
+
+        //sort the collection according to the orderType
+        quadrupleList.sort(new SortOnOrder(orderType));
+        iterator = quadrupleList.iterator();
     }
+
+    public Quadruple getNext(QID qid){
+        if(iterator.hasNext()){
+            return iterator.next();
+        }
+        return null;
+    }
+
+
 
     /**
      * Retrieve the next record in a sequential scan
      *
      * @param qid Record ID of the record
-     * @return the Tuple of the retrieved record.
+     * @return the aTuple of the retrieved record.
      * @throws InvalidTupleSizeException Invalid tuple size
      * @throws IOException               I/O errors
      */
-    public Quadruple getNext(QID qid)
+    public Quadruple getNextInternal(QID qid)
             throws InvalidTupleSizeException,
             IOException, HFBufMgrException, InvalidSlotNumberException {
         Quadruple quadruple = null;
