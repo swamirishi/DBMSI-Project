@@ -59,7 +59,7 @@ public class Stream {
     private final List<Quadruple> quadrupleList = new ArrayList<>();
 
     private Iterator<Quadruple> iterator;
-    
+
     public Stream(RDFDB rdfDB, int orderType, String subjectFilter, String predicateFilter,
                   String objectFilter, double confidenceFilter) throws Exception {
         this.quadrupleHeapFile = rdfDB.getQuadrupleHeapFile();
@@ -68,8 +68,8 @@ public class Stream {
         firstDataPage();
 
         Quadruple currQuadruple = null;
-        LabelHeapFile entityLabelHeapFile = null;
-        LabelHeapFile predicateLabelHeapFile = null;
+        LabelHeapFile entityLabelHeapFile = rdfDB.getEntityLabelHeapFile();
+        LabelHeapFile predicateLabelHeapFile = rdfDB.getPredicateLabelHeapFile();
         EID currSubjectID;
         EID currObjectID;
         PID currPredicateID;
@@ -77,54 +77,45 @@ public class Stream {
         //assuming last record is null.
         try {
             currQuadruple = this.quadrupleHeapFile.getRecord(userqid);
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        do{
-
-            try {
-                entityLabelHeapFile = new LabelHeapFile("entityLabelHeapFile");
-                predicateLabelHeapFile = new LabelHeapFile("predicateLabelHeapFile");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        do {
 
             currSubjectID = currQuadruple.getSubject();
             currObjectID = currQuadruple.getObject();
             currPredicateID = currQuadruple.getPredicate();
 
 
-
             //filters
             //ignoring ordertype
 
             //subject filter
-            if(subjectFilter != null){
-              if(entityLabelHeapFile.getRecord(currSubjectID.returnLid()).getLabel().compareTo(subjectFilter) != 0){
-                  currQuadruple = getNextInternal(userqid);
-                  continue;
+            if (subjectFilter != null) {
+                if (entityLabelHeapFile.getRecord(currSubjectID.returnLid()).getLabel().compareTo(subjectFilter) != 0) {
+                    currQuadruple = getNextInternal(userqid);
+                    continue;
                 }
             }
             //predicate filter
-            if(predicateFilter != null){
-                if(predicateLabelHeapFile.getRecord(currPredicateID.returnLid()).getLabel().compareTo(predicateFilter) != 0){
+            if (predicateFilter != null) {
+                if (predicateLabelHeapFile.getRecord(currPredicateID.returnLid()).getLabel().compareTo(predicateFilter) != 0) {
                     currQuadruple = getNextInternal(userqid);
                     continue;
                 }
             }
             //object filter
-            if(objectFilter != null){
-                if(entityLabelHeapFile.getRecord(currObjectID.returnLid()).getLabel().compareTo(objectFilter) != 0){
+            if (objectFilter != null) {
+                if (entityLabelHeapFile.getRecord(currObjectID.returnLid()).getLabel().compareTo(objectFilter) != 0) {
                     currQuadruple = getNextInternal(userqid);
                     continue;
                 }
             }
 
             //confidence filter
-            if(confidenceFilter != 0){
-                if(currQuadruple.getValue() < confidenceFilter){
+            if (confidenceFilter != 0) {
+                if (currQuadruple.getValue() < confidenceFilter) {
                     currQuadruple = getNextInternal(userqid);
                     continue;
                 }
@@ -133,20 +124,19 @@ public class Stream {
             //passed all filters => store this quadruple in collection
             quadrupleList.add(currQuadruple);
             currQuadruple = getNextInternal(userqid);
-        } while(userqid != null);
+        } while (userqid != null);
 
         //sort the collection according to the orderType
         quadrupleList.sort(new SortOnOrder(orderType));
         iterator = quadrupleList.iterator();
     }
 
-    public Quadruple getNext(QID qid){
-        if(iterator.hasNext()){
+    public Quadruple getNext() {
+        if (iterator.hasNext()) {
             return iterator.next();
         }
         return null;
     }
-
 
 
     /**
