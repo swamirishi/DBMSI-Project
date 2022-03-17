@@ -99,7 +99,7 @@ public class DataPageInfo implements GlobalConst{
           throws InvalidTupleSizeException, IOException {
     // need check _atuple size == this.size ?otherwise, throw new exception
     if (_atuple.getLength()!=12){
-      throw new InvalidTupleSizeException(null, "HEAPFILE: TUPLE SIZE ERROR");
+      throw new InvalidTupleSizeException(null, "HEAPFILE: QUADRUPLE SIZE ERROR");
     }
 
     else{
@@ -108,7 +108,6 @@ public class DataPageInfo implements GlobalConst{
 
       availspace = Convert.getIntValue(offset, data);
       recct = Convert.getIntValue(offset+4, data);
-      pageId = new PageId();
       pageId.pid = Convert.getIntValue(offset+8, data);
 
     }
@@ -134,7 +133,7 @@ public class DataPageInfo implements GlobalConst{
   }
   
   
-  /** convert this class objcet to a tuple(like cast a DataPageInfo to Tuple)
+  /** convert this class object to a tuple(like cast a DataPageInfo to Tuple)
    *  
    *
    */
@@ -156,6 +155,24 @@ public class DataPageInfo implements GlobalConst{
 
   }
 
+  public Quadruple convertToQuadruple()
+          throws IOException
+  {
+
+    // 1) write availspace, recct, pageId into data []
+    Convert.setIntValue(availspace, offset, data);
+    Convert.setIntValue(recct, offset+4, data);
+    Convert.setIntValue(pageId.pid, offset+8, data);
+
+
+    // 2) creat a Tuple object using this array
+    Quadruple aQuadruple = new Quadruple(data, offset, size);
+
+    // 3) return tuple object
+    return aQuadruple;
+
+  }
+
   public Label convertToLabel()
           throws IOException
   {
@@ -174,23 +191,7 @@ public class DataPageInfo implements GlobalConst{
 
   }
 
-  public Quadruple convertToQuadruple()
-          throws IOException
-  {
 
-    // 1) write availspace, recct, pageId into data []
-    Convert.setIntValue(availspace, offset, data);
-    Convert.setIntValue(recct, offset+4, data);
-    Convert.setIntValue(pageId.pid, offset+8, data);
-
-
-    // 2) creat a Tuple object using this array
-    Quadruple aQuadruple = new Quadruple(data, offset, size);
-
-    // 3) return tuple object
-    return aQuadruple;
-
-  }
   
     
   /** write this object's useful fields(availspace, recct, pageId) 

@@ -3,27 +3,27 @@ import java.io.*;
 
 public class LID implements Serializable {
     public int slotNo;
+    public PageId pageNo = new PageId();
 
     public int getSlotNo() {
         return slotNo;
-    }
-
-    public void setSlotNo(int slotNo) {
-        this.slotNo = slotNo;
     }
 
     public PageId getPageNo() {
         return pageNo;
     }
 
+    public void setSlotNo(int slotNo) {
+        this.slotNo = slotNo;
+    }
+
     public void setPageNo(PageId pageNo) {
         this.pageNo = pageNo;
     }
 
-    public PageId pageNo = new PageId();
-
     public LID () {
-
+        slotNo = 0;
+        pageNo.pid = 0;
     }
 
     public LID (PageId pageno, int slotno) {
