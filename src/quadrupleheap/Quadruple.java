@@ -12,6 +12,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class Quadruple implements GlobalConst {
+    /**
+        Quadruple class needs to store 4 attributes. EID is represented by 2 integers pid and slotNo.
+        pid is stored first and then slotNo. Field count is 1 indexed.
+        Quadruple : [Subject, Predicate, Object, Value]
+     */
     private EID subject;
     private PID predicate;
     private EID object;
@@ -20,7 +25,7 @@ public class Quadruple implements GlobalConst {
     private byte [] data;
     private int quadruple_offset;
     private int quadruple_length;
-    private short fldCnt = 4;
+    private static short fldCnt = 7;
     private short [] fldOffset;
 
     public Quadruple() {
@@ -42,32 +47,35 @@ public class Quadruple implements GlobalConst {
         return dstOffset + length;
     }
 
-    public Quadruple(EID subject, PID predicate, EID object, double value) throws IOException {
-        byte[] subjectArray = Convert.convertToBytes(subject.returnLid());
-        byte[] predicateArray = Convert.convertToBytes(predicate.returnLid());
-        byte[] objectArray = Convert.convertToBytes(object.returnLid());
-        OutputStream out = new ByteArrayOutputStream();
-        DataOutputStream outstr = new DataOutputStream (out);
-        outstr.writeDouble(value);
-        byte[] doubleArray = ((ByteArrayOutputStream) out).toByteArray();
-        int size = subjectArray.length + predicateArray.length + objectArray.length + doubleArray.length;
-        data = new byte[size];
-        quadruple_offset = 0;
-        fldOffset = new short[fldCnt + 1];
-        quadruple_offset +=
-                writeAttributeArrayToByteArray(
-                        subjectArray, 0, data, quadruple_offset, subjectArray.length, fldOffset, 0);
-        quadruple_offset +=
-                writeAttributeArrayToByteArray(
-                        predicateArray, 0, data, quadruple_offset, predicateArray.length, fldOffset, 1);
-        quadruple_offset +=
-                writeAttributeArrayToByteArray(
-                        objectArray, 0, data, quadruple_offset, objectArray.length,  fldOffset, 2);
-        quadruple_offset +=
-                writeAttributeArrayToByteArray(
-                        doubleArray, 0, data, quadruple_offset, doubleArray.length,  fldOffset, 3);
-        fldOffset[fldOffset.length - 1] = (short) quadruple_offset;
-        quadruple_length = data.length;
+    public void setByteArray() throws FieldNumberOutOfBoundException, IOException {
+        int subjectPid = subject.getPageNo().pid;
+        int subjectSlotNo = subject.getSlotNo();
+        int predicatePid = predicate.pageNo.pid;
+        int predicateSlotNo = predicate.slotNo;
+        int objectPid = object.pageNo.pid;
+        int objectSlotNo = object.slotNo;
+        double value = this.value;
+        fldCnt = 7;
+        this.fldOffset = new short[]{0, 4, 8, 12, 16, 20, 24, 32};
+        this.quadruple_length = 32;
+        this.quadruple_offset = 0;
+        data = new byte[this.quadruple_length];
+        setIntFld(1, subjectPid);
+        setIntFld(2, subjectSlotNo);
+        setIntFld(3, predicatePid);
+        setIntFld(4, predicateSlotNo);
+        setIntFld(5, objectPid);
+        setIntFld(6, objectSlotNo);
+        setDoubleFld(7, value);
+    }
+
+    public Quadruple(EID subject, PID predicate, EID object, double value) throws IOException, FieldNumberOutOfBoundException {
+        this.subject = subject;
+        this.predicate = predicate;
+        this.object = object;
+        this.value = value;
+        setByteArray();
+
     }
 
     public Quadruple(Quadruple fromQuadruple) {
@@ -107,40 +115,14 @@ public class Quadruple implements GlobalConst {
 
     public void quadrupleCopy(Quadruple fromQuadruple) {
         byte [] temparray = fromQuadruple.getQuadrupleByteArray();
-        System.arraycopy(temparray, 0, data, quadruple_offset, quadruple_length);
+        System.arraycopy(temparray, 0, data, 0, quadruple_length);
     }
 
-    public void quadrupleInit(byte [] aQuadruple, int offset, int length) {
-        data = aQuadruple;
-        quadruple_offset = offset;
-        quadruple_length = length;
-    }
-
-    public void quadrupleSet(byte [] record, int offset, int length) {
-        System.arraycopy(record, offset, data, 0, length);
-        quadruple_offset = 0;
-        quadruple_length = length;
-    }
-
-    public LID getLIDFld(int fldNo)
-            throws IOException, FieldNumberOutOfBoundException, ClassNotFoundException {
-        LID val;
-        if ( (fldNo > 0) && (fldNo <= fldCnt)) {
-            val = Convert.getLIDValue(fldOffset[fldNo -1], data, fldOffset[fldNo] - fldOffset[fldNo -1]);
-            return val;
-        }
-        else
-            throw new FieldNumberOutOfBoundException (null, "TUPLE:TUPLE_FLDNO_OUT_OF_BOUND");
-    }
-
-    public Quadruple setLIDFld(int fldNo, LID val)
-            throws IOException, FieldNumberOutOfBoundException {
-        if ( (fldNo > 0) && (fldNo <= fldCnt)) {
-            Convert.setLIDValue (val, fldOffset[fldNo -1], data);
-            return this;
-        }
-        else
-            throw new FieldNumberOutOfBoundException (null, "TUPLE:TUPLE_FLDNO_OUT_OF_BOUND");
+    public LID getGenericObjectFromByteArray(int pidFld, int slotNoFld) throws FieldNumberOutOfBoundException, IOException {
+        LID result;
+        int genericObjectPid = getIntFld(pidFld);
+        int genericObjectSlotNo = getIntFld(slotNoFld);
+        return new LID(new PageId(genericObjectPid), genericObjectSlotNo);
     }
 
     public double getDoubleFld(int fldNo)
@@ -287,6 +269,16 @@ public class Quadruple implements GlobalConst {
             throws IOException, FieldNumberOutOfBoundException {
         if ( (fldNo > 0) && (fldNo <= fldCnt)) {
             Convert.setStrValue (val, fldOffset[fldNo -1], data);
+            return this;
+        }
+        else
+            throw new FieldNumberOutOfBoundException (null, "TUPLE:TUPLE_FLDNO_OUT_OF_BOUND");
+    }
+
+    public Quadruple setDoubleFld(int fldNo, double val)
+            throws IOException, FieldNumberOutOfBoundException {
+        if ( (fldNo > 0) && (fldNo <= fldCnt)) {
+            Convert.setDoubleValue(val, fldOffset[fldNo -1], data);
             return this;
         }
         else
