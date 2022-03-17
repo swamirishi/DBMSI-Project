@@ -54,10 +54,10 @@ public class RDFDB extends DB {
     //Need to return EID
     public EID insertEntity(String entityLabel) {
         try {
-            LID lid = getLIDFromHeapFileScan(entityLabel);
-            if (lid.getPageNo().pid == INVALID_PAGE) {
-                lid = entityLabelHeapFile.insertRecord(entityLabel.getBytes());
-            }
+//            LID lid = getLIDFromHeapFileScan(entityLabel);
+//            if (lid.getPageNo().pid == INVALID_PAGE) {
+            LID lid = entityLabelHeapFile.insertRecord(entityLabel.getBytes());
+//            }
             return lid.returnEid();
         } catch (Exception e) {
             e.printStackTrace();
@@ -97,7 +97,12 @@ public class RDFDB extends DB {
 
     public Stream openStream(int orderType, String subjectFilter, String predicateFilter,
                              String objectFilter, double confidenceFilter) {
-        Stream stream = new Stream(this, orderType, subjectFilter, predicateFilter, objectFilter, confidenceFilter);
+        Stream stream = null;
+        try {
+            stream = new Stream(this, orderType, subjectFilter, predicateFilter, objectFilter, confidenceFilter);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         System.out.println("Opened new stream: ");
         return stream;
     }
@@ -132,12 +137,20 @@ public class RDFDB extends DB {
             }
         }
         if (!isFound) {
-            qid.getPageNo().pid = INVALID_PAGE;
+            qid.pageNo.pid = INVALID_PAGE;
         }
         return qid;
     }
 
-    public QuadrupleHeapFile getQuadrupleHeapFile(){
+    public QuadrupleHeapFile getQuadrupleHeapFile() {
         return this.quadrupleHeapFile;
+    }
+
+    public LabelHeapFile getEntityLabelHeapFile() {
+        return entityLabelHeapFile;
+    }
+
+    public LabelHeapFile getPredicateLabelHeapFile() {
+        return predicateLabelHeapFile;
     }
 }

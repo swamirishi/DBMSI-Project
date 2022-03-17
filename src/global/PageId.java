@@ -1,10 +1,11 @@
 package global;
 
+import javax.crypto.SealedObject;
 import java.io.*;
 
 /** class PageId
  */
-public class PageId{
+public class PageId implements Serializable {
   
   /** public int pid
    */
