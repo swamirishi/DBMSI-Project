@@ -14,6 +14,14 @@ public class EID implements Serializable {
         return slotNo + pageNo.toString();
     }
 
+    public int getSlotNo() {
+        return slotNo;
+    }
+
+    public PageId getPageNo() {
+        return pageNo;
+    }
+
     public EID (PageId pageno, int slotno) {
         pageNo = pageno;
         slotNo = slotno;

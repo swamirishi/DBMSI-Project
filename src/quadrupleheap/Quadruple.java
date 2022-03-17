@@ -14,49 +14,51 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class Quadruple implements GlobalConst {
+    /**
+        Quadruple class needs to store 4 attributes. EID is represented by 2 integers pid and slotNo.
+        pid is stored first and then slotNo. Field count is 1 indexed.
+        Quadruple : [Subject, Predicate, Object, Value]
+     */
     private EID subject;
     private PID predicate;
     private EID object;
     private double value;
     public static final int max_size = MINIBASE_PAGESIZE;
-    private byte[] data;
+    public byte[] data;
     private int quadruple_offset;
     private int quadruple_length;
-    private short fldCnt = 4;
-    private short[] fldOffset;
+    private final int fixed_quadruple_length = 32;
+    private static short fldCnt = 7;
+    private short [] fldOffset;
 
     public Quadruple() {
         data = new byte[max_size];
         quadruple_offset = 0;
         quadruple_length = max_size;
     }
+    /**
+     * This method verifies whether the Quadruple stores quadruple or metadata.
+     * @param length
+     * @return
+     */
 
-    public Quadruple(byte[] aQuadruple, int offset, int length) {
-        try {
-            if(aQuadruple.length==341) {
-                byte[] temp1 = Arrays.copyOfRange(aQuadruple, 0, 111);
-                this.subject = ((LID) Convert.convertFromBytes(temp1)).returnEid();
+    public boolean isQuadruple(int length){
+        return length == fixed_quadruple_length;
+    }
 
-                byte[] temp2 = Arrays.copyOfRange(aQuadruple, 111, 222);
-                this.predicate = ((LID) Convert.convertFromBytes(temp2)).returnPid();
-
-                byte[] temp3 = Arrays.copyOfRange(aQuadruple, 222, 333);
-                this.object = ((LID) Convert.convertFromBytes(temp3)).returnEid();
-
-                byte[] temp4 = Arrays.copyOfRange(aQuadruple, 333, 341);
-
-                this.value = ByteBuffer.wrap(temp4).getDouble();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
-
+    public Quadruple(byte [] aQuadruple, int offset, int length) {
         data = aQuadruple;
         quadruple_offset = offset;
         quadruple_length = length;
+        if(isQuadruple(quadruple_length)){
+            try {
+                setAttributes();
+            } catch (FieldNumberOutOfBoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public int writeAttributeArrayToByteArray
@@ -66,36 +68,51 @@ public class Quadruple implements GlobalConst {
         return dstOffset + length;
     }
 
-    public Quadruple(EID subject, PID predicate, EID object, double value) throws IOException {
+    public void setAttributes() throws FieldNumberOutOfBoundException, IOException {
+        this.fldOffset = new short[]{0, 4, 8, 12, 16, 20, 24, 32};
+        this.fldCnt = 7;
+        int subjectPid = getIntFld(1);
+        int subjectSlotNo = getIntFld(2);
+        int predicatePid = getIntFld(3);
+        int predicateSlotNo = getIntFld(4);
+        int objectPid = getIntFld(5);
+        int objectSlotNo = getIntFld(6);
+        double value = getDoubleFld(7);
+        this.subject = new EID(new PageId(subjectPid), subjectSlotNo);
+        this.predicate = new PID(new PageId(predicatePid), predicateSlotNo);
+        this.object = new EID((new PageId(objectPid)), objectSlotNo);
+        this.value = value;
+    }
+
+    public void setByteArray() throws FieldNumberOutOfBoundException, IOException {
+        int subjectPid = subject.pageNo.pid;
+        int subjectSlotNo = subject.slotNo;
+        int predicatePid = predicate.pageNo.pid;
+        int predicateSlotNo = predicate.slotNo;
+        int objectPid = object.pageNo.pid;
+        int objectSlotNo = object.slotNo;
+        double value = this.value;
+        fldCnt = 7;
+        this.fldOffset = new short[]{0, 4, 8, 12, 16, 20, 24, 32};
+        this.quadruple_length = fixed_quadruple_length;
+        this.quadruple_offset = 0;
+        data = new byte[this.quadruple_length];
+        setIntFld(1, subjectPid);
+        setIntFld(2, subjectSlotNo);
+        setIntFld(3, predicatePid);
+        setIntFld(4, predicateSlotNo);
+        setIntFld(5, objectPid);
+        setIntFld(6, objectSlotNo);
+        setDoubleFld(7, value);
+    }
+
+    public Quadruple(EID subject, PID predicate, EID object, double value) throws IOException, FieldNumberOutOfBoundException {
         this.subject = subject;
         this.predicate = predicate;
         this.object = object;
         this.value = value;
-        byte[] subjectArray = Convert.convertToBytes(subject.returnLid());
-        byte[] predicateArray = Convert.convertToBytes(predicate.returnLid());
-        byte[] objectArray = Convert.convertToBytes(object.returnLid());
-        OutputStream out = new ByteArrayOutputStream();
-        DataOutputStream outstr = new DataOutputStream(out);
-        outstr.writeDouble(value);
-        byte[] doubleArray = ((ByteArrayOutputStream) out).toByteArray();
-        int size = subjectArray.length + predicateArray.length + objectArray.length + doubleArray.length;
-        data = new byte[size];
-        quadruple_offset = 0;
-        fldOffset = new short[fldCnt + 1];
-        quadruple_offset =
-                writeAttributeArrayToByteArray(
-                        subjectArray, 0, data, quadruple_offset, subjectArray.length, fldOffset, 0);
-        quadruple_offset =
-                writeAttributeArrayToByteArray(
-                        predicateArray, 0, data, quadruple_offset, predicateArray.length, fldOffset, 1);
-        quadruple_offset =
-                writeAttributeArrayToByteArray(
-                        objectArray, 0, data, quadruple_offset, objectArray.length, fldOffset, 2);
-        quadruple_offset =
-                writeAttributeArrayToByteArray(
-                        doubleArray, 0, data, quadruple_offset, doubleArray.length, fldOffset, 3);
-        fldOffset[fldOffset.length - 1] = (short) quadruple_offset;
-        quadruple_length = data.length;
+        setByteArray();
+
     }
 
     public Quadruple(Quadruple fromQuadruple) {
@@ -103,6 +120,15 @@ public class Quadruple implements GlobalConst {
         quadruple_length = fromQuadruple.getLength();
         quadruple_offset = 0;
         fldOffset = fromQuadruple.copyFldOffset();
+        if(isQuadruple(quadruple_length)){
+            try {
+                setAttributes();
+            } catch (FieldNumberOutOfBoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public byte[] getQuadrupleByteArray() {
@@ -131,42 +157,20 @@ public class Quadruple implements GlobalConst {
         data = new byte[size];
         quadruple_offset = 0;
         quadruple_length = size;
+
+        //not handled setAttributes here
     }
 
     public void quadrupleCopy(Quadruple fromQuadruple) {
-        byte[] temparray = fromQuadruple.getQuadrupleByteArray();
-        System.arraycopy(temparray, 0, data, quadruple_offset, quadruple_length);
+        byte [] temparray = fromQuadruple.getQuadrupleByteArray();
+        System.arraycopy(temparray, 0, data, 0, quadruple_length);
     }
 
-    public void quadrupleInit(byte[] aQuadruple, int offset, int length) {
-        data = aQuadruple;
-        quadruple_offset = offset;
-        quadruple_length = length;
-    }
-
-    public void quadrupleSet(byte[] record, int offset, int length) {
-        System.arraycopy(record, offset, data, 0, length);
-        quadruple_offset = 0;
-        quadruple_length = length;
-    }
-
-    public LID getLIDFld(int fldNo)
-            throws IOException, FieldNumberOutOfBoundException, ClassNotFoundException {
-        LID val;
-        if ((fldNo > 0) && (fldNo <= fldCnt)) {
-            val = Convert.getLIDValue(fldOffset[fldNo - 1], data, fldOffset[fldNo] - fldOffset[fldNo - 1]);
-            return val;
-        } else
-            throw new FieldNumberOutOfBoundException(null, "TUPLE:TUPLE_FLDNO_OUT_OF_BOUND");
-    }
-
-    public Quadruple setLIDFld(int fldNo, LID val)
-            throws IOException, FieldNumberOutOfBoundException {
-        if ((fldNo > 0) && (fldNo <= fldCnt)) {
-            Convert.setLIDValue(val, fldOffset[fldNo - 1], data);
-            return this;
-        } else
-            throw new FieldNumberOutOfBoundException(null, "TUPLE:TUPLE_FLDNO_OUT_OF_BOUND");
+    public LID getGenericObjectFromByteArray(int pidFld, int slotNoFld) throws FieldNumberOutOfBoundException, IOException {
+        LID result;
+        int genericObjectPid = getIntFld(pidFld);
+        int genericObjectSlotNo = getIntFld(slotNoFld);
+        return new LID(new PageId(genericObjectPid), genericObjectSlotNo);
     }
 
     public double getDoubleFld(int fldNo)
@@ -305,6 +309,16 @@ public class Quadruple implements GlobalConst {
             throw new FieldNumberOutOfBoundException(null, "TUPLE:TUPLE_FLDNO_OUT_OF_BOUND");
     }
 
+    public Quadruple setDoubleFld(int fldNo, double val)
+            throws IOException, FieldNumberOutOfBoundException {
+        if ( (fldNo > 0) && (fldNo <= fldCnt)) {
+            Convert.setDoubleValue(val, fldOffset[fldNo -1], data);
+            return this;
+        }
+        else
+            throw new FieldNumberOutOfBoundException (null, "TUPLE:TUPLE_FLDNO_OUT_OF_BOUND");
+    }
+
 
     /**
      * setHdr will set the header of this quadruple.
@@ -313,8 +327,6 @@ public class Quadruple implements GlobalConst {
      * @throws InvalidTypeException      Invalid tupe type
      * @throws InvalidTupleSizeException Tuple size too big
      * @param    numFlds     number of fields
-     * @param    types[]     contains the types that will be in this tuple
-     * @param    strSizes[] contains the sizes of the string
      */
 
     public void setHdr(short numFlds, AttrType types[], short strSizes[])
@@ -394,9 +406,5 @@ public class Quadruple implements GlobalConst {
 
     public int getOffset() {
         return quadruple_offset;
-    }
-
-    public String toString(){
-        return this.subject.toString() + " " + this.object.toString();
     }
 }
