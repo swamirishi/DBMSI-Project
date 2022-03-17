@@ -81,7 +81,7 @@ public class Stream {
             e.printStackTrace();
         }
 
-        currQuadruple = getNextInternal(userqid);
+//        currQuadruple = getNextInternal(userqid);
 
         do {
 
@@ -96,7 +96,7 @@ public class Stream {
 
             //subject filter
             if (subjectFilter != null) {
-                if (entityLabelHeapFile.getRecord(currSubjectID.returnLid()).getLabel().compareTo(subjectFilter) != 0) {
+                if (!entityLabelHeapFile.getRecord(currSubjectID.returnLid()).getLabel().equals(subjectFilter)) {
                     currQuadruple = getNextInternal(userqid);
                     continue;
                 }
@@ -126,7 +126,8 @@ public class Stream {
 
             //passed all filters => store this quadruple in collection
             currQuadruple = getNextInternal(userqid);
-            quadrupleList.add(currQuadruple);
+            if(currQuadruple!=null)
+                quadrupleList.add(currQuadruple);
 
         } while (userqid != null);
 

@@ -46,7 +46,7 @@ public class RDFDBTest {
         Quadruple q2 = quadrupleInitTest(subjectID, objectID, predicateID, 2.0);
         rdfdb.insertQuadruple(q2.returnQuadrupleByteArray());
 
-        Stream s = rdfdb.openStream(1, null, null, null, 0);
+        Stream s = rdfdb.openStream(1, "Abhi", null, null, 0);
         System.out.println(rdfdb.getEntityLabelHeapFile().getRecord(s.getNext().getSubject().returnLid()).getLabel());
         System.out.println(rdfdb.getEntityLabelHeapFile().getRecord(s.getNext().getSubject().returnLid()).getLabel());
 
