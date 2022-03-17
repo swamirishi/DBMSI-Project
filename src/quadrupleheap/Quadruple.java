@@ -416,7 +416,7 @@ public class Quadruple implements GlobalConst {
         return quadruple_offset;
     }
 
-    public void tupleSet(byte [] record, int offset, int length) {
+    public void quadrupleSet(byte [] record, int offset, int length) {
         System.arraycopy(record, offset, data, 0, length);
         quadruple_offset = 0;
         quadruple_length = length;
