@@ -1,5 +1,4 @@
 package qiterator;
-
 import quadrupleheap.*;
 import global.*;
 import java.io.*;
@@ -39,8 +38,8 @@ public class QuadrupleUtils
 	   QuadrupleUtilsException
     {
 
-      private t1_lid =new LID();
-      private t2_lid=new LID();
+      LID t1_lid =new LID();
+      LID t2_lid=new LID();
       int t1_i,  t2_i;
       float t1_r,  t2_r;
       String t1_s, t2_s;
@@ -48,16 +47,16 @@ public class QuadrupleUtils
 
 
       
-     switch (fldType.attrType) 
+    switch (fldType.attrType) 
 	{
 
-	case AttrType.attrLID:
-		try{
+		case AttrType.attrLID:
+		
 
-			if(t1_fld_no==1 and t2_fld_no==1){
+			if(t1_fld_no==1 && t2_fld_no==1){
 
 				f = new Heapfile("file_1");
-				status == OK;
+			
 
 				t1_lid=t1.getLIDFld(t1_fld_no);
 				t2_lid=t2.getLIDFld(t2_fld_no);
@@ -141,10 +140,10 @@ public class QuadrupleUtils
 				}
 
 			}
-			else if(t1_fld_no==2 and t2_fld_no==2){
+			else if(t1_fld_no==2 && t2_fld_no==2){
 
 				f = new Heapfile("file_1");
-				status == OK;
+				
 
 				t1_lid=t1.getLIDFld(t1_fld_no);
 				t2_lid=t2.getLIDFld(t2_fld_no);
@@ -228,10 +227,10 @@ public class QuadrupleUtils
 				}
 
 			}
-			else if(t1_fld_no==3 and t2_fld_no==3){
+			else if(t1_fld_no==3 && t2_fld_no==3){
 
 				f = new Heapfile("file_1");
-				status == OK;
+				
 
 				t1_lid=t1.getLIDFld(t1_fld_no);
 				t2_lid=t2.getLIDFld(t2_fld_no);
@@ -316,11 +315,11 @@ public class QuadrupleUtils
 
 			}
 			else{
-				status == OK;
+			
 
 				try {
-				    t1_i = t1.getIntFld(t1_fld_no);
-				    t2_i = t2.getIntFld(t2_fld_no);
+				    int t1_i = t1.getIntFld(t1_fld_no);
+				    int t2_i = t2.getIntFld(t2_fld_no);
 				  }catch (FieldNumberOutOfBoundException e){
 				    throw new QuadrupleUtilsException(e, "FieldNumberOutOfBoundException is caught by QuadrupleUtils.java");
 				  
