@@ -22,7 +22,7 @@ public class Quadruple implements GlobalConst {
     private EID object;
     private double value;
     public static final int max_size = MINIBASE_PAGESIZE;
-    private byte [] data;
+    public byte [] data;
     private int quadruple_offset;
     private int quadruple_length;
     private static short fldCnt = 7;
@@ -38,6 +38,13 @@ public class Quadruple implements GlobalConst {
         data = aQuadruple;
         quadruple_offset = offset;
         quadruple_length = length;
+        try {
+            setAttributes();
+        } catch (FieldNumberOutOfBoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public int writeAttributeArrayToByteArray
@@ -45,6 +52,22 @@ public class Quadruple implements GlobalConst {
         System.arraycopy(attrArray, srcPos, data, dstOffset, length);
         fldOffset[fldIndex] = (short) dstOffset;
         return dstOffset + length;
+    }
+
+    public void setAttributes() throws FieldNumberOutOfBoundException, IOException {
+        this.fldOffset = new short[]{0, 4, 8, 12, 16, 20, 24, 32};
+        this.fldCnt = 7;
+        int subjectPid = getIntFld(1);
+        int subjectSlotNo = getIntFld(2);
+        int predicatePid = getIntFld(3);
+        int predicateSlotNo = getIntFld(4);
+        int objectPid = getIntFld(5);
+        int objectSlotNo = getIntFld(6);
+        double value = getDoubleFld(7);
+        this.subject = new EID(new PageId(subjectPid), subjectSlotNo);
+        this.predicate = new PID(new PageId(predicatePid), predicateSlotNo);
+        this.object = new EID((new PageId(objectPid)), objectSlotNo);
+        this.value = value;
     }
 
     public void setByteArray() throws FieldNumberOutOfBoundException, IOException {
