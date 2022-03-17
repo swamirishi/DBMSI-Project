@@ -1,4 +1,4 @@
-package qiterator;
+package iterator;
 import chainexception.*;
 
 import java.lang.*;

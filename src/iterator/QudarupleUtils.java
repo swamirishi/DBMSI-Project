@@ -1,4 +1,4 @@
-package qiterator;
+package iterator;
 
 import quadrupleheap.*;
 import global.*;

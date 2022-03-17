@@ -5,6 +5,8 @@ import global.*;
 import diskmgr.*;
 import bufmgr.*;
 import index.*;
+import quadrupleheap.Quadruple;
+
 import java.io.*;
 
 /**
@@ -21,7 +23,7 @@ public class SortMerge extends Iterator implements GlobalConst
   private  int        in1_len, in2_len;
   private  Iterator  p_i1,        // pointers to the two iterators. If the
     p_i2;               // inputs are sorted, then no sorting is done
-  private  TupleOrder  _order;                      // The sorting order.
+  private  QuadrupleOrder  _order;                      // The sorting order.
   private  CondExpr  OutputFilter[];
   
   private  boolean      get_from_in1, get_from_in2;        // state variables for get_next
@@ -29,15 +31,15 @@ public class SortMerge extends Iterator implements GlobalConst
   private  boolean        process_next_block;
   private  short     inner_str_sizes[];
   private  IoBuf    io_buf1,  io_buf2;
-  private  Tuple     TempTuple1,  TempTuple2;
-  private  Tuple     tuple1,  tuple2;
+  private  Quadruple TempTuple1,  TempTuple2;
+  private  Quadruple     tuple1,  tuple2;
   private  boolean       done;
   private  byte    _bufs1[][],_bufs2[][];
   private  int        _n_pages; 
   private  Heapfile temp_file_fd1, temp_file_fd2;
   private  AttrType   sortFldType;
   private  int        t1_size, t2_size;
-  private  Tuple     Jtuple;
+  private  Quadruple     Jtuple;
   private  FldSpec   perm_mat[];
   private  int        nOutFlds;
   
@@ -86,7 +88,7 @@ public class SortMerge extends Iterator implements GlobalConst
 		   
 		   boolean     in1_sorted,                
 		   boolean     in2_sorted,                
-		   TupleOrder order,
+		   QuadrupleOrder order,
 		   
 		   CondExpr  outFilter[],                
 		   FldSpec   proj_list[],
@@ -106,13 +108,13 @@ public class SortMerge extends Iterator implements GlobalConst
       in1_len = len_in1;
       in2_len = len_in2;
       
-      Jtuple = new Tuple();
+      Jtuple = new Quadruple();
       AttrType[] Jtypes = new AttrType[n_out_flds];
       short[]    ts_size = null;
       perm_mat = proj_list;
       nOutFlds = n_out_flds;
       try {
-	ts_size = TupleUtils.setup_op_tuple(Jtuple, Jtypes,
+	ts_size = QuadrupleUtils.setup_op_Quadruple(Jtuple, Jtypes,
 					    in1, len_in1, in2, len_in2,
 					    s1_sizes, s2_sizes, 
 					    proj_list,n_out_flds );
@@ -160,10 +162,10 @@ public class SortMerge extends Iterator implements GlobalConst
       io_buf2 = new IoBuf();
       
       // Allocate memory for the temporary tuples
-      TempTuple1 = new Tuple();
-      TempTuple2 =  new Tuple();
-      tuple1 = new Tuple();
-      tuple2 =  new Tuple();
+      TempTuple1 = new Quadruple();
+      TempTuple2 =  new Quadruple();
+      tuple1 = new Quadruple();
+      tuple2 =  new Quadruple();
       
       
       if (io_buf1  == null || io_buf2  == null ||
@@ -253,7 +255,7 @@ public class SortMerge extends Iterator implements GlobalConst
     {
       
       int    comp_res;
-      Tuple _tuple1,_tuple2;
+      Quadruple _tuple1,_tuple2;
       if (done) return null;
       
       while (true)
@@ -278,24 +280,24 @@ public class SortMerge extends Iterator implements GlobalConst
 	      // Note that depending on whether the sort order
 	      // is ascending or descending,
 	      // this loop will be modified.
-	      comp_res = TupleUtils.CompareTupleWithTuple(sortFldType, tuple1,
+	      comp_res = QuadrupleUtils.CompareQuadrupleWithQuadruple(sortFldType, tuple1,
 							  jc_in1, tuple2, jc_in2);
-	      while ((comp_res < 0 && _order.tupleOrder == TupleOrder.Ascending) ||
-		     (comp_res > 0 && _order.tupleOrder == TupleOrder.Descending))
+	      while ((comp_res < 0 && _order.quadrupleOrder == QuadrupleOrder.Ascending) ||
+		     (comp_res > 0 && _order.quadrupleOrder == QuadrupleOrder.Descending))
 		{
 		  if ((tuple1 = p_i1.get_next()) == null) {
 		    done = true;
 		    return null;
 		  }
 		  
-		  comp_res = TupleUtils.CompareTupleWithTuple(sortFldType, tuple1,
+		  comp_res = QuadrupleUtils.CompareQuadrupleWithQuadruple(sortFldType, tuple1,
 							      jc_in1, tuple2, jc_in2);
 		}
 	      
-	      comp_res = TupleUtils.CompareTupleWithTuple(sortFldType, tuple1,
+	      comp_res = QuadrupleUtils.CompareQuadrupleWithQuadruple(sortFldType, tuple1,
 							  jc_in1, tuple2, jc_in2);
-	      while ((comp_res > 0 && _order.tupleOrder == TupleOrder.Ascending) ||
-		     (comp_res < 0 && _order.tupleOrder == TupleOrder.Descending))
+	      while ((comp_res > 0 && _order.quadrupleOrder == QuadrupleOrder.Ascending) ||
+		     (comp_res < 0 && _order.quadrupleOrder == QuadrupleOrder.Descending))
 		{
 		  if ((tuple2 = p_i2.get_next()) == null)
 		    {
@@ -303,7 +305,7 @@ public class SortMerge extends Iterator implements GlobalConst
 		      return null;
 		    }
 		  
-		  comp_res = TupleUtils.CompareTupleWithTuple(sortFldType, tuple1,
+		  comp_res = QuadrupleUtils.CompareQuadrupleWithQuadruple(sortFldType, tuple1,
 							      jc_in1, tuple2, jc_in2);
 		}
 	      
@@ -313,13 +315,13 @@ public class SortMerge extends Iterator implements GlobalConst
 		  continue;
 		}
 	      
-	      TempTuple1.tupleCopy(tuple1);
-	      TempTuple2.tupleCopy(tuple2); 
+	      TempTuple1.quadrupleCopy(tuple1);
+	      TempTuple2.quadrupleCopy(tuple2);
 	      
 	      io_buf1.init(_bufs1,       1, t1_size, temp_file_fd1);
 	      io_buf2.init(_bufs2,       1, t2_size, temp_file_fd2);
 	      
-	      while (TupleUtils.CompareTupleWithTuple(sortFldType, tuple1,
+	      while (QuadrupleUtils.CompareQuadrupleWithQuadruple(sortFldType, tuple1,
 						      jc_in1, TempTuple1, jc_in1) == 0)
 		{
 		  // Insert tuple1 into io_buf1
@@ -336,7 +338,7 @@ public class SortMerge extends Iterator implements GlobalConst
 		    }
 		}
 	      
-	      while (TupleUtils.CompareTupleWithTuple(sortFldType, tuple2,
+	      while (QuadrupleUtils.CompareQuadrupleWithQuadruple(sortFldType, tuple2,
 						      jc_in2, TempTuple2, jc_in2) == 0)
 		{
 		  // Insert tuple2 into io_buf2

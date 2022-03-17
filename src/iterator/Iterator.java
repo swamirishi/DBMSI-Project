@@ -4,6 +4,8 @@ import heap.*;
 import diskmgr.*;
 import bufmgr.*;
 import index.*;
+import quadrupleheap.Quadruple;
+
 import java.io.*;
 
 /**
@@ -37,7 +39,7 @@ public abstract class Iterator implements Flags {
    *@exception UnknownKeyTypeException key type unknown
    *@exception Exception other exceptions
    */
-  public abstract Tuple get_next() 
+  public abstract Quadruple get_next()
     throws IOException,
 	   JoinsException ,
 	   IndexException,

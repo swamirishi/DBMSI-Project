@@ -7,6 +7,7 @@ import diskmgr.*;
 import heap.*;
 import index.*;
 import chainexception.*;
+import quadrupleheap.QuadrupleHeapFile;
 
 /**
  * The Sort class sorts a file. All necessary information are passed as 
@@ -34,7 +35,7 @@ public class Sort extends Iterator implements GlobalConst
   private int         tuple_size;
   
   private pnodeSplayPQ Q;
-  private Heapfile[]   temp_files; 
+  private Heapfile[]   temp_files;
   private int          n_tempfiles;
   private Tuple        output_tuple;  
   private int[]        n_tuples;
@@ -561,7 +562,7 @@ public class Sort extends Iterator implements GlobalConst
 	      short[]    str_sizes,
 	      Iterator   am,                 
 	      int        sort_fld,          
-	      TupleOrder sort_order,     
+	      QuadrupleOrder sort_order,
 	      int        sort_fld_len,  
 	      int        n_pages      
 	      ) throws IOException, SortException
