@@ -19,7 +19,9 @@ public class QuadrupleTest {
         PID predicate = new PID(new PageId(2), 3);
         EID object = new EID(new PageId(10), 21);
         double value = 1.2;
+
         Quadruple q = new Quadruple(subject, predicate, object, value);
+        System.out.println(q.getDoubleFld(7));
         if(!assertEquals(q.getIntFld(1), 1)) return false;
         if(!assertEquals(q.getIntFld(2), -2)) return false;
         if(!assertEquals(q.getDoubleFld(7), 1.2)) return false;

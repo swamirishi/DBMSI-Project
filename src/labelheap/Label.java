@@ -33,6 +33,7 @@ public class Label {
     }
 
     public Label(byte [] aQuadruple, int offset, int length) {
+        this.label = new String(aQuadruple);
         data = aQuadruple;
         label_offset = offset;
         label_length = length;
