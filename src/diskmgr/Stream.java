@@ -81,11 +81,14 @@ public class Stream {
             e.printStackTrace();
         }
 
+        currQuadruple = getNextInternal(userqid);
+
         do {
 
             currSubjectID = currQuadruple.getSubject();
             currObjectID = currQuadruple.getObject();
             currPredicateID = currQuadruple.getPredicate();
+            String currSubject = entityLabelHeapFile.getRecord(currSubjectID.returnLid()).getLabel();
 
 
             //filters
@@ -122,8 +125,9 @@ public class Stream {
             }
 
             //passed all filters => store this quadruple in collection
-            quadrupleList.add(currQuadruple);
             currQuadruple = getNextInternal(userqid);
+            quadrupleList.add(currQuadruple);
+
         } while (userqid != null);
 
         //sort the collection according to the orderType
