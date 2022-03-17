@@ -25,6 +25,7 @@ public class Quadruple implements GlobalConst {
     public byte [] data;
     private int quadruple_offset;
     private int quadruple_length;
+    private final int fixed_quadruple_length = 32;
     private static short fldCnt = 7;
     private short [] fldOffset;
 
@@ -34,16 +35,27 @@ public class Quadruple implements GlobalConst {
         quadruple_length = max_size;
     }
 
+    /**
+     * This method verifies whether the Quadruple stores quadruple or metadata.
+     * @param length
+     * @return
+     */
+    public boolean isQuadruple(int length){
+        return length == fixed_quadruple_length;
+    }
+
     public Quadruple(byte [] aQuadruple, int offset, int length) {
         data = aQuadruple;
         quadruple_offset = offset;
         quadruple_length = length;
-        try {
-            setAttributes();
-        } catch (FieldNumberOutOfBoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(isQuadruple(quadruple_length)){
+            try {
+                setAttributes();
+            } catch (FieldNumberOutOfBoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -80,7 +92,7 @@ public class Quadruple implements GlobalConst {
         double value = this.value;
         fldCnt = 7;
         this.fldOffset = new short[]{0, 4, 8, 12, 16, 20, 24, 32};
-        this.quadruple_length = 32;
+        this.quadruple_length = fixed_quadruple_length;
         this.quadruple_offset = 0;
         data = new byte[this.quadruple_length];
         setIntFld(1, subjectPid);
