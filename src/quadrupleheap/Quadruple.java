@@ -24,7 +24,7 @@ public class Quadruple implements GlobalConst {
     private EID object;
     private double value;
     public static final int max_size = MINIBASE_PAGESIZE;
-    private byte[] data;
+    public byte[] data;
     private int quadruple_offset;
     private int quadruple_length;
     private static short fldCnt = 7;
@@ -37,31 +37,38 @@ public class Quadruple implements GlobalConst {
     }
 
     public Quadruple(byte[] aQuadruple, int offset, int length) {
-        try {
-            if(aQuadruple.length==341) {
-                byte[] temp1 = Arrays.copyOfRange(aQuadruple, 0, 111);
-                this.subject = ((LID) Convert.convertFromBytes(temp1)).returnEid();
-
-                byte[] temp2 = Arrays.copyOfRange(aQuadruple, 111, 222);
-                this.predicate = ((LID) Convert.convertFromBytes(temp2)).returnPid();
-
-                byte[] temp3 = Arrays.copyOfRange(aQuadruple, 222, 333);
-                this.object = ((LID) Convert.convertFromBytes(temp3)).returnEid();
-
-                byte[] temp4 = Arrays.copyOfRange(aQuadruple, 333, 341);
-
-                this.value = ByteBuffer.wrap(temp4).getDouble();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            if(aQuadruple.length==341) {
+//                byte[] temp1 = Arrays.copyOfRange(aQuadruple, 0, 111);
+//                this.subject = ((LID) Convert.convertFromBytes(temp1)).returnEid();
+//
+//                byte[] temp2 = Arrays.copyOfRange(aQuadruple, 111, 222);
+//                this.predicate = ((LID) Convert.convertFromBytes(temp2)).returnPid();
+//
+//                byte[] temp3 = Arrays.copyOfRange(aQuadruple, 222, 333);
+//                this.object = ((LID) Convert.convertFromBytes(temp3)).returnEid();
+//
+//                byte[] temp4 = Arrays.copyOfRange(aQuadruple, 333, 341);
+//
+//                this.value = ByteBuffer.wrap(temp4).getDouble();
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } catch (ClassNotFoundException e) {
+//            e.printStackTrace();
+//        }
 
 
         data = aQuadruple;
         quadruple_offset = offset;
         quadruple_length = length;
+        try {
+            setAttributes();
+        } catch (FieldNumberOutOfBoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public int writeAttributeArrayToByteArray
@@ -69,6 +76,22 @@ public class Quadruple implements GlobalConst {
         System.arraycopy(attrArray, srcPos, data, dstOffset, length);
         fldOffset[fldIndex] = (short) dstOffset;
         return dstOffset + length;
+    }
+
+    public void setAttributes() throws FieldNumberOutOfBoundException, IOException {
+        this.fldOffset = new short[]{0, 4, 8, 12, 16, 20, 24, 32};
+        this.fldCnt = 7;
+        int subjectPid = getIntFld(1);
+        int subjectSlotNo = getIntFld(2);
+        int predicatePid = getIntFld(3);
+        int predicateSlotNo = getIntFld(4);
+        int objectPid = getIntFld(5);
+        int objectSlotNo = getIntFld(6);
+        double value = getDoubleFld(7);
+        this.subject = new EID(new PageId(subjectPid), subjectSlotNo);
+        this.predicate = new PID(new PageId(predicatePid), predicateSlotNo);
+        this.object = new EID((new PageId(objectPid)), objectSlotNo);
+        this.value = value;
     }
 
     public void setByteArray() throws FieldNumberOutOfBoundException, IOException {
