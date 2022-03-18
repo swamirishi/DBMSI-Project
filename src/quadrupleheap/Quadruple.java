@@ -61,6 +61,13 @@ public class Quadruple implements GlobalConst {
         }
     }
 
+    public void quadrupleSet(byte [] record, int offset, int length)
+    {
+        System.arraycopy(record, offset, data, 0, length);
+        quadruple_offset = 0;
+        quadruple_length = length;
+    }
+
     public int writeAttributeArrayToByteArray
             (byte[] attrArray, int srcPos, byte[] data, int dstOffset, int length, short[] fldOffset, int fldIndex) {
         System.arraycopy(attrArray, srcPos, data, dstOffset, length);

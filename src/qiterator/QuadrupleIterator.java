@@ -1,4 +1,4 @@
-package iterator;
+package qiterator;
 import global.*;
 import heap.*;
 import diskmgr.*;
