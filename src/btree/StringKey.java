@@ -24,4 +24,23 @@ public class StringKey extends KeyClass {
   /** set the string key value
    */ 
   public void setKey(String s) { key=new String(s);}
+  
+  @Override
+  public StringKey copy() {
+    return new StringKey(this.getKey());
+  }
+  
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    
+    StringKey stringKey = (StringKey) o;
+  
+    return key != null ? key.equals(stringKey.key) : stringKey.key == null;
+  }
 }

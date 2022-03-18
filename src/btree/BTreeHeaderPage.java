@@ -9,6 +9,8 @@
 package btree;
 
 import java.io.*;
+
+import btree.interfaces.BTreeHeaderPageI;
 import diskmgr.*;
 import global.*;
 import heap.*;
@@ -21,100 +23,100 @@ import heap.*;
    * magic0, rootId, keyType, maxKeySize, deleteFashion,
    * and type(=NodeType.BTHEAD)
    */
-class BTreeHeaderPage extends HFPage {
+  public class BTreeHeaderPage extends BTreeHeaderPageI<RID,Tuple> {
   
-  void setPageId(PageId pageno) 
-    throws IOException 
-    {
-      setCurPage(pageno);
-    }
-  
-  PageId getPageId()
+  protected void setPageId(PageId pageno)
     throws IOException
     {
-      return getCurPage();
-    } 
+      super.setPageId(pageno);
+    }
+  
+  protected PageId getPageId()
+    throws IOException
+    {
+      return super.getPageId();
+    }
   
   /** set the magic0
    *@param magic  magic0 will be set to be equal to magic  
    */
-  void set_magic0( int magic ) 
-    throws IOException 
+  protected void set_magic0( int magic )
+    throws IOException
     {
-      setPrevPage(new PageId(magic)); 
+      super.set_magic0(magic);
     }
   
   
   /** get the magic0
    */
-  int get_magic0()
+  protected int get_magic0()
     throws IOException 
     { 
-      return getPrevPage().pid;
+      return super.get_magic0();
     };
   
   /** set the rootId
    */
-  void  set_rootId( PageId rootID )
+  protected void  set_rootId( PageId rootID )
     throws IOException 
     {
-      setNextPage(rootID); 
+      super.set_rootId(rootID);
     };
   
   /** get the rootId
    */
-  PageId get_rootId()
+  protected PageId get_rootId()
     throws IOException
     { 
-      return getNextPage();
+      return super.get_rootId();
     }
   
   /** set the key type
    */  
-  void set_keyType( short key_type )
+  protected void set_keyType( short key_type )
     throws IOException 
     {
-      setSlot(3, (int)key_type, 0); 
+      super.set_keyType(key_type);
     }
   
   /** get the key type
    */
-  short get_keyType() 
+  protected short get_keyType()
     throws IOException
     {
-      return   (short)getSlotLength(3);
+      return super.get_keyType();
     }
   
   /** get the max keysize
    */
-  void set_maxKeySize(int key_size ) 
+  protected void set_maxKeySize(int key_size )
     throws IOException
     {
-      setSlot(1, key_size, 0); 
+      super.set_maxKeySize(key_size);
     }
   
   /** set the max keysize
    */
-  int get_maxKeySize() 
+  protected int get_maxKeySize()
     throws IOException
     {
-      return getSlotLength(1);
+      return super.get_maxKeySize();
     }
   
   /** set the delete fashion
    */
-  void set_deleteFashion(int fashion )
+  protected void set_deleteFashion(int fashion )
     throws IOException
     {
-      setSlot(2, fashion, 0);
+      super.set_deleteFashion(fashion);
     }
   
   /** get the delete fashion
    */
-  int get_deleteFashion() 
+  protected int get_deleteFashion()
     throws IOException
-    { 
-      return getSlotLength(2); 
+    {
+      return super.get_deleteFashion();
     }
   
   
@@ -124,40 +126,31 @@ class BTreeHeaderPage extends HFPage {
   public BTreeHeaderPage(PageId pageno) 
     throws ConstructPageException
     { 
-      super();
-      try {
-	
-	SystemDefs.JavabaseBM.pinPage(pageno, this, false/*Rdisk*/); 
-      }
-      catch (Exception e) {
-	throw new ConstructPageException(e, "pinpage failed");
-      }
+      super(pageno);
     }
   
   /**associate the SortedPage instance with the Page instance */
   public BTreeHeaderPage(Page page) {
     
     super(page);
-  }  
+  }
   
+    @Override
+    protected RID getID() {
+      return new RID();
+    }
   
-  /**new a page, and associate the SortedPage instance with the Page instance
+    @Override
+    protected Tuple getTuple(byte[] record, int offset, int length) {
+      return new Tuple(record,offset,length);
+    }
+  
+    /**new a page, and associate the SortedPage instance with the Page instance
    */
   public BTreeHeaderPage( ) 
     throws ConstructPageException
     {
       super();
-      try{
-	Page apage=new Page();
-	PageId pageId=SystemDefs.JavabaseBM.newPage(apage,1);
-	if (pageId==null) 
-	  throw new ConstructPageException(null, "new page failed");
-	this.init(pageId, apage);
-	
-      }
-      catch (Exception e) {
-	throw new ConstructPageException(e, "construct header page failed");
-      }
     }  
   
 } // end of BTreeHeaderPage

@@ -68,6 +68,23 @@ public class PID implements ID<PID> {
             return false;
     }
     
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        
+        PID pid = (PID) o;
+        
+        if (slotNo != pid.slotNo) {
+            return false;
+        }
+        return pageNo != null ? pageNo.equals(pid.pageNo) : pid.pageNo == null;
+    }
+    
     /**
      * Casts EID object to LID object
      * @return new LID object
