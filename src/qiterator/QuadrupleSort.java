@@ -1,11 +1,13 @@
-package iterator;
+package qiterator;
 
 import java.io.*;
 
 import global.*;
 import heap.*;
+import iterator.*;
 import quadrupleheap.Quadruple;
 import quadrupleheap.QuadrupleHeapFile;
+import quadrupleheap.TScan;
 
 /**
  * The Sort class sorts a file. All necessary information are passed as
@@ -20,7 +22,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
     private AttrType[] _in;
     private short n_cols;
     private short[] str_lens;
-    private QuadrupleIterator _am;
+    private TScan _am;
     private int _sort_fld;
     private TupleOrder order;
     private int _n_pages;
@@ -38,8 +40,8 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
     private int[] n_tuples;
     private int n_runs;
     private Quadruple op_buf;
-    private iterator.OBuf o_buf;
-    private iterator.SpoofIbuf[] i_buf;
+    private OBuf o_buf;
+    private QuadrupleSpoofIbuf[] i_buf;
     private PageId[] bufs_pids;
     private boolean useBM = true; // flag for whether to use buffer manager
 
@@ -67,10 +69,10 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             throw new LowMemException("Sort.java: Not enough memory to sort in two passes.");
 
         int i;
-        iterator.pnode cur_node;  // need pq_defs.java
+        pnode cur_node;  // need pq_defs.java
 
-        i_buf = new iterator.SpoofIbuf[n_R_runs];   // need io_bufs.java
-        for (int j = 0; j < n_R_runs; j++) i_buf[j] = new SpoofIbuf();
+        i_buf = new QuadrupleSpoofIbuf[n_R_runs];   // need io_bufs.java
+        for (int j = 0; j < n_R_runs; j++) i_buf[j] = new QuadrupleSpoofIbuf();
 
         // construct the lists, ignore TEST for now
         // this is a patch, I am not sure whether it works well -- bingjie 4/20/98
@@ -82,7 +84,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             // need iobufs.java
             i_buf[i].init(temp_files[i], apage, 1, tuple_size, n_tuples[i]);
 
-            cur_node = new iterator.pnode();
+            cur_node = new pnode();
             cur_node.run_num = i;
 
             // may need change depending on whether Get() returns the original
@@ -126,7 +128,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
      * @return number of runs generated
      * @throws IOException    from lower layers
      * @throws SortException  something went wrong in the lower layer.
-     * @throws JoinsException from <code>Iterator.get_next()</code>
+     * @throws JoinsException from <code>get_next()</code>
      */
     private int generate_runs(int max_elems, AttrType sortFldType, int sortFldLen)
             throws IOException,
@@ -136,7 +138,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             JoinsException,
             Exception {
         Quadruple tuple;
-        iterator.pnode cur_node;
+        pnode cur_node;
         pnodeSplayPQ Q1 = new pnodeSplayPQ(_sort_fld, sortFldType, order);
         pnodeSplayPQ Q2 = new pnodeSplayPQ(_sort_fld, sortFldType, order);
         pnodeSplayPQ pcurr_Q = Q1;
@@ -180,7 +182,8 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
         // maintain a fixed maximum number of elements in the heap
         while ((p_elems_curr_Q + p_elems_other_Q) < max_elems) {
             try {
-                tuple = _am.get_next();  // according to Iterator.java
+                QID qid = new QID();
+                tuple = _am.getNext(qid);  // according to java
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new SortException(e, "Sort.java: get_next() failed");
@@ -189,7 +192,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             if (tuple == null) {
                 break;
             }
-            cur_node = new iterator.pnode();
+            cur_node = new pnode();
             cur_node.tuple = new Quadruple(tuple); // tuple copy needed --  Bingjie 4/29/98
 
             pcurr_Q.enq(cur_node);
@@ -289,7 +292,8 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             else if (p_elems_curr_Q == 0) {
                 while ((p_elems_curr_Q + p_elems_other_Q) < max_elems) {
                     try {
-                        tuple = _am.get_next();  // according to Iterator.java
+                        QID qid = new QID();
+                        tuple = _am.getNext(qid);  // according to java
                     } catch (Exception e) {
                         throw new SortException(e, "get_next() failed");
                     }
@@ -297,7 +301,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
                     if (tuple == null) {
                         break;
                     }
-                    cur_node = new iterator.pnode();
+                    cur_node = new pnode();
                     cur_node.tuple = new Quadruple(tuple); // tuple copy needed --  Bingjie 4/29/98
 
                     try {
@@ -396,7 +400,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             throws IOException,
             SortException,
             Exception {
-        iterator.pnode cur_node;                // needs pq_defs.java
+        pnode cur_node;                // needs pq_defs.java
         Quadruple new_tuple, old_tuple;
 
         cur_node = Q.deq();
@@ -545,7 +549,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
     public QuadrupleSort(AttrType[] in,
                          short len_in,
                          short[] str_sizes,
-                         QuadrupleIterator am,
+                         TScan am,
                          int sort_fld,
                          TupleOrder sort_order,
                          int sort_fld_len,
@@ -615,7 +619,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             throw new SortException(e, "Sort.java: Heapfile error");
         }
 
-        o_buf = new iterator.OBuf();
+        o_buf = new OBuf();
 
         o_buf.init(bufs, _n_pages, tuple_size, temp_files[0], false);
         //    output_tuple = null;
@@ -691,9 +695,9 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
         if (!closeFlag) {
 
             try {
-                _am.close();
+                _am.closescan();
             } catch (Exception e) {
-                throw new SortException(e, "Sort.java: error in closing iterator.");
+                throw new SortException(e, "Sort.java: error in closing ");
             }
 
             if (useBM) {

@@ -1,7 +1,10 @@
-package iterator;
+package qiterator;
 import diskmgr.RDFDB;
 import heap.*;
 import global.*;
+import iterator.FldSpec;
+import iterator.InvalidRelation;
+import iterator.UnknowAttrType;
 import labelheap.*;
 
 import quadrupleheap.*;
@@ -75,7 +78,7 @@ public class QuadrupleUtils {
 		populateHashmap(t2_map, lid_subject2, lid_predicate2, lid_object2);
 
 		LabelHeapFile labelHeapFileQ1 = getHeapFileUsingField(t1_fld_no);
-		LabelHeapFile labelHeapFileQ2 = getHeapFileUsingField(t1_fld_no);
+		LabelHeapFile labelHeapFileQ2 = getHeapFileUsingField(t2_fld_no);
 		Label labelQ1 = new Label();
 		Label labelQ2 = new Label();
 
@@ -83,7 +86,7 @@ public class QuadrupleUtils {
 
 			case AttrType.attrLID:
 
-				if (t1_fld_no == t2_fld_no && t1_fld_no >= 1 && t1_fld_no <= 3) {
+
 					try {
 						labelQ1 = labelHeapFileQ1.getRecord(t1_map.get(t1_fld_no));
 					}
@@ -97,9 +100,14 @@ public class QuadrupleUtils {
 						e.printStackTrace();
 					}
 
-					return labelQ1.getLabel().compareTo(labelQ2.getLabel());
+					int res = labelQ1.getLabel().compareTo(labelQ2.getLabel());
+					if(res == 0)
+						return res;
+					if(res > 0)
+						return 1;
+					if(res < 0)
+						return -1;
 
-				}
 
 			case AttrType.attrReal:                // Compare two floats
 				try {
@@ -125,6 +133,7 @@ public class QuadrupleUtils {
 		else if(fld_no == 3){
 			return rdfdb.getEntityLabelHeapFile();
 		}
+		return null;
 	}
 
 
@@ -309,134 +318,5 @@ public class QuadrupleUtils {
 
 		}
 
-	}
-
-
-	/**
-	 * set up the JQuadruple's attrtype, string size,field number for using join
-	 *
-	 * @param JQuadruple   reference to an actual Quadruple  - no memory has been malloced
-	 * @param res_attrs    attributes type of result Quadruple
-	 * @param in1          array of the attributes of the Quadruple (ok)
-	 * @param len_in1      num of attributes of in1
-	 * @param in2          array of the attributes of the Quadruple (ok)
-	 * @param len_in2      num of attributes of in2
-	 * @param t1_str_sizes shows the length of the string fields in S
-	 * @param t2_str_sizes shows the length of the string fields in R
-	 * @param proj_list    shows what input fields go where in the output Quadruple
-	 * @param nOutFlds     number of outer relation fileds
-	 * @throws IOException             some I/O fault
-	 * @throws QuadrupleUtilsException exception from this class
-	 */
-	public static short[] setup_op_Quadruple(Quadruple JQuadruple, AttrType[] res_attrs,
-											 AttrType in1[], int len_in1, AttrType in2[],
-											 int len_in2, short t1_str_sizes[],
-											 short t2_str_sizes[],
-											 FldSpec proj_list[], int nOutFlds)
-			throws IOException,
-			QuadrupleUtilsException {
-		short[] sizesT1 = new short[len_in1];
-		short[] sizesT2 = new short[len_in2];
-		int i, count = 0;
-
-		for (i = 0; i < len_in1; i++)
-			if (in1[i].attrType == AttrType.attrString)
-				sizesT1[i] = t1_str_sizes[count++];
-
-		for (count = 0, i = 0; i < len_in2; i++)
-			if (in2[i].attrType == AttrType.attrString)
-				sizesT2[i] = t2_str_sizes[count++];
-
-		int n_strs = 0;
-		for (i = 0; i < nOutFlds; i++) {
-			if (proj_list[i].relation.key == RelSpec.outer)
-				res_attrs[i] = new AttrType(in1[proj_list[i].offset - 1].attrType);
-			else if (proj_list[i].relation.key == RelSpec.innerRel)
-				res_attrs[i] = new AttrType(in2[proj_list[i].offset - 1].attrType);
-		}
-
-		// Now construct the res_str_sizes array.
-		for (i = 0; i < nOutFlds; i++) {
-			if (proj_list[i].relation.key == RelSpec.outer && in1[proj_list[i].offset - 1].attrType == AttrType.attrString)
-				n_strs++;
-			else if (proj_list[i].relation.key == RelSpec.innerRel && in2[proj_list[i].offset - 1].attrType == AttrType.attrString)
-				n_strs++;
-		}
-
-		short[] res_str_sizes = new short[n_strs];
-		count = 0;
-		for (i = 0; i < nOutFlds; i++) {
-			if (proj_list[i].relation.key == RelSpec.outer && in1[proj_list[i].offset - 1].attrType == AttrType.attrString)
-				res_str_sizes[count++] = sizesT1[proj_list[i].offset - 1];
-			else if (proj_list[i].relation.key == RelSpec.innerRel && in2[proj_list[i].offset - 1].attrType == AttrType.attrString)
-				res_str_sizes[count++] = sizesT2[proj_list[i].offset - 1];
-		}
-		try {
-			JQuadruple.setHdr((short) nOutFlds, res_attrs, res_str_sizes);
-		} catch (Exception e) {
-			throw new QuadrupleUtilsException(e, "setHdr() failed");
-		}
-		return res_str_sizes;
-	}
-
-
-	/**
-	 * set up the JQuadruple's attrtype, string size,field number for using project
-	 *
-	 * @param JQuadruple   reference to an actual Quadruple  - no memory has been malloced
-	 * @param res_attrs    attributes type of result Quadruple
-	 * @param in1          array of the attributes of the Quadruple (ok)
-	 * @param len_in1      num of attributes of in1
-	 * @param t1_str_sizes shows the length of the string fields in S
-	 * @param proj_list    shows what input fields go where in the output Quadruple
-	 * @param nOutFlds     number of outer relation fileds
-	 * @throws IOException             some I/O fault
-	 * @throws QuadrupleUtilsException exception from this class
-	 * @throws InvalidRelation         invalid relation
-	 */
-
-	public static short[] setup_op_Quadruple(Quadruple JQuadruple, AttrType res_attrs[],
-											 AttrType in1[], int len_in1,
-											 short t1_str_sizes[],
-											 FldSpec proj_list[], int nOutFlds)
-			throws IOException,
-			QuadrupleUtilsException,
-			InvalidRelation {
-		short[] sizesT1 = new short[len_in1];
-		int i, count = 0;
-
-		for (i = 0; i < len_in1; i++)
-			if (in1[i].attrType == AttrType.attrString)
-				sizesT1[i] = t1_str_sizes[count++];
-
-		int n_strs = 0;
-		for (i = 0; i < nOutFlds; i++) {
-			if (proj_list[i].relation.key == RelSpec.outer)
-				res_attrs[i] = new AttrType(in1[proj_list[i].offset - 1].attrType);
-
-			else throw new InvalidRelation("Invalid relation -innerRel");
-		}
-
-		// Now construct the res_str_sizes array.
-		for (i = 0; i < nOutFlds; i++) {
-			if (proj_list[i].relation.key == RelSpec.outer
-					&& in1[proj_list[i].offset - 1].attrType == AttrType.attrString)
-				n_strs++;
-		}
-
-		short[] res_str_sizes = new short[n_strs];
-		count = 0;
-		for (i = 0; i < nOutFlds; i++) {
-			if (proj_list[i].relation.key == RelSpec.outer
-					&& in1[proj_list[i].offset - 1].attrType == AttrType.attrString)
-				res_str_sizes[count++] = sizesT1[proj_list[i].offset - 1];
-		}
-
-		try {
-			JQuadruple.setHdr((short) nOutFlds, res_attrs, res_str_sizes);
-		} catch (Exception e) {
-			throw new QuadrupleUtilsException(e, "setHdr() failed");
-		}
-		return res_str_sizes;
 	}
 }

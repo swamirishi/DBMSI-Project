@@ -3,10 +3,14 @@ package tests;
 import diskmgr.*;
 import global.*;
 import heap.*;
+import qiterator.QuadrupleSort;
+import qiterator.QuadrupleUtils;
 import quadrupleheap.Quadruple;
+import quadrupleheap.TScan;
 
 import java.io.IOException;
 
+import static global.AttrType.attrLID;
 import static quadrupleheap.QuadrupleTest.assertEquals;
 
 
@@ -33,7 +37,7 @@ public class RDFDBTest {
         SystemDefs sysdef = new SystemDefs(dbpath, 8193, 100, "Clock");
 //        SystemDefs.JavabaseDB.add_file_entry("quadrupleHeapFile", pgid);
         RDFDB rdfdb = new RDFDB(0);
-
+        QuadrupleUtils.rdfdb = rdfdb;
         EID subjectID = rdfdb.insertEntity("Dhruv");
         EID objectID = rdfdb.insertEntity("Agja");
         PID predicateID = rdfdb.insertPredicate("OP");
@@ -46,9 +50,19 @@ public class RDFDBTest {
         Quadruple q2 = quadrupleInitTest(subjectID, objectID, predicateID, 2.0);
         rdfdb.insertQuadruple(q2.returnQuadrupleByteArray());
 
-        Stream s = rdfdb.openStream(1, "Abhi", null, null, 0);
-        System.out.println(rdfdb.getEntityLabelHeapFile().getRecord(s.getNext().getSubject().returnLid()).getLabel());
-        System.out.println(rdfdb.getEntityLabelHeapFile().getRecord(s.getNext().getSubject().returnLid()).getLabel());
+//        Stream s = rdfdb.openStream(1, "Abhi", null, null, 0);
+//        System.out.println(rdfdb.getEntityLabelHeapFile().getRecord(s.getNext().getSubject().returnLid()).getLabel());
+//        System.out.println(rdfdb.getEntityLabelHeapFile().getRecord(s.getNext().getSubject().returnLid()).getLabel());
+
+        int reportedValue = QuadrupleUtils.CompareQuadrupleWithQuadruple(new AttrType(attrLID), q1, 1, q1, 2);
+        TScan tScan = new TScan(rdfdb.getQuadrupleHeapFile());
+        TupleOrder tupleOrders = new TupleOrder(0);
+        AttrType attrType = new AttrType(attrLID);
+        AttrType[] attrTypes = {attrType};
+        QuadrupleSort quadrupleSort = new QuadrupleSort(attrTypes, (short) 1, new short[4], tScan, 1, tupleOrders , 31, 10);
+        quadrupleSort.get_next();
+
+        System.out.println(reportedValue);
 
     }
 }
