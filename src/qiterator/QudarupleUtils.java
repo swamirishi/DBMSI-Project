@@ -454,7 +454,7 @@ public class QuadrupleUtils {
      */
 
     public static boolean Equal(Quadruple t1, Quadruple t2)
-            throws IOException, UnknowAttrType, QuadrupleUtilsException, FieldNumberOutOfBoundException, HFDiskMgrException, HFException, HFBufMgrException 
+            throws IOException, UnknowAttrType, QuadrupleUtilsException, FieldNumberOutOfBoundException, HFDiskMgrException, HFException, HFBufMgrException
     {
         int i;
 
@@ -473,7 +473,7 @@ public class QuadrupleUtils {
             return false;
         }
     }
-    
+
 
     /**
      * get the string specified by the field number
@@ -514,7 +514,7 @@ public class QuadrupleUtils {
             QuadrupleUtilsException {
 
         switch (fldType.attrType) {
-            case AttrType.attrInteger:
+            case AttrType.attrLID:
                 try {
                     value.setIntFld(fld_no, Quadruple.getIntFld(fld_no));
                 } catch (FieldNumberOutOfBoundException e) {
@@ -528,13 +528,7 @@ public class QuadrupleUtils {
                     throw new QuadrupleUtilsException(e, "FieldNumberOutOfBoundException is caught by QuadrupleUtils.java");
                 }
                 break;
-            case AttrType.attrString:
-                try {
-                    value.setStrFld(fld_no, Quadruple.getStrFld(fld_no));
-                } catch (FieldNumberOutOfBoundException e) {
-                    throw new QuadrupleUtilsException(e, "FieldNumberOutOfBoundException is caught by QuadrupleUtils.java");
-                }
-                break;
+                
             default:
                 throw new UnknowAttrType(null, "Don't know how to handle attrSymbol, attrNull");
 
