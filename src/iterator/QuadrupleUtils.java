@@ -125,6 +125,7 @@ public class QuadrupleUtils {
 		else if(fld_no == 3){
 			return rdfdb.getEntityLabelHeapFile();
 		}
+		return null;
 	}
 
 
