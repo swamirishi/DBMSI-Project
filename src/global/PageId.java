@@ -45,5 +45,19 @@ public class PageId{
   
   public String toString() {
     return (new Integer(pid)).toString();
-  } 
+  }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        
+        PageId pageId = (PageId) o;
+    
+        return pid == pageId.pid;
+    }
 }

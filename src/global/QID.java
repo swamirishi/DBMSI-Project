@@ -58,6 +58,30 @@ public class QID implements ID {
         else
             return false;
     }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        
+        QID qid = (QID) o;
+        
+        if (slotNo != qid.slotNo) {
+            return false;
+        }
+        return pageNo != null ? pageNo.equals(qid.pageNo) : qid.pageNo == null;
+    }
+    
+    @Override
+    public int hashCode() {
+        int result = slotNo;
+        result = 31 * result + (pageNo != null ? pageNo.hashCode() : 0);
+        return result;
+    }
 }
 
 

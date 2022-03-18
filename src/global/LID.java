@@ -79,5 +79,22 @@ public class LID implements ID<LID> {
     public PID returnPid() {
         return new PID(this.pageNo, this.slotNo);
     }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        
+        LID lid = (LID) o;
+        
+        if (slotNo != lid.slotNo) {
+            return false;
+        }
+        return pageNo != null ? pageNo.equals(lid.pageNo) : lid.pageNo == null;
+    }
 }
 

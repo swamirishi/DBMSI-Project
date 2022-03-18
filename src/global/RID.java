@@ -87,4 +87,20 @@ public class RID implements ID<RID>{
       return false;
   }
   
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    
+    RID rid = (RID) o;
+    
+    if (slotNo != rid.slotNo) {
+      return false;
+    }
+    return pageNo != null ? pageNo.equals(rid.pageNo) : rid.pageNo == null;
+  }
 }

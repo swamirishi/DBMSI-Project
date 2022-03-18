@@ -8,9 +8,17 @@
 package btree;
 import java.io.*;
 import java.lang.*;
+
+import btree.interfaces.BTLeafPageI;
 import global.*;
 import diskmgr.*;
 import heap.*;
+import utils.supplier.id.IDSupplier;
+import utils.supplier.id.RIDSupplier;
+import utils.supplier.keydataentry.KeyDataEntrySupplier;
+import utils.supplier.keydataentry.RIDKeyDataEntrySupplier;
+import utils.supplier.leafdata.LeafDataSupplier;
+import utils.supplier.leafdata.RIDLeafDataSupplier;
 
 /**
  * A BTLeafPage is a leaf page on a B+ tree.  It holds abstract 
@@ -18,8 +26,23 @@ import heap.*;
  * (their lengths or their types), instead relying on the abstract
  * interface consisting of BT.java.
  */
-public class BTLeafPage extends BTSortedPage {
-  
+public class BTLeafPage extends BTLeafPageI<RID,Tuple> {
+    
+    @Override
+    public LeafDataSupplier<RID> getLeafDataSupplier() {
+        return RIDLeafDataSupplier.getSupplier();
+    }
+    
+    @Override
+    public IDSupplier<RID> getIdSupplier() {
+        
+        return RIDSupplier.getSupplier();
+    }
+    
+    @Override
+    public KeyDataEntrySupplier<RID> getKeyDataEntrySupplier() {
+        return RIDKeyDataEntrySupplier.getSupplier();
+    }
   /** pin the page with pageno, and get the corresponding BTLeafPage,
    * also it sets the type to be NodeType.LEAF.
    *@param pageno Input parameter. To specify which page number the
@@ -33,8 +56,7 @@ public class BTLeafPage extends BTSortedPage {
     throws IOException, 
 	   ConstructPageException
     {
-      super(pageno, keyType);
-      setType(NodeType.LEAF);
+      super(pageno,keyType);
     }
   
   /**associate the BTLeafPage instance with the Page instance,
@@ -51,7 +73,6 @@ public class BTLeafPage extends BTSortedPage {
 	   ConstructPageException
     {
       super(page, keyType);
-      setType(NodeType.LEAF);
     }  
   
   /**new a page, associate the BTLeafPage instance with the Page instance,
@@ -66,7 +87,6 @@ public class BTLeafPage extends BTSortedPage {
 	   ConstructPageException
     {
       super(keyType);
-      setType(NodeType.LEAF);
     }  
   
 
@@ -89,16 +109,7 @@ public class BTLeafPage extends BTSortedPage {
   public RID insertRecord(KeyClass key, RID dataRid) 
     throws  LeafInsertRecException
     {
-      KeyDataEntry entry;
-      
-      try {
-        entry = new KeyDataEntry( key,dataRid);
-	
-        return insertRecord(entry);
-      }
-      catch(Exception e) {
-        throw new LeafInsertRecException(e, "insert record failed");
-      }
+      return super.insertRecord(key,dataRid);
     } // end of insertRecord
   
   
@@ -114,25 +125,7 @@ public class BTLeafPage extends BTSortedPage {
   public KeyDataEntry getFirst(RID rid) 
     throws  IteratorException
     {
-      
-      KeyDataEntry  entry; 
-      
-      try {
-        rid.pageNo = getCurPage();
-        rid.slotNo = 0; // begin with first slot
-	
-        if ( getSlotCnt() <= 0) {
-          return null;
-        }
-
-        entry=BT.getEntryFromBytes(getpage(), getSlotOffset(0), getSlotLength(0),
-				   keyType, NodeType.LEAF);
-	
-        return entry;
-      }
-      catch (Exception e) {
-	throw new IteratorException(e, "Get first entry failed");
-      }
+      return (KeyDataEntry) super.getFirst(rid);
     } // end of getFirst
 
  
@@ -149,25 +142,7 @@ public class BTLeafPage extends BTSortedPage {
    public KeyDataEntry getNext (RID rid)
      throws  IteratorException
    {
-     KeyDataEntry  entry; 
-     int i;
-     try{
-       rid.slotNo++; //must before any return;
-       i=rid.slotNo;
-       
-       if ( rid.slotNo >= getSlotCnt())
-       {
-	 return null;
-       }
-       
-       entry=BT.getEntryFromBytes(getpage(),getSlotOffset(i), getSlotLength(i),
-                  keyType, NodeType.LEAF);
-       
-       return entry;
-     } 
-     catch (Exception e) {
-       throw new IteratorException(e,"Get next entry failed");
-     }
+     return (KeyDataEntry) super.getNext(rid);
   }
   
   
@@ -183,8 +158,7 @@ public class BTLeafPage extends BTSortedPage {
    public KeyDataEntry getCurrent (RID rid)
        throws  IteratorException
    {  
-     rid.slotNo--;
-     return getNext(rid);
+     return (KeyDataEntry) super.getCurrent(rid);
    }
   
   
@@ -197,24 +171,7 @@ public class BTLeafPage extends BTSortedPage {
    public boolean delEntry (KeyDataEntry dEntry)
      throws  LeafDeleteException
     {
-      KeyDataEntry  entry;
-      RID rid=new RID(); 
-      
-      try {
-	for(entry = getFirst(rid); entry!=null; entry=getNext(rid)) 
-	  {  
-	    if ( entry.equals(dEntry) ) {
-	      if ( super.deleteSortedRecord( rid ) == false )
-		throw new LeafDeleteException(null, "Delete record failed");
-	      return true;
-	    }
-	    
-	 }
-	return false;
-      } 
-      catch (Exception e) {
-	throw new LeafDeleteException(e, "delete entry failed");
-      }
+      return super.delEntry(dEntry);
       
     } // end of delEntry
 
@@ -228,101 +185,22 @@ public class BTLeafPage extends BTSortedPage {
    *@exception LeafRedistributeException
    *@return true if redistrbution success. false if we can not redistribute them.
    */
-  boolean redistribute(BTLeafPage leafPage, BTIndexPage parentIndexPage, 
+  protected boolean redistribute(BTLeafPage leafPage, BTIndexPage parentIndexPage,
 		       int direction, KeyClass deletedKey)
     throws LeafRedistributeException
     {
-      boolean st;
-      // assertion: leafPage pinned
-      try {
-	if (direction ==-1) { // 'this' is the left sibling of leafPage
-	  if ( (getSlotLength(getSlotCnt()-1) + available_space()+ 8 /*  2*sizeof(slot) */) > 
-	       ((MAX_SPACE-DPFIXED)/2)) {
-            // cannot spare a record for its underflow sibling
-            return false;
-	  }
-	  else {
-            // move the last record to its sibling
-	    
-            // get the last record 
-            KeyDataEntry lastEntry;
-            lastEntry=BT.getEntryFromBytes(getpage(),getSlotOffset(getSlotCnt()-1)
-					   ,getSlotLength(getSlotCnt()-1), keyType, NodeType.LEAF);
-	    
-	    
-            //get its sibling's first record's key for adjusting parent pointer
-            RID dummyRid=new RID();
-            KeyDataEntry firstEntry;
-            firstEntry=leafPage.getFirst(dummyRid);
-
-            // insert it into its sibling            
-            leafPage.insertRecord(lastEntry);
-            
-            // delete the last record from the old page
-            RID delRid=new RID();
-            delRid.pageNo = getCurPage();
-            delRid.slotNo = getSlotCnt()-1;
-            if ( deleteSortedRecord(delRid) == false )
-	      throw new LeafRedistributeException(null, "delete record failed");
-
-	    
-            // adjust the entry pointing to sibling in its parent
-            if (deletedKey != null)
-                st = parentIndexPage.adjustKey(lastEntry.key, deletedKey);
-            else 
-                st = parentIndexPage.adjustKey(lastEntry.key,
-                                            firstEntry.key);
-            if (st == false) 
-	      throw new LeafRedistributeException(null, "adjust key failed");
-            return true;
-	  }
-	}
-	else { // 'this' is the right sibling of pptr
-	  if ( (getSlotLength(0) + available_space()+ 8) > ((MAX_SPACE-DPFIXED)/2)) {
-            // cannot spare a record for its underflow sibling
-            return false;
-	  }
-	  else {
-            // move the first record to its sibling
-	    
-            // get the first record
-            KeyDataEntry firstEntry;
-            firstEntry=BT.getEntryFromBytes(getpage(), getSlotOffset(0),
-					    getSlotLength(0), keyType,
-					    NodeType.LEAF);
-	    
-            // insert it into its sibling
-            RID dummyRid=new RID();
-            leafPage.insertRecord(firstEntry);
-            
-
-            // delete the first record from the old page
-            RID delRid=new RID();
-            delRid.pageNo = getCurPage();
-            delRid.slotNo = 0;
-            if ( deleteSortedRecord(delRid) == false) 
-	      throw new LeafRedistributeException(null, "delete record failed");  
-	    
-	    
-            // get the current first record of the old page
-            // for adjusting parent pointer.
-            KeyDataEntry tmpEntry;
-            tmpEntry = getFirst(dummyRid);
-         
-            
-            // adjust the entry pointing to itself in its parent
-            st = parentIndexPage.adjustKey(tmpEntry.key, firstEntry.key);
-            if( st==false) 
-	      throw new LeafRedistributeException(null, "adjust key failed"); 
-            return true;
-	  }
-	}
-      }
-      catch (Exception e) {
-	throw new LeafRedistributeException(e, "redistribute failed");
-      } 
+      return super.redistribute(leafPage,parentIndexPage,direction,deletedKey);
     } // end of redistribute
-  
+    
+    @Override
+    protected RID getID() {
+        return new RID();
+    }
+    
+    @Override
+    protected Tuple getTuple(byte[] record, int offset, int length) {
+        return new Tuple(record,offset,length);
+    }
 } // end of BTLeafPage
 
     

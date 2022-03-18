@@ -9,22 +9,43 @@ package btree;
 
 import java.io.*;
 import java.lang.*;
+
+import btree.interfaces.BTSortedPageI;
 import global.*;
 import diskmgr.*;
 import heap.*;
+import utils.supplier.id.IDSupplier;
+import utils.supplier.id.RIDSupplier;
+import utils.supplier.keydataentry.KeyDataEntrySupplier;
+import utils.supplier.keydataentry.RIDKeyDataEntrySupplier;
+import utils.supplier.leafdata.LeafDataSupplier;
+import utils.supplier.leafdata.RIDLeafDataSupplier;
 
 /**
  * BTsortedPage class 
  * just holds abstract records in sorted order, based 
  * on how they compare using the key interface from BT.java.
  */
-public class BTSortedPage  extends HFPage {
+public class BTSortedPage  extends BTSortedPageI<RID,Tuple> {
 
   
   int keyType; //it will be initialized in BTFile
-  
-  
-  /** pin the page with pageno, and get the corresponding SortedPage
+    @Override
+    public LeafDataSupplier<RID> getLeafDataSupplier() {
+        return RIDLeafDataSupplier.getSupplier();
+    }
+    
+    @Override
+    public IDSupplier<RID> getIdSupplier() {
+        return RIDSupplier.getSupplier();
+    }
+    
+    @Override
+    public KeyDataEntrySupplier<RID> getKeyDataEntrySupplier() {
+        return RIDKeyDataEntrySupplier.getSupplier();
+    }
+    
+    /** pin the page with pageno, and get the corresponding SortedPage
    *@param pageno input parameter. To specify which page number the
    *  BTSortedPage will correspond to.
    *@param keyType input parameter. It specifies the type of key. It can be 
@@ -34,15 +55,7 @@ public class BTSortedPage  extends HFPage {
   public BTSortedPage(PageId pageno, int keyType) 
     throws ConstructPageException 
     { 
-      super();
-      try {
-	// super();
-	SystemDefs.JavabaseBM.pinPage(pageno, this, false/*Rdisk*/); 
-	this.keyType=keyType;   
-      }
-      catch (Exception e) {
-	throw new ConstructPageException(e, "construct sorted page failed");
-      }
+      super(pageno,keyType);
     }
   
   /**associate the SortedPage instance with the Page instance 
@@ -53,8 +66,7 @@ public class BTSortedPage  extends HFPage {
    */
   public BTSortedPage(Page page, int keyType) {
     
-    super(page);
-    this.keyType=keyType;   
+    super(page,keyType);
   }  
   
   
@@ -66,19 +78,7 @@ public class BTSortedPage  extends HFPage {
   public BTSortedPage(int keyType) 
     throws ConstructPageException
     {
-      super();
-      try{
-	Page apage=new Page();
-	PageId pageId=SystemDefs.JavabaseBM.newPage(apage,1);
-	if (pageId==null) 
-	  throw new ConstructPageException(null, "construct new page failed");
-	this.init(pageId, apage);
-	this.keyType=keyType;   
-      }
-      catch (Exception e) {
-        e.printStackTrace();
-	throw new ConstructPageException(e, "construct sorted page failed");
-      }
+      super(keyType);
     }  
   
   /**
@@ -94,108 +94,27 @@ public class BTSortedPage  extends HFPage {
    protected RID insertRecord( KeyDataEntry entry)
           throws InsertRecException 
    {
-     int i;
-     short  nType;
-     RID rid;
-     byte[] record;
-     // ASSERTIONS:
-     // - the slot directory is compressed; Inserts will occur at the end
-     // - slotCnt gives the number of slots used
-     
-     // general plan:
-     //    1. Insert the record into the page,
-     //       which is then not necessarily any more sorted
-     //    2. Sort the page by rearranging the slots (insertion sort)
-     
-     try {
-       
-       record=BT.getBytesFromEntry(entry);  
-       rid=super.insertRecord(record);
-         if (rid==null) return null;
-	 
-         if ( entry.data instanceof LeafData )
-	   nType= NodeType.LEAF;
-         else  //  entry.data instanceof IndexData              
-	   nType= NodeType.INDEX;
-	 
-	 
-	 // performs a simple insertion sort
-	 for (i=getSlotCnt()-1; i > 0; i--) 
-	   {
-	     
-	     KeyClass key_i, key_iplus1;
-	     
-	     key_i=BT.getEntryFromBytes(getpage(), getSlotOffset(i), 
-					getSlotLength(i), keyType, nType).key;
-	     
-	     key_iplus1=BT.getEntryFromBytes(getpage(), getSlotOffset(i-1), 
-					     getSlotLength(i-1), keyType, nType).key;
-	     
-	     if (BT.keyCompare(key_i, key_iplus1) < 0)
-	       {
-	       // switch slots:
-		 int ln, off;
-		 ln= getSlotLength(i);
-		 off=getSlotOffset(i);
-		 setSlot(i,getSlotLength(i-1),getSlotOffset(i-1));  
-		 setSlot(i-1, ln, off);
-	       } else {
-		 // end insertion sort
-		 break;
-	       }
-	     
-	   }
-	 
-	 // ASSERTIONS:
-	 // - record keys increase with increasing slot number 
-	 // (starting at slot 0)
-	 // - slot directory compacted
-	 
-	 rid.slotNo = i;
-	 return rid;
-     }
-     catch (Exception e ) { 
-       throw new InsertRecException(e, "insert record failed"); 
-     }
-     
-     
+     return super.insertRecord(entry);
    } // end of insertRecord
- 
-
-  /**  Deletes a record from a sorted record page. It also calls
-   *    HFPage.compact_slot_dir() to compact the slot directory.
-   *@param rid it specifies where a record will be deleted
-   *@return true if success; false if rid is invalid(no record in the rid).
-   *@exception DeleteRecException error when delete
-   */
-  public  boolean deleteSortedRecord(RID rid)
-    throws DeleteRecException
-    {
-      try {
-	
-	deleteRecord(rid);
-	compact_slot_dir();
-	return true;  
-	// ASSERTIONS:
-	// - slot directory is compacted
-      }
-      catch (Exception  e) {
-	if (e instanceof InvalidSlotNumberException)
-	  return false;
-	else
-	  throw new DeleteRecException(e, "delete record failed");
-      }
-    } // end of deleteSortedRecord
-  
   /** How many records are in the page
    *@exception IOException I/O errors
    */
-  protected int numberOfRecords() 
+  public int numberOfRecords()
     throws IOException
     {
       return getSlotCnt();
     }
-};
+    
+    @Override
+    protected RID getID() {
+        return new RID();
+    }
+    
+    @Override
+    protected Tuple getTuple(byte[] record, int offset, int length) {
+        return new Tuple(record,offset,length);
+    }
+}
 
 
 
