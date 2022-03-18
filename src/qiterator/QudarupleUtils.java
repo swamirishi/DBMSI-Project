@@ -8,13 +8,23 @@ import quadrupleheap.*;
 
 import java.io.*;
 import java.lang.*;
+import java.util.HashMap;
 
 /**
  * some useful method when processing Quadruple
  */
-public class QuadrupleUtils {
+class QuadrupleUtils {
     private final static boolean OK = true;
     private final static boolean FAIL = false;
+
+    private final static int SUBJECT_PID_FLD_NO = 1;
+    private final static int SUBJECT_SLOT_FLD_NO = 2;
+    private final static int PREDICATE_PID_FLD_NO = 3;
+    private final static int PREDICATE_SLOT_FLD_NO = 4;
+    private final static int OBJECT_PID_FLD_NO = 5;
+    private final static int OBJECT_SLOT_FLD_NO = 6;
+    private final static int VALUE_FLD_NO = 7;
+
 
     /**
      * This function compares a Quadruple with another Quadruple in respective field, and
@@ -42,41 +52,33 @@ public class QuadrupleUtils {
 			throws IOException,
 			UnknowAttrType,
 			QuadrupleUtilsException, HFDiskMgrException, HFException, HFBufMgrException, FieldNumberOutOfBoundException {
-        int t1_i, t2_i;
-        float t1_r, t2_r;
-        String t1_s, t2_s;
+        double t1_r, t2_r;
         boolean status = OK;
 
-        EID subject1 = t1.getSubject();
-        PID predicate1 = t1.getPredicate();
-        EID object1 = t1.getObject();
-        double conf1 = t1.getValue();
 
+        LID lid_subject1 = t1.getGenericObjectFromByteArray(SUBJECT_PID_FLD_NO, SUBJECT_SLOT_FLD_NO);
+        LID lid_predicate1 = t1.getGenericObjectFromByteArray(PREDICATE_PID_FLD_NO, PREDICATE_SLOT_FLD_NO);
+        LID lid_object1 = t1.getGenericObjectFromByteArray(OBJECT_PID_FLD_NO, OBJECT_SLOT_FLD_NO);
 
-        EID subject2 = t2.getSubject();
-        PID predicate2 = t2.getPredicate();
-        EID object2 = t2.getObject();
-        double conf2 = t2.getValue();
-
-
-        LID lid_subject1 = t1.getGenericObjectFromByteArray(subject1.pageNo.pid, subject1.slotNo);
-        LID lid_predicate1 = t1.getGenericObjectFromByteArray(predicate1.pageNo.pid, predicate1.slotNo);
-        LID lid_object1 = t1.getGenericObjectFromByteArray(object1.pageNo.pid, object1.slotNo);
-
-        LID lid_subject2 = t2.getGenericObjectFromByteArray(subject2.pageNo.pid, subject1.slotNo);
-        LID lid_predicate2 = t2.getGenericObjectFromByteArray(predicate2.pageNo.pid, predicate2.slotNo);
-        LID lid_object2 = t2.getGenericObjectFromByteArray(object2.pageNo.pid, object2.slotNo);
+        LID lid_subject2 = t2.getGenericObjectFromByteArray(SUBJECT_PID_FLD_NO, SUBJECT_SLOT_FLD_NO);
+        LID lid_predicate2 = t2.getGenericObjectFromByteArray(PREDICATE_PID_FLD_NO, PREDICATE_SLOT_FLD_NO);
+        LID lid_object2 = t2.getGenericObjectFromByteArray(OBJECT_PID_FLD_NO, OBJECT_SLOT_FLD_NO);
+        /*
+            Following maps store attribute no with its LID object. Ex : (1, subjectLid) (2, predicateLid)
+        * */
+        HashMap<Integer, LID> t1_map = new HashMap<>();
+        HashMap<Integer, LID> t2_map = new HashMap<>();
+        populateHashmap(t1_map, lid_subject1, lid_predicate1, lid_object1);
+        populateHashmap(t2_map, lid_subject2, lid_predicate2, lid_object2);
 
 		LabelHeapFile f = null;
         switch (fldType.attrType) {
 
             case AttrType.attrLID:
-                // Compare two LID.
-                try {
 
-                    if (t1_fld_no == 1 && t2_fld_no == 1) {
+                if (t1_fld_no == t2_fld_no && t1_fld_no >= 1 && t1_fld_no <= 3) {
 
-                        f = new LabelHeapFile("file_1");
+                        f = new LabelHeapFile("quadrupleHeapFile");
 
                         LScan scan1 = null;
                         LScan scan2 = null;
@@ -107,22 +109,14 @@ public class QuadrupleUtils {
 
                             while (!done1) {
                                 try {
-                                    label1 = scan1.getNext(lid_subject1);
+                                    label1 = scan1.getNext(t1_map.get(t1_fld_no));
                                     String data1 = label1.getLabel();
 
                                     while (!done2) {
                                         try {
-                                            label2 = scan2.getNext(lid_subject2);
+                                            label2 = scan2.getNext(t2_map.get(t2_fld_no));
                                             String data2 = label2.getLabel();
-
-
-                                            if (data1.equals(data2)) {
-                                                return 1;
-                                            } else {
-                                                return 0;
-                                            }
-
-
+                                            return data1.compareTo(data2);
                                         } catch (Exception e) {
                                             status = FAIL;
                                             e.printStackTrace();
@@ -142,194 +136,28 @@ public class QuadrupleUtils {
                         }
 
                     }
-                    if (t1_fld_no == 2 && t2_fld_no == 2) {
-
-                        f = new LabelHeapFile("file_1");
-
-
-                        LScan scan1 = null;
-                        LScan scan2 = null;
-
-                        if (status == OK) {
-                            System.out.println("  - Scan the file \n");
-
-                            try {
-                                scan1 = f.openScan();
-                                scan2 = f.openScan();
-
-                            } catch (Exception e) {
-                                status = FAIL;
-                                System.err.println("*** Error opening scan\n");
-                                e.printStackTrace();
-                            }
-
-
-                        }
-
-                        if (status == OK) {
-                            int len, i = 0;
-
-                            Label label1, label2;
-
-                            boolean done1 = false;
-                            boolean done2 = false;
-
-                            while (!done1) {
-                                try {
-                                    label1 = scan1.getNext(lid_predicate1);
-                                    String data1 = label1.getLabel();
-
-                                    while (!done2) {
-                                        try {
-                                            label2 = scan2.getNext(lid_predicate2);
-                                            String data2 = label2.getLabel();
-
-
-                                            if (data1.equals(data2)) {
-                                                return 1;
-                                            } else {
-                                                return 0;
-                                            }
-
-
-
-                                        } catch (Exception e) {
-                                            status = FAIL;
-                                            e.printStackTrace();
-                                        }
-
-
-                                    }
-
-
-
-                                } catch (Exception e) {
-                                    status = FAIL;
-                                    e.printStackTrace();
-                                }
-
-
-                            }
-                        }
-
-                    } else if (t1_fld_no == 3 && t2_fld_no == 3) {
-
-                        f = new LabelHeapFile("file_1");
-
-
-//                        t1_lid = t1.getLIDFld(t1_fld_no);
-//                        t2_lid = t2.getLIDFld(t2_fld_no);
-
-                        LScan scan1 = null;
-                        LScan scan2 = null;
-
-                        if (status == OK) {
-                            System.out.println("  - Scan the file \n");
-
-                            try {
-                                scan1 = f.openScan();
-                                scan2 = f.openScan();
-
-                            } catch (Exception e) {
-                                status = FAIL;
-                                System.err.println("*** Error opening scan\n");
-                                e.printStackTrace();
-                            }
-
-
-                        }
-
-                        if (status == OK) {
-                            int len, i = 0;
-
-                            Label label1, label2;
-
-                            boolean done1 = false;
-                            boolean done2 = false;
-
-                            while (!done1) {
-                                try {
-                                    label1 = scan1.getNext(lid_object1);
-                                    String data1 = label1.getLabel();
-
-                                    while (!done2) {
-                                        try {
-                                            label2 = scan2.getNext(lid_object1);
-                                            String data2 = label2.getLabel();
-
-
-                                            if (data1.equals(data2)) {
-                                                return 1;
-                                            } else {
-                                                return 0;
-                                            }
-
-
-
-                                        } catch (Exception e) {
-                                            status = FAIL;
-                                            e.printStackTrace();
-                                        }
-
-
-                                    }
-
-
-                                } catch (Exception e) {
-                                    status = FAIL;
-                                    e.printStackTrace();
-                                }
-
-
-                            }
-                        }
-
-                    }
-
-
-                    t1_i = t1.getIntFld(t1_fld_no);
-                    t2_i = t2.getIntFld(t2_fld_no);
-
-                } catch (FieldNumberOutOfBoundException e) {
-                    throw new QuadrupleUtilsException(e, "FieldNumberOutOfBoundException is caught by QuadrupleUtils.java");
-                }
-                if (t1_i == t2_i) return 0;
-                if (t1_i < t2_i) return -1;
-                if (t1_i > t2_i) return 1;
-
             case AttrType.attrReal:                // Compare two floats
                 try {
-                    t1_r = t1.getFloFld(t1_fld_no);
-                    t2_r = t2.getFloFld(t2_fld_no);
+                    t1_r = t1.getDoubleFld(t1_fld_no);
+                    t2_r = t2.getDoubleFld(t2_fld_no);
                 } catch (FieldNumberOutOfBoundException e) {
                     throw new QuadrupleUtilsException(e, "FieldNumberOutOfBoundException is caught by QuadrupleUtils.java");
                 }
                 if (t1_r == t2_r) return 0;
-                if (t1_r < t2_r) return -1;
-                if (t1_r > t2_r) return 1;
-
-            case AttrType.attrString:                // Compare two strings
-                try {
-                    t1_s = t1.getStrFld(t1_fld_no);
-                    t2_s = t2.getStrFld(t2_fld_no);
-                } catch (FieldNumberOutOfBoundException e) {
-                    throw new QuadrupleUtilsException(e, "FieldNumberOutOfBoundException is caught by QuadrupleUtils.java");
-                }
-
-                // Now handle the special case that is posed by the max_values for strings...
-                if (t1_s.compareTo(t2_s) > 0) return 1;
-                if (t1_s.compareTo(t2_s) < 0) return -1;
-                return 0;
-            default:
-
-                throw new UnknowAttrType(null, "Don't know how to handle attrSymbol, attrNull");
-
+                else if (t1_r < t2_r) return -1;
+                return 1;
         }
+        return Integer.MIN_VALUE;
+    }
+
+    private static void populateHashmap(HashMap<Integer, LID> map, LID lid_subject, LID lid_predicate, LID lid_object) {
+        map.put(1, lid_subject);
+        map.put(2, lid_predicate);
+        map.put(3, lid_object);
     }
 
 
-
-	/**
+    /**
      * This function  compares  Quadruple1 with another Quadruple2 whose
      * field number is same as the Quadruple1
      *
@@ -355,21 +183,16 @@ public class QuadrupleUtils {
 
     public static int compareQuadrupleWithQuadrupleAsPerOrderType(Quadruple q1, Quadruple q2, int orderType) throws UnknowAttrType, FieldNumberOutOfBoundException, QuadrupleUtilsException, HFDiskMgrException, HFException, HFBufMgrException, IOException {
         int res;
-        AttrType type;
         switch (orderType){
 
             case 1:
-                type = new AttrType(AttrType.attrEID);
-                res = CompareQuadrupleWithQuadruple(type, q1, 1, q2, 1);
+                res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 1, q2, 1);
                 if(res == 0){
-                    type = new AttrType(AttrType.attrPID);
-                    res = CompareQuadrupleWithQuadruple(type, q1, 2, q2, 2);
+                    res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 2, q2, 2);
                     if(res == 0){
-                        type = new AttrType(AttrType.attrEID);
-                        res = CompareQuadrupleWithQuadruple(type, q1, 3, q2, 3);
+                        res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 3, q2, 3);
                         if(res == 0){
-                            type = new AttrType(AttrType.attrReal);
-                            res = CompareQuadrupleWithQuadruple(type, q1, 4, q2, 4);
+                            res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrReal), q1, 4, q2, 4);
                         }
                     }
                 }
@@ -377,17 +200,13 @@ public class QuadrupleUtils {
 
 
             case 2:
-                type = new AttrType(AttrType.attrPID);
-                res = CompareQuadrupleWithQuadruple(type, q1, 2, q2, 2);
+                res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 2, q2, 2);
                 if(res == 0){
-                    type = new AttrType(AttrType.attrEID);
-                    res = CompareQuadrupleWithQuadruple(type, q1, 1, q2, 1);
+                    res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 1, q2, 1);
                     if(res == 0){
-                        type = new AttrType(AttrType.attrEID);
-                        res = CompareQuadrupleWithQuadruple(type, q1, 3, q2, 3);
+                        res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 3, q2, 3);
                         if(res == 0){
-                            type = new AttrType(AttrType.attrReal);
-                            res = CompareQuadrupleWithQuadruple(type, q1, 4, q2, 4);
+                            res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrReal), q1, 4, q2, 4);
                         }
                     }
                 }
@@ -395,50 +214,36 @@ public class QuadrupleUtils {
 
 
             case 3:
-                type = new AttrType(AttrType.attrEID);
-                res = CompareQuadrupleWithQuadruple(type, q1, 1, q2, 1);
+                res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 1, q2, 1);
                 if(res == 0){
-                    type = new AttrType(AttrType.attrReal);
-                    res = CompareQuadrupleWithQuadruple(type, q1, 4, q2, 4);
+                    res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrReal), q1, 4, q2, 4);
                 }
-
                 return res;
 
 
             case 4:
-                type = new AttrType(AttrType.attrPID);
-                res = CompareQuadrupleWithQuadruple(type, q1, 2, q2, 2);
+                res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 2, q2, 2);
                 if(res == 0){
-                    type = new AttrType(AttrType.attrReal);
-                    res = CompareQuadrupleWithQuadruple(type, q1, 4, q2, 4);
+                    res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrReal), q1, 4, q2, 4);
                 }
-
                 return res;
 
 
 
             case 5:
-                type = new AttrType(AttrType.attrEID);
-                res = CompareQuadrupleWithQuadruple(type, q1, 3, q2, 3);
+                res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 3, q2, 3);
                 if(res == 0){
-                    type = new AttrType(AttrType.attrReal);
-                    res = CompareQuadrupleWithQuadruple(type, q1, 4, q2, 4);
+                    res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrReal), q1, 4, q2, 4);
                 }
-
                 return res;
 
 
             case 6:
-
-                    type = new AttrType(AttrType.attrReal);
-                    res = CompareQuadrupleWithQuadruple(type, q1, 4, q2, 4);
-
-
+                    res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrReal), q1, 4, q2, 4);
                 return res;
 
-
         }
-        return 69;
+        return Integer.MIN_VALUE;
     }
 
     /**
@@ -461,39 +266,39 @@ public class QuadrupleUtils {
         int val1=CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID),t1,1,t2,1);
         int val2=CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID),t1,2,t2,2);
         int val3=CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID),t1,3,t2,3);
-        int val4=CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID),t1,4,t2,4);
+        int val4=CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrReal),t1,4,t2,4);
 
-        int sum=val1+val2+val3+val4;
-
-        if(sum==4){
+        if(val1 == 0 && val2 == 0 && val3 == 0 && val4 == 0){
             return true;
         }
-        else{
-
-            return false;
-        }
+        return false;
     }
 
 
     /**
      * get the string specified by the field number
-     *
-     * @param Quadruple the Quadruple
+     * Field number is the attribute number i.e subject fldno is 1.
      * @param fldno     the field number
      * @return the content of the field number
      * @throws IOException             some I/O fault
      * @throws QuadrupleUtilsException exception from this class
      */
-    public static String Value(Quadruple Quadruple, int fldno)
+    public static String getLabelStringFromQuadrupleUsingId(Quadruple quadruple, int fldno)
             throws IOException,
-            QuadrupleUtilsException {
-        String temp;
-        try {
-            temp = Quadruple.getStrFld(fldno);
-        } catch (FieldNumberOutOfBoundException e) {
-            throw new QuadrupleUtilsException(e, "FieldNumberOutOfBoundException is caught by QuadrupleUtils.java");
-        }
-        return temp;
+            QuadrupleUtilsException, FieldNumberOutOfBoundException {
+        LID lid_subject = quadruple.getGenericObjectFromByteArray(SUBJECT_PID_FLD_NO, SUBJECT_SLOT_FLD_NO);
+        LID lid_predicate = quadruple.getGenericObjectFromByteArray(PREDICATE_PID_FLD_NO, PREDICATE_SLOT_FLD_NO);
+        LID lid_object = quadruple.getGenericObjectFromByteArray(OBJECT_PID_FLD_NO, OBJECT_SLOT_FLD_NO);
+        /*
+            Following maps store attribute no with its LID object. Ex : (1, subjectLid) (2, predicateLid)
+        * */
+        HashMap<Integer, LID> map = new HashMap<>();
+        map.put(1, lid_subject);
+        map.put(2, lid_predicate);
+        map.put(3, lid_object);
+        LID requiredLid = map.get(fldno);
+
+        return "OVER_TO_DHRUV";
     }
 
 
