@@ -1,11 +1,9 @@
-package iterator;
-
+package qiterator;
 import heap.*;
 import global.*;
-import labelheap.LScan;
-import labelheap.Label;
-import labelheap.LabelHeapFile;
-import qiterator.QuadrupleUtilsException;
+import iterator.*;
+import labelheap.*;
+
 import quadrupleheap.*;
 
 import java.io.*;
@@ -43,7 +41,7 @@ public class QuadrupleUtils {
                                                     Quadruple t2, int t2_fld_no)
 			throws IOException,
 			UnknowAttrType,
-			QuadrupleUtilsException, HFDiskMgrException, HFException, HFBufMgrException {
+			QuadrupleUtilsException, HFDiskMgrException, HFException, HFBufMgrException, FieldNumberOutOfBoundException {
         int t1_i, t2_i;
         float t1_r, t2_r;
         String t1_s, t2_s;
@@ -61,13 +59,13 @@ public class QuadrupleUtils {
         double conf2 = t2.getValue();
 
 
-        LID lid_subject1 = getGenericObjectFromByteArray(subject1.pageNo.pid, subject1.slotNo);
-        LID lid_predicate1 = getGenericObjectFromByteArray(predicate1.pageNo.pid, predicate1.slotNo);
-        LID lid_object1 = getGenericObjectFromByteArray(object1.pageNo.pid, object1.slotNo);
+        LID lid_subject1 = t1.getGenericObjectFromByteArray(subject1.pageNo.pid, subject1.slotNo);
+        LID lid_predicate1 = t1.getGenericObjectFromByteArray(predicate1.pageNo.pid, predicate1.slotNo);
+        LID lid_object1 = t1.getGenericObjectFromByteArray(object1.pageNo.pid, object1.slotNo);
 
-        LID lid_subject2 = getGenericObjectFromByteArray(subject2.pageNo.pid, subject1.slotNo);
-        LID lid_predicate2 = getGenericObjectFromByteArray(predicate2.pageNo.pid, predicate2.slotNo);
-        LID lid_object2 = getGenericObjectFromByteArray(object2.pageNo.pid, object2.slotNo);
+        LID lid_subject2 = t2.getGenericObjectFromByteArray(subject2.pageNo.pid, subject1.slotNo);
+        LID lid_predicate2 = t2.getGenericObjectFromByteArray(predicate2.pageNo.pid, predicate2.slotNo);
+        LID lid_object2 = t2.getGenericObjectFromByteArray(object2.pageNo.pid, object2.slotNo);
 
 		LabelHeapFile f = null;
         switch (fldType.attrType) {
@@ -149,9 +147,6 @@ public class QuadrupleUtils {
                         f = new LabelHeapFile("file_1");
 
 
-                        LID t1_lid = t1.getLIDFld(t1_fld_no);
-                        LID t2_lid = t2.getLIDFld(t2_fld_no);
-
                         LScan scan1 = null;
                         LScan scan2 = null;
 
@@ -181,12 +176,12 @@ public class QuadrupleUtils {
 
                             while (!done1) {
                                 try {
-                                    label1 = scan1.getNext(t1_lid);
+                                    label1 = scan1.getNext(lid_predicate1);
                                     String data1 = label1.getLabel();
 
                                     while (!done2) {
                                         try {
-                                            label2 = scan2.getNext(t2_lid);
+                                            label2 = scan2.getNext(lid_predicate2);
                                             String data2 = label2.getLabel();
 
 
@@ -197,10 +192,7 @@ public class QuadrupleUtils {
                                             }
 
 
-                                            if (eid2 == null) {
-                                                done2 = true;
-                                                break;
-                                            }
+
                                         } catch (Exception e) {
                                             status = FAIL;
                                             e.printStackTrace();
@@ -210,10 +202,7 @@ public class QuadrupleUtils {
                                     }
 
 
-                                    if (eid1 == null) {
-                                        done1 = true;
-                                        break;
-                                    }
+
                                 } catch (Exception e) {
                                     status = FAIL;
                                     e.printStackTrace();
@@ -228,8 +217,8 @@ public class QuadrupleUtils {
                         f = new LabelHeapFile("file_1");
 
 
-                        t1_lid = t1.getLIDFld(t1_fld_no);
-                        t2_lid = t2.getLIDFld(t2_fld_no);
+//                        t1_lid = t1.getLIDFld(t1_fld_no);
+//                        t2_lid = t2.getLIDFld(t2_fld_no);
 
                         LScan scan1 = null;
                         LScan scan2 = null;
@@ -260,12 +249,12 @@ public class QuadrupleUtils {
 
                             while (!done1) {
                                 try {
-                                    label1 = scan1.getNext(t1_lid);
+                                    label1 = scan1.getNext(lid_object1);
                                     String data1 = label1.getLabel();
 
                                     while (!done2) {
                                         try {
-                                            label2 = scan2.getNext(t2_lid);
+                                            label2 = scan2.getNext(lid_object1);
                                             String data2 = label2.getLabel();
 
 
@@ -276,10 +265,7 @@ public class QuadrupleUtils {
                                             }
 
 
-                                            if (eid2 == null) {
-                                                done2 = true;
-                                                break;
-                                            }
+
                                         } catch (Exception e) {
                                             status = FAIL;
                                             e.printStackTrace();
@@ -289,10 +275,6 @@ public class QuadrupleUtils {
                                     }
 
 
-                                    if (eid1 == null) {
-                                        done1 = true;
-                                        break;
-                                    }
                                 } catch (Exception e) {
                                     status = FAIL;
                                     e.printStackTrace();
@@ -346,7 +328,8 @@ public class QuadrupleUtils {
     }
 
 
-    /**
+
+	/**
      * This function  compares  Quadruple1 with another Quadruple2 whose
      * field number is same as the Quadruple1
      *
@@ -364,10 +347,98 @@ public class QuadrupleUtils {
     public static int CompareQuadrupleWithValue(AttrType fldType,
                                                 Quadruple t1, int t1_fld_no,
                                                 Quadruple value)
-            throws IOException,
-            UnknowAttrType,
-            QuadrupleUtilsException {
+			throws IOException,
+			UnknowAttrType,
+			QuadrupleUtilsException, FieldNumberOutOfBoundException, HFDiskMgrException, HFException, HFBufMgrException {
         return CompareQuadrupleWithQuadruple(fldType, t1, t1_fld_no, value, t1_fld_no);
+    }
+
+    public static int compareQuadrupleWithQuadrupleAsPerOrderType(Quadruple q1, Quadruple q2, int orderType) throws UnknowAttrType, FieldNumberOutOfBoundException, QuadrupleUtilsException, HFDiskMgrException, HFException, HFBufMgrException, IOException {
+        int res;
+        AttrType type;
+        switch (orderType){
+
+            case 1:
+                type = new AttrType(AttrType.attrEID);
+                res = CompareQuadrupleWithQuadruple(type, q1, 1, q2, 1);
+                if(res == 0){
+                    type = new AttrType(AttrType.attrPID);
+                    res = CompareQuadrupleWithQuadruple(type, q1, 2, q2, 2);
+                    if(res == 0){
+                        type = new AttrType(AttrType.attrEID);
+                        res = CompareQuadrupleWithQuadruple(type, q1, 3, q2, 3);
+                        if(res == 0){
+                            type = new AttrType(AttrType.attrReal);
+                            res = CompareQuadrupleWithQuadruple(type, q1, 4, q2, 4);
+                        }
+                    }
+                }
+                return res;
+
+
+            case 2:
+                type = new AttrType(AttrType.attrPID);
+                res = CompareQuadrupleWithQuadruple(type, q1, 2, q2, 2);
+                if(res == 0){
+                    type = new AttrType(AttrType.attrEID);
+                    res = CompareQuadrupleWithQuadruple(type, q1, 1, q2, 1);
+                    if(res == 0){
+                        type = new AttrType(AttrType.attrEID);
+                        res = CompareQuadrupleWithQuadruple(type, q1, 3, q2, 3);
+                        if(res == 0){
+                            type = new AttrType(AttrType.attrReal);
+                            res = CompareQuadrupleWithQuadruple(type, q1, 4, q2, 4);
+                        }
+                    }
+                }
+                return res;
+
+
+            case 3:
+                type = new AttrType(AttrType.attrEID);
+                res = CompareQuadrupleWithQuadruple(type, q1, 1, q2, 1);
+                if(res == 0){
+                    type = new AttrType(AttrType.attrReal);
+                    res = CompareQuadrupleWithQuadruple(type, q1, 4, q2, 4);
+                }
+
+                return res;
+
+
+            case 4:
+                type = new AttrType(AttrType.attrPID);
+                res = CompareQuadrupleWithQuadruple(type, q1, 2, q2, 2);
+                if(res == 0){
+                    type = new AttrType(AttrType.attrReal);
+                    res = CompareQuadrupleWithQuadruple(type, q1, 4, q2, 4);
+                }
+
+                return res;
+
+
+
+            case 5:
+                type = new AttrType(AttrType.attrEID);
+                res = CompareQuadrupleWithQuadruple(type, q1, 3, q2, 3);
+                if(res == 0){
+                    type = new AttrType(AttrType.attrReal);
+                    res = CompareQuadrupleWithQuadruple(type, q1, 4, q2, 4);
+                }
+
+                return res;
+
+
+            case 6:
+
+                    type = new AttrType(AttrType.attrReal);
+                    res = CompareQuadrupleWithQuadruple(type, q1, 4, q2, 4);
+
+
+                return res;
+
+
+        }
+        return 69;
     }
 
     /**
@@ -375,8 +446,6 @@ public class QuadrupleUtils {
      *
      * @param t1     the first Quadruple
      * @param t2     the secocnd Quadruple
-     * @param type[] the field types
-     * @param len    the field numbers
      * @return 0        if the two are not equal,
      * 1        if the two are equal,
      * @throws UnknowAttrType          don't know the attribute type
@@ -384,21 +453,33 @@ public class QuadrupleUtils {
      * @throws QuadrupleUtilsException exception from this class
      */
 
-    public static boolean Equal(Quadruple t1, Quadruple t2, AttrType types[], int len)
-            throws IOException, UnknowAttrType, QuadrupleUtilsException {
+    public static boolean Equal(Quadruple t1, Quadruple t2)
+            throws IOException, UnknowAttrType, QuadrupleUtilsException, FieldNumberOutOfBoundException, HFDiskMgrException, HFException, HFBufMgrException 
+    {
         int i;
 
-        for (i = 1; i <= len; i++)
-            if (CompareQuadrupleWithQuadruple(types[i - 1], t1, i, t2, i) != 0)
-                return false;
-        return true;
+        int val1=CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID),t1,1,t2,1);
+        int val2=CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID),t1,2,t2,2);
+        int val3=CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID),t1,3,t2,3);
+        int val4=CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID),t1,4,t2,4);
+
+        int sum=val1+val2+val3+val4;
+
+        if(sum==4){
+            return true;
+        }
+        else{
+
+            return false;
+        }
     }
+    
 
     /**
      * get the string specified by the field number
      *
      * @param Quadruple the Quadruple
-     * @param fidno     the field number
+     * @param fldno     the field number
      * @return the content of the field number
      * @throws IOException             some I/O fault
      * @throws QuadrupleUtilsException exception from this class
