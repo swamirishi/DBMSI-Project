@@ -1,4 +1,5 @@
 package qiterator;
+import diskmgr.RDFDB;
 import heap.*;
 import global.*;
 import iterator.*;
@@ -13,7 +14,7 @@ import java.util.HashMap;
 /**
  * some useful method when processing Quadruple
  */
-class QuadrupleUtils {
+public class QuadrupleUtils {
     private final static boolean OK = true;
     private final static boolean FAIL = false;
 
@@ -24,7 +25,12 @@ class QuadrupleUtils {
     private final static int OBJECT_PID_FLD_NO = 5;
     private final static int OBJECT_SLOT_FLD_NO = 6;
     private final static int VALUE_FLD_NO = 7;
-
+    public static RDFDB rdfdb;
+    private static void populateHashmap(HashMap<Integer, LID> map, LID lid_subject, LID lid_predicate, LID lid_object) {
+        map.put(1, lid_subject);
+        map.put(2, lid_predicate);
+        map.put(3, lid_object);
+    }
 
     /**
      * This function compares a Quadruple with another Quadruple in respective field, and
@@ -46,6 +52,7 @@ class QuadrupleUtils {
      * @throws IOException             some I/O fault
      * @throws QuadrupleUtilsException exception from this class
      */
+
     public static int CompareQuadrupleWithQuadruple(AttrType fldType,
                                                     Quadruple t1, int t1_fld_no,
                                                     Quadruple t2, int t2_fld_no)
@@ -150,11 +157,7 @@ class QuadrupleUtils {
         return Integer.MIN_VALUE;
     }
 
-    private static void populateHashmap(HashMap<Integer, LID> map, LID lid_subject, LID lid_predicate, LID lid_object) {
-        map.put(1, lid_subject);
-        map.put(2, lid_predicate);
-        map.put(3, lid_object);
-    }
+
 
 
     /**
