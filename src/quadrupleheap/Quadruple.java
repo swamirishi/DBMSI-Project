@@ -47,9 +47,10 @@ public class Quadruple implements GlobalConst {
     }
 
     public Quadruple(byte [] aQuadruple, int offset, int length) {
-        data = aQuadruple;
-        quadruple_offset = offset;
-        quadruple_length = length;
+        this.data = new byte[length];
+        this.quadruple_offset = 0;
+        this.quadruple_length = length;
+        System.arraycopy(aQuadruple, offset, data, 0, length);
         if(isQuadruple(quadruple_length)){
             try {
                 setAttributes();
@@ -61,11 +62,20 @@ public class Quadruple implements GlobalConst {
         }
     }
 
-    public void quadrupleSet(byte [] record, int offset, int length)
-    {
+    public void quadrupleSet(byte [] record, int offset, int length) {
+        this.data = new byte[length];
+        this.quadruple_offset = 0;
+        this.quadruple_length = length;
         System.arraycopy(record, offset, data, 0, length);
-        quadruple_offset = 0;
-        quadruple_length = length;
+        if(isQuadruple(quadruple_length)){
+            try {
+                setAttributes();
+            } catch (FieldNumberOutOfBoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public int writeAttributeArrayToByteArray
@@ -90,6 +100,12 @@ public class Quadruple implements GlobalConst {
         this.object = new EID((new PageId(objectPid)), objectSlotNo);
         this.value = value;
     }
+
+    /*
+    public Quadruple getQuadrupleFromByteArray(byte[] record){
+
+    }
+    */
 
     public void setByteArray() throws FieldNumberOutOfBoundException, IOException {
         int subjectPid = subject.pageNo.pid;
@@ -125,7 +141,7 @@ public class Quadruple implements GlobalConst {
     public Quadruple(Quadruple fromQuadruple) {
         data = fromQuadruple.getQuadrupleByteArray();
         quadruple_length = fromQuadruple.getLength();
-        quadruple_offset = 0;
+        quadruple_offset = fromQuadruple.quadruple_offset;
         fldOffset = fromQuadruple.copyFldOffset();
         if(isQuadruple(quadruple_length)){
             try {
@@ -169,8 +185,19 @@ public class Quadruple implements GlobalConst {
     }
 
     public void quadrupleCopy(Quadruple fromQuadruple) {
-        byte [] temparray = fromQuadruple.getQuadrupleByteArray();
-        System.arraycopy(temparray, 0, data, 0, quadruple_length);
+        data = fromQuadruple.getQuadrupleByteArray();
+        quadruple_length = fromQuadruple.getLength();
+        quadruple_offset = fromQuadruple.quadruple_offset;
+        fldOffset = fromQuadruple.copyFldOffset();
+        if(isQuadruple(quadruple_length)){
+            try {
+                setAttributes();
+            } catch (FieldNumberOutOfBoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public LID getGenericObjectFromByteArray(int pidFld, int slotNoFld) throws FieldNumberOutOfBoundException, IOException {
@@ -229,20 +256,44 @@ public class Quadruple implements GlobalConst {
         return value;
     }
 
-    public void setSubject(EID subject) {
+    public void setSubject(EID subject) throws FieldNumberOutOfBoundException, IOException {
+        initBasicAttributes();
         this.subject = subject;
+        int subjectPid = subject.pageNo.pid;
+        int subjectSlotNo = subject.slotNo;
+        setIntFld(1, subjectPid);
+        setIntFld(2, subjectSlotNo);
     }
 
-    public void setPredicate(PID predicate) {
+    public void setPredicate(PID predicate) throws FieldNumberOutOfBoundException, IOException {
+        initBasicAttributes();
         this.predicate = predicate;
+        int predicatePid = predicate.pageNo.pid;
+        int predicateSlotNo = predicate.slotNo;
+        setIntFld(3, predicatePid);
+        setIntFld(4, predicateSlotNo);
     }
 
-    public void setObject(EID object) {
+    public void initBasicAttributes(){
+        this.fldOffset = new short[]{0, 4, 8, 12, 16, 20, 24, 32};
+        this.fldCnt = 7;
+        this.quadruple_length = fixed_quadruple_length;
+        this.quadruple_offset = 0;
+    }
+
+    public void setObject(EID object) throws FieldNumberOutOfBoundException, IOException {
+        initBasicAttributes();
         this.object = object;
+        int objectPid = object.pageNo.pid;
+        int objectSlotNo = object.slotNo;
+        setIntFld(5, objectPid);
+        setIntFld(6, objectSlotNo);
     }
 
-    public void setValue(double value) {
+    public void setValue(double value) throws FieldNumberOutOfBoundException, IOException {
+        initBasicAttributes();
         this.value = value;
+        setDoubleFld(7, value);
     }
 
 
