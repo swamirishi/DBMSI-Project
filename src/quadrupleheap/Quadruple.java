@@ -372,6 +372,10 @@ public class Quadruple implements GlobalConst {
                     strCount++;
                     break;
 
+                case AttrType.attrLID:
+                    incr = 8;
+                    break;
+
                 default:
                     throw new InvalidTypeException(null, "TUPLE: TUPLE_TYPE_ERROR");
             }
@@ -392,6 +396,10 @@ public class Quadruple implements GlobalConst {
 
             case AttrType.attrString:
                 incr = (short) (strSizes[strCount] + 2);  //strlen in bytes = strlen +2
+                break;
+
+            case AttrType.attrLID:
+                incr = 8;
                 break;
 
             default:
