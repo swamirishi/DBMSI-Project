@@ -1,11 +1,14 @@
-package qiterator;
-import quadrupleheap.*;
+package iterator;
+
+
+import heap.*;
 import global.*;
 import java.io.*;
 import java.lang.*;
 
-
-
+/**
+ *some useful method when processing Quadruple 
+ */
 public class QuadrupleUtils
 {
   
@@ -32,35 +35,46 @@ public class QuadrupleUtils
   public static int CompareQuadrupleWithQuadruple(AttrType fldType,
 					  Quadruple  t1, int t1_fld_no,
 					  Quadruple  t2, int t2_fld_no)
-
     throws IOException,
 	   UnknowAttrType,
 	   QuadrupleUtilsException
     {
-
-      LID t1_lid =new LID();
-      LID t2_lid=new LID();
-      int t1_i,  t2_i;
+      int   t1_i,  t2_i;
       float t1_r,  t2_r;
       String t1_s, t2_s;
-      LabelHeapFile f=null;
+      String status = OK;
+
+      EID subject1 = t1.getSubject();
+      PID predicate1=t1.getPredicate();
+      EID object1=t1.getObject();
+      float conf1=t1. getValue();
 
 
-      
+      EID subject2 = t2.getSubject();
+      PID predicate2=t2.getPredicate();
+      EID object2=t2.getObject();
+      float conf2=t2.getValue();
+
+
+     	LID lid_subject1= getGenericObjectFromByteArray(subject1.pageNo.pid, subject1.slotNo);
+     	LID lid_predicate1= getGenericObjectFromByteArray(predicate1.pageNo.pid, predicate1.slotNo);
+     	LID lid_object1= getGenericObjectFromByteArray(object1.pageNo.pid, object1.slotNo);
+
+     	LID lid_subject2= getGenericObjectFromByteArray(subject2.pageNo.pid, subject1.slotNo);
+     	LID lid_predicate2= getGenericObjectFromByteArray(predicate2.pageNo.pid, predicate2.slotNo);
+     	LID lid_object2= getGenericObjectFromByteArray(object2.pageNo.pid, object2.slotNo);
+
     switch (fldType.attrType) 
 	{
-
-		case AttrType.attrLID:
-		
+	
+	case AttrType.attrLID:      
+		// Compare two LID.
+	  try {
 
 			if(t1_fld_no==1 && t2_fld_no==1){
 
 				f = new Heapfile("file_1");
 			
-
-				t1_lid=t1.getLIDFld(t1_fld_no);
-				t2_lid=t2.getLIDFld(t2_fld_no);
-
 				LScan scan1 = null;
 				LScan scan2 = null;
     
@@ -91,12 +105,12 @@ public class QuadrupleUtils
 
 			      while (!done1) { 
 					try {
-					  label1 = scan1.getNext(t1_lid);
+					  label1 = scan1.getNext(lid_subject1);
 					  String data1 = label1.getLabel();
 
 					  while (!done2) { 
 						try {
-						  label2 = scan2.getNext(t2_lid);
+						  label2 = scan2.getNext(lid_subject2);
 						  String data2 = label2.getLabel();
 
 
@@ -108,10 +122,7 @@ public class QuadrupleUtils
 						  }
 
 
-						  if (eid2 == null) {
-						    done2 = true;
-						    break;
-						  	}
+						  
 						}
 
 						catch (Exception e) {
@@ -124,10 +135,7 @@ public class QuadrupleUtils
 
 
 
-					  if (eid1 == null) {
-					    done1 = true;
-					    break;
-					  	}
+					  
 					}
 
 					catch (Exception e) {
@@ -140,7 +148,7 @@ public class QuadrupleUtils
 				}
 
 			}
-			else if(t1_fld_no==2 && t2_fld_no==2){
+			if(t1_fld_no==2 && t2_fld_no==2){
 
 				f = new Heapfile("file_1");
 				
@@ -314,35 +322,11 @@ public class QuadrupleUtils
 				}
 
 			}
-			else{
-			
-
-				try {
-				    int t1_i = t1.getIntFld(t1_fld_no);
-				    int t2_i = t2.getIntFld(t2_fld_no);
-				  }catch (FieldNumberOutOfBoundException e){
-				    throw new QuadrupleUtilsException(e, "FieldNumberOutOfBoundException is caught by QuadrupleUtils.java");
-				  
-				  if (t1_i == t2_i) return  0;
-				  if (t1_i <  t2_i) return -1;
-				  if (t1_i >  t2_i) return  1;								}
 
 
-				}
-
-			}
-
-		}
-		catch (FieldNumberOutOfBoundException e){
-	    throw new QuadrupleUtilsException(e, "FieldNumberOutOfBoundException is caught by QuadrupleUtils.java");
-	  }
-
-
-
-	case AttrType.attrInteger:                // Compare two integers.
-	  try {
 	    t1_i = t1.getIntFld(t1_fld_no);
 	    t2_i = t2.getIntFld(t2_fld_no);
+
 	  }catch (FieldNumberOutOfBoundException e){
 	    throw new QuadrupleUtilsException(e, "FieldNumberOutOfBoundException is caught by QuadrupleUtils.java");
 	  }
@@ -633,31 +617,4 @@ public class QuadrupleUtils
       } 
       return res_str_sizes;
     }
-}
-
-
-static boolean Equal(Quadruple q1,Quadruple q2)
-{
-
-	throws IOException,
-	   UnknowAttrType,
-	   QuadrupleUtilsException
-
-
-	int val1=CompareQuadrupleWithQuadruple(LID,q1,1,q2,1);
-	int val2=CompareQuadrupleWithQuadruple(LID,q1,2,q2,2);
-	int val3=CompareQuadrupleWithQuadruple(LID,q1,3,q2,3);
-	int val4=CompareQuadrupleWithQuadruple(LID,q1,4,q2,4);
-
-	int sum=val1+val2+val3+val4;
-
-	if(sum==4){
-			return true;
-	}
-	else{
-
-			return false;
-	}
-
-
 }
