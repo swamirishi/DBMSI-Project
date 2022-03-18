@@ -1,11 +1,9 @@
-package qiterator;
+package iterator;
 
 import java.io.*;
 
 import global.*;
 import heap.*;
-import iterator.*;
-import iterator.SpoofIbuf;
 import quadrupleheap.Quadruple;
 import quadrupleheap.QuadrupleHeapFile;
 
@@ -40,7 +38,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
     private int[] n_tuples;
     private int n_runs;
     private Quadruple op_buf;
-    private OBuf o_buf;
+    private iterator.OBuf o_buf;
     private iterator.SpoofIbuf[] i_buf;
     private PageId[] bufs_pids;
     private boolean useBM = true; // flag for whether to use buffer manager
@@ -69,7 +67,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             throw new LowMemException("Sort.java: Not enough memory to sort in two passes.");
 
         int i;
-        pnode cur_node;  // need pq_defs.java
+        iterator.pnode cur_node;  // need pq_defs.java
 
         i_buf = new iterator.SpoofIbuf[n_R_runs];   // need io_bufs.java
         for (int j = 0; j < n_R_runs; j++) i_buf[j] = new SpoofIbuf();
@@ -84,7 +82,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             // need iobufs.java
             i_buf[i].init(temp_files[i], apage, 1, tuple_size, n_tuples[i]);
 
-            cur_node = new pnode();
+            cur_node = new iterator.pnode();
             cur_node.run_num = i;
 
             // may need change depending on whether Get() returns the original
@@ -138,7 +136,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             JoinsException,
             Exception {
         Quadruple tuple;
-        pnode cur_node;
+        iterator.pnode cur_node;
         pnodeSplayPQ Q1 = new pnodeSplayPQ(_sort_fld, sortFldType, order);
         pnodeSplayPQ Q2 = new pnodeSplayPQ(_sort_fld, sortFldType, order);
         pnodeSplayPQ pcurr_Q = Q1;
@@ -191,7 +189,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             if (tuple == null) {
                 break;
             }
-            cur_node = new pnode();
+            cur_node = new iterator.pnode();
             cur_node.tuple = new Quadruple(tuple); // tuple copy needed --  Bingjie 4/29/98
 
             pcurr_Q.enq(cur_node);
@@ -219,7 +217,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             } else {
                 // set lastElem to have the value of the current tuple,
                 // need tuple_utils.java
-                qiterator.QuadrupleUtils.SetValue(lastElem, cur_node.tuple, _sort_fld, sortFldType);
+                QuadrupleUtils.SetValue(lastElem, cur_node.tuple, _sort_fld, sortFldType);
                 // write tuple to output file, need io_bufs.java, type cast???
                 //	System.out.println("Putting tuple into run " + (run_num + 1));
                 //	cur_node.tuple.print(_in);
@@ -299,7 +297,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
                     if (tuple == null) {
                         break;
                     }
-                    cur_node = new pnode();
+                    cur_node = new iterator.pnode();
                     cur_node.tuple = new Quadruple(tuple); // tuple copy needed --  Bingjie 4/29/98
 
                     try {
@@ -398,7 +396,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             throws IOException,
             SortException,
             Exception {
-        pnode cur_node;                // needs pq_defs.java
+        iterator.pnode cur_node;                // needs pq_defs.java
         Quadruple new_tuple, old_tuple;
 
         cur_node = Q.deq();
@@ -617,7 +615,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             throw new SortException(e, "Sort.java: Heapfile error");
         }
 
-        o_buf = new OBuf();
+        o_buf = new iterator.OBuf();
 
         o_buf.init(bufs, _n_pages, tuple_size, temp_files[0], false);
         //    output_tuple = null;
