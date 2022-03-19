@@ -50,7 +50,7 @@ public class SpoofIbuf implements GlobalConst  {
       if (hf_scan != null)  hf_scan = null;
       
       try {
-	hf_scan = _fd.openScan();
+	hf_scan = (Scan) _fd.openScan();
       }
       catch(Exception e){
 	throw e;

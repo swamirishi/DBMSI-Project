@@ -109,7 +109,7 @@ public class RDFDB extends DB {
 
     private LID getLIDFromHeapFileScan(String inputLabel) throws InvalidTupleSizeException, IOException {
         LID lid = new LID();
-        LScan scan = entityLabelHeapFile.openScan();
+        LScan scan = (LScan) entityLabelHeapFile.openScan();
         boolean isFound = false;
         while (true) {
             Label label = scan.getNext(lid);
@@ -127,7 +127,7 @@ public class RDFDB extends DB {
 
     private QID getQIDFromHeapFileScan(byte[] inputData) throws InvalidTupleSizeException, IOException {
         QID qid = new QID();
-        TScan scan = quadrupleHeapFile.openScan();
+        TScan scan = (TScan) quadrupleHeapFile.openScan();
         boolean isFound = false;
         while (true) {
             Quadruple quadruple = scan.getNext(qid);

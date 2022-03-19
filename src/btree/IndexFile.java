@@ -18,7 +18,7 @@ class ScanState
 /**
  * Base class for a index file
  */
-public abstract class IndexFile 
+public abstract class IndexFile<I extends ID>
 {
   /**
    * Insert entry into the index file.
@@ -40,7 +40,7 @@ public abstract class IndexFile
    * @exception LeafDeleteException delete leaf page failed
    * @exception InsertException insert record failed
    */
-  abstract public void insert(final KeyClass data, final RID rid)
+  abstract public void insert(final KeyClass data, final I rid)
     throws KeyTooLongException, 
 	   KeyNotMatchException, 
 	   LeafInsertRecException,   
@@ -79,7 +79,7 @@ public abstract class IndexFile
    * @exception DeleteRecException delete record failed
    * @exception IndexSearchException  index search failed
    */
-  abstract public boolean Delete(final KeyClass data, final RID rid)  
+  abstract public boolean Delete(final KeyClass data, final I rid)
     throws  DeleteFashionException, 
 	    LeafRedistributeException,
 	    RedistributeException,

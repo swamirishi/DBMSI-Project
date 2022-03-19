@@ -7,7 +7,7 @@ import java.io.*;
 /** class RID
  */
 
-public class RID{
+public class RID implements ID<RID>{
   
   /** public int slotNo
    */
@@ -40,6 +40,26 @@ public class RID{
       slotNo = rid.slotNo;
     }
   
+  @Override
+  public int getSlotNo() {
+    return this.slotNo;
+  }
+  
+  @Override
+  public PageId getPageNo() {
+    return this.pageNo;
+  }
+  
+  @Override
+  public void setSlotNo(int slotNo) {
+    this.slotNo = slotNo;
+  }
+  
+  @Override
+  public void setPageNo(PageId pageId) {
+    this.pageNo = pageId;
+  }
+  
   /** Write the rid into a byte array at offset
    * @param ary the specified byte array
    * @param offset the offset of byte array to write 
@@ -67,4 +87,20 @@ public class RID{
       return false;
   }
   
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    
+    RID rid = (RID) o;
+    
+    if (slotNo != rid.slotNo) {
+      return false;
+    }
+    return pageNo != null ? pageNo.equals(rid.pageNo) : rid.pageNo == null;
+  }
 }

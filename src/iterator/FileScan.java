@@ -87,7 +87,7 @@ public class FileScan extends  Iterator
       }
       
       try {
-	scan = f.openScan();
+	scan = (Scan) f.openScan();
       }
       catch(Exception e){
 	throw new FileScanException(e, "openScan() failed");

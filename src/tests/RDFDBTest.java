@@ -12,7 +12,7 @@ import static quadrupleheap.QuadrupleTest.assertEquals;
 
 public class RDFDBTest {
 
-    public static Quadruple quadrupleInitTest(EID subjectID, EID objectID, PID predicateID, double value) throws IOException, FieldNumberOutOfBoundException, ClassNotFoundException {
+    public static Quadruple quadrupleInitTest(EID subjectID, EID objectID, PID predicateID, float value) throws IOException, FieldNumberOutOfBoundException, ClassNotFoundException, InvalidTupleSizeException, InvalidTypeException {
 //        EID subject = new EID(new PageId(1), 2);
 //        PID predicate = new PID(new PageId(2), 3);
 //        EID object = new EID(new PageId(10), 21);
@@ -37,13 +37,13 @@ public class RDFDBTest {
         EID subjectID = rdfdb.insertEntity("Dhruv");
         EID objectID = rdfdb.insertEntity("Agja");
         PID predicateID = rdfdb.insertPredicate("OP");
-        Quadruple q1 = quadrupleInitTest(subjectID, objectID, predicateID, 1.0);
+        Quadruple q1 = quadrupleInitTest(subjectID, objectID, predicateID, 1.0f);
         rdfdb.insertQuadruple(q1.returnQuadrupleByteArray());
 
         subjectID = rdfdb.insertEntity("Abhi");
         objectID = rdfdb.insertEntity("Jindal");
         predicateID = rdfdb.insertPredicate("Pro");
-        Quadruple q2 = quadrupleInitTest(subjectID, objectID, predicateID, 2.0);
+        Quadruple q2 = quadrupleInitTest(subjectID, objectID, predicateID, 2.0f);
         rdfdb.insertQuadruple(q2.returnQuadrupleByteArray());
 
         Stream s = rdfdb.openStream(1, "Abhi", null, null, 0);

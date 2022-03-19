@@ -172,7 +172,7 @@ public class NestedLoopsJoins  extends Iterator
 		}
 	    
 	      try {
-		inner = hf.openScan();
+		inner = (Scan) hf.openScan();
 	      }
 	      catch(Exception e){
 		throw new NestedLoopException(e, "openScan failed");

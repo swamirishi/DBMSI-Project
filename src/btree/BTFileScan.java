@@ -6,37 +6,26 @@
  */
 package btree;
 import java.io.*;
+
+import btree.interfaces.BTFileScanI;
 import global.*;
 import heap.*;
+import utils.supplier.btleafpage.BTLeafPageSupplier;
+import utils.supplier.btleafpage.RIDBTLeafPageSupplier;
 
 /**
  * BTFileScan implements a search/iterate interface to B+ tree 
  * index files (class BTreeFile).  It derives from abstract base
  * class IndexFileScan.  
  */
-public class BTFileScan  extends IndexFileScan
-             implements  GlobalConst
+public class BTFileScan  extends BTFileScanI<RID,Tuple>
 {
-
-  BTreeFile bfile; 
-  String treeFilename;     // B+ tree we're scanning 
-  BTLeafPage leafPage;   // leaf page containing current record
-  RID curRid;       // position in current leaf; note: this is 
-                             // the RID of the key/RID pair within the
-                             // leaf page.                                    
-  boolean didfirst;        // false only before getNext is called
-  boolean deletedcurrent;  // true after deleteCurrent is called (read
-                           // by get_next, written by deleteCurrent).
+    @Override
+    public BTLeafPageSupplier<RID, Tuple> getBTLeafSupplier() {
+        return RIDBTLeafPageSupplier.getSupplier();
+    }
     
-  KeyClass endkey;    // if NULL, then go all the way right
-                        // else, stop when current record > this value.
-                        // (that is, implement an inclusive range 
-                        // scan -- the only way to do a search for 
-                        // a single value).
-  int keyType;
-  int maxKeysize;
-
-  /**
+    /**
    * Iterate once (during a scan).  
    *@return null if done; otherwise next KeyDataEntry
    *@exception ScanIteratorException iterator error
@@ -45,48 +34,7 @@ public class BTFileScan  extends IndexFileScan
     throws ScanIteratorException
     {
 
-    KeyDataEntry entry;
-    PageId nextpage;
-    try {
-      if (leafPage == null)
-        return null;
-      
-      if ((deletedcurrent && didfirst) || (!deletedcurrent && !didfirst)) {
-         didfirst = true;
-         deletedcurrent = false;
-         entry=leafPage.getCurrent(curRid);
-      }
-      else {
-         entry = leafPage.getNext(curRid);
-      }
-
-      while ( entry == null ) {
-         nextpage = leafPage.getNextPage();
-         SystemDefs.JavabaseBM.unpinPage(leafPage.getCurPage(), true);
-	 if (nextpage.pid == INVALID_PAGE) {
-	    leafPage = null;
-	    return null;
-	 }
-
-         leafPage=new BTLeafPage(nextpage, keyType);
-	 	
-	 entry=leafPage.getFirst(curRid);
-      }
-
-      if (endkey != null)  
-        if ( BT.keyCompare(entry.key, endkey)  > 0) {
-            // went past right end of scan 
-	    SystemDefs.JavabaseBM.unpinPage(leafPage.getCurPage(), false);
-            leafPage=null;
-	    return null;
-        }
-
-      return entry;
-    }
-    catch ( Exception e) {
-         e.printStackTrace();
-         throw new ScanIteratorException();
-    }
+    return (KeyDataEntry) super.get_next();
   }
 
 
@@ -98,35 +46,14 @@ public class BTFileScan  extends IndexFileScan
   public void delete_current() 
     throws ScanDeleteException {
 
-    KeyDataEntry entry;
-    try{  
-      if (leafPage == null) {
-	System.out.println("No Record to delete!"); 
-	throw new ScanDeleteException();
-      }
-      
-      if( (deletedcurrent == true) || (didfirst==false) ) 
-	return;    
-      
-      entry=leafPage.getCurrent(curRid);  
-      SystemDefs.JavabaseBM.unpinPage( leafPage.getCurPage(), false);
-      bfile.Delete(entry.key, ((LeafData)entry.data).getData());
-      leafPage=bfile.findRunStart(entry.key, curRid);
-      
-      deletedcurrent = true;
-      return;
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-      throw new ScanDeleteException();
-    }  
+    super.delete_current();
   }
   
   /** max size of the key
    *@return the maxumum size of the key in BTFile
    */
   public int keysize() {
-    return maxKeysize;
+    return super.keysize();
   }  
   
   
@@ -145,10 +72,7 @@ public class BTFileScan  extends IndexFileScan
     throws  IOException, bufmgr.InvalidFrameNumberException,bufmgr.ReplacerException,
             bufmgr.PageUnpinnedException,bufmgr.HashEntryNotFoundException   
   { 
-     if (leafPage != null) {
-         SystemDefs.JavabaseBM.unpinPage(leafPage.getCurPage(), true);
-     } 
-     leafPage=null;
+     super.DestroyBTreeFileScan();
   }
 
 
