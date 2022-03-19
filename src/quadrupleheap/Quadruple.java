@@ -18,7 +18,7 @@ public class Quadruple extends Tuple {
     private static final AttrType intType = new AttrType(AttrType.attrInteger);
     private static final AttrType floType = new AttrType(AttrType.attrReal);
     private static final AttrType[] headerTypes = new AttrType[]{intType,intType,intType,intType,intType,intType,floType};
-    private static final short[] strLengths = new short[]{0,0,0,0,0,0,0,0};
+    private static final int[] offsets = new int[]{0,4,8,12,16,20,24};
     
     public Quadruple() {
         this(max_size);
@@ -27,17 +27,18 @@ public class Quadruple extends Tuple {
     public Quadruple(byte [] aQuadruple, int offset, int length) {
         super(aQuadruple,offset,length);
         try {
-            this.setHdr(numberOfFields,headerTypes,strLengths);
             this.setAttributes();
-        } catch (IOException | InvalidTypeException | InvalidTupleSizeException | FieldNumberOutOfBoundException e) {
+        } catch (IOException | FieldNumberOutOfBoundException e) {
             e.printStackTrace();
         }
     }
     private void setAttributes() throws IOException, FieldNumberOutOfBoundException {
-        this.subject = new EID(new PageId(this.getIntFld(1)),this.getIntFld(2));
-        this.predicate = new PID(new PageId(this.getIntFld(3)),this.getIntFld(4));
-        this.object = new EID(new PageId(this.getIntFld(5)),this.getIntFld(6));
-        this.value = this.getFloFld(7);
+        if(this.getLength()>=28){
+            this.subject = new EID(new PageId(Convert.getIntValue(offsets[0],super.getData())),Convert.getIntValue(offsets[1],super.getData()));
+            this.predicate = new PID(new PageId(Convert.getIntValue(offsets[2],super.getData())),Convert.getIntValue(offsets[3],super.getData()));
+            this.object = new EID(new PageId(Convert.getIntValue(offsets[4],super.getData())),Convert.getIntValue(offsets[5],super.getData()));
+            this.value = Convert.getFloValue(offsets[6],super.getData());
+        }
     }
 
     public Quadruple(EID subject, PID predicate, EID object, float value) throws IOException, FieldNumberOutOfBoundException, InvalidTupleSizeException, InvalidTypeException {
@@ -53,6 +54,24 @@ public class Quadruple extends Tuple {
     }
 
     public byte[] getQuadrupleByteArray() {
+        byte[] ret = new byte[28];
+        try {
+            if(this.subject!=null){
+                Convert.setIntValue(this.subject.getPageNo().pid,offsets[0],ret);
+                Convert.setIntValue(this.subject.getSlotNo(),offsets[1],ret);
+            }
+            if(this.predicate!=null){
+                Convert.setIntValue(this.predicate.getPageNo().pid,offsets[2],ret);
+                Convert.setIntValue(this.predicate.getSlotNo(),offsets[3],ret);
+            }
+            if(this.object!=null){
+                Convert.setIntValue(this.object.getPageNo().pid,offsets[4],ret);
+                Convert.setIntValue(this.object.getSlotNo(),offsets[5],ret);
+            }
+            Convert.setFloValue(this.value,offsets[6],ret);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return super.getTupleByteArray();
     }
 
