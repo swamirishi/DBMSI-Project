@@ -62,13 +62,14 @@ public class QuadrupleUtils {
 		double t1_r, t2_r;
 		boolean status = OK;
 
-		LID lid_subject1 = t1.getGenericObjectFromByteArray(SUBJECT_PID_FLD_NO, SUBJECT_SLOT_FLD_NO);
-		LID lid_predicate1 = t1.getGenericObjectFromByteArray(PREDICATE_PID_FLD_NO, PREDICATE_SLOT_FLD_NO);
-		LID lid_object1 = t1.getGenericObjectFromByteArray(OBJECT_PID_FLD_NO, OBJECT_SLOT_FLD_NO);
+		LID lid_subject1 = t1.getSubject().returnLid();
+		LID lid_predicate1 = t1.getPredicate().returnLid();
+		LID lid_object1 = t1.getObject().returnLid();
 
-		LID lid_subject2 = t2.getGenericObjectFromByteArray(SUBJECT_PID_FLD_NO, SUBJECT_SLOT_FLD_NO);
-		LID lid_predicate2 = t2.getGenericObjectFromByteArray(PREDICATE_PID_FLD_NO, PREDICATE_SLOT_FLD_NO);
-		LID lid_object2 = t2.getGenericObjectFromByteArray(OBJECT_PID_FLD_NO, OBJECT_SLOT_FLD_NO);
+		LID lid_subject2 = t2.getSubject().returnLid();
+		LID lid_predicate2 = t2.getPredicate().returnLid();
+		LID lid_object2 = t2.getObject().returnLid();
+
         /*
             Following maps store attribute no with its LID object. Ex : (1, subjectLid) (2, predicateLid)
         * */
@@ -99,7 +100,13 @@ public class QuadrupleUtils {
 					catch (Exception e){
 						e.printStackTrace();
 					}
-
+					if (labelQ1 == null && labelQ2 == null) {
+						return 0;
+					} else if (labelQ1 == null) {
+						return -1;
+					} else if (labelQ2 == null) {
+						return 1;
+					}
 					int res = labelQ1.getLabel().compareTo(labelQ2.getLabel());
 					if(res == 0)
 						return res;
@@ -110,12 +117,8 @@ public class QuadrupleUtils {
 
 
 			case AttrType.attrReal:                // Compare two floats
-				try {
-					t1_r = t1.getDoubleFld(t1_fld_no);
-					t2_r = t2.getDoubleFld(t2_fld_no);
-				} catch (FieldNumberOutOfBoundException e) {
-					throw new QuadrupleUtilsException(e, "FieldNumberOutOfBoundException is caught by QuadrupleUtils.java");
-				}
+				t1_r = t1.getValue();
+				t2_r = t2.getValue();
 				if (t1_r == t2_r) return 0;
 				else if (t1_r < t2_r) return -1;
 				return 1;
@@ -285,38 +288,18 @@ public class QuadrupleUtils {
 	 * set up a Quadruple in specified field from a Quadruple
 	 *
 	 * @param value     the Quadruple to be set
-	 * @param Quadruple the given Quadruple
+	 * @param quadruple the given Quadruple
 	 * @param fld_no    the field number
 	 * @param fldType   the Quadruple attr type
 	 * @throws UnknowAttrType          don't know the attribute type
 	 * @throws IOException             some I/O fault
 	 * @throws QuadrupleUtilsException exception from this class
 	 */
-	public static void SetValue(Quadruple value, Quadruple Quadruple, int fld_no, AttrType fldType)
+	public static void SetValue(Quadruple value, Quadruple quadruple, int fld_no, AttrType fldType)
 			throws IOException,
 			UnknowAttrType,
-			QuadrupleUtilsException {
-
-		switch (fldType.attrType) {
-			case AttrType.attrLID:
-				try {
-					value.setIntFld(fld_no, Quadruple.getIntFld(fld_no));
-				} catch (FieldNumberOutOfBoundException e) {
-					throw new QuadrupleUtilsException(e, "FieldNumberOutOfBoundException is caught by QuadrupleUtils.java");
-				}
-				break;
-			case AttrType.attrReal:
-				try {
-					value.setFloFld(fld_no, Quadruple.getFloFld(fld_no));
-				} catch (FieldNumberOutOfBoundException e) {
-					throw new QuadrupleUtilsException(e, "FieldNumberOutOfBoundException is caught by QuadrupleUtils.java");
-				}
-				break;
-
-			default:
-				throw new UnknowAttrType(null, "Don't know how to handle attrSymbol, attrNull");
-
-		}
-
+			QuadrupleUtilsException, InvalidTupleSizeException, FieldNumberOutOfBoundException {
+		int len = quadruple.getQuadrupleByteArray().length;
+		value.quadrupleSet(quadruple.getQuadrupleByteArray(), 0, len);
 	}
 }

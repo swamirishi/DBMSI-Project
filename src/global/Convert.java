@@ -302,8 +302,9 @@ public class Convert{
     DataOutputStream outstr = new DataOutputStream (out);
 
     // write the value to the output stream
-    byte []B = ((ByteArrayOutputStream) out).toByteArray();
     outstr.writeUTF(value);
+    byte []B = ((ByteArrayOutputStream) out).toByteArray();
+
     return B;
   }
   /**

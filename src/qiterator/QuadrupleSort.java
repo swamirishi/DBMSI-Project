@@ -2,6 +2,7 @@ package qiterator;
 
 import java.io.*;
 
+import diskmgr.RDFDB;
 import global.*;
 import heap.*;
 import iterator.*;
@@ -39,11 +40,13 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
     private Quadruple output_tuple;
     private int[] n_tuples;
     private int n_runs;
-    private Quadruple op_buf;
+    private Quadruple op_buf = new Quadruple();
     private OBuf o_buf;
     private QuadrupleSpoofIbuf[] i_buf;
     private PageId[] bufs_pids;
     private boolean useBM = true; // flag for whether to use buffer manager
+    private RDFDB rdfdb;
+    private int orderType;
 
     /**
      * Set up for merging the runs.
@@ -91,11 +94,11 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             // or make a copy of the tuple, need io_bufs.java ???
             Quadruple temp_tuple = new Quadruple(tuple_size);
 
-            try {
-                temp_tuple.setHdr(n_cols, _in, str_lens);
-            } catch (Exception e) {
-                throw new SortException(e, "Sort.java: Tuple.setHdr() failed");
-            }
+//            try {
+//                temp_tuple.setHdr(n_cols, _in, str_lens);
+//            } catch (Exception e) {
+//                throw new SortException(e, "Sort.java: Tuple.setHdr() failed");
+//            }
 
             temp_tuple = i_buf[i].Get(temp_tuple);  // need io_bufs.java
 
@@ -143,12 +146,12 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
         pnodeSplayPQ Q2 = new pnodeSplayPQ(_sort_fld, sortFldType, order);
         pnodeSplayPQ pcurr_Q = Q1;
         pnodeSplayPQ pother_Q = Q2;
-        Quadruple lastElem = new Quadruple(tuple_size);  // need tuple.java
-        try {
-            lastElem.setHdr(n_cols, _in, str_lens);
-        } catch (Exception e) {
-            throw new SortException(e, "Sort.java: setHdr() failed");
-        }
+        Quadruple lastElem = null;  // need tuple.java
+//        try {
+//            lastElem.setHdr(n_cols, _in, str_lens);
+//        } catch (Exception e) {
+//            throw new SortException(e, "Sort.java: setHdr() failed");
+//        }
 
         int run_num = 0;  // keeps track of the number of runs
 
@@ -163,7 +166,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
         // set the lastElem to be the minimum value for the sort field
         if (order.tupleOrder == TupleOrder.Ascending) {
             try {
-                MIN_VAL(lastElem, sortFldType);
+                lastElem = MIN_VAL();
             } catch (UnknowAttrType e) {
                 throw new SortException(e, "Sort.java: UnknowAttrType caught from MIN_VAL()");
             } catch (Exception e) {
@@ -171,7 +174,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             }
         } else {
             try {
-                MAX_VAL(lastElem, sortFldType);
+                MAX_VAL();
             } catch (UnknowAttrType e) {
                 throw new SortException(e, "Sort.java: UnknowAttrType caught from MAX_VAL()");
             } catch (Exception e) {
@@ -207,7 +210,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             if (cur_node == null) break;
             p_elems_curr_Q--;
 
-            comp_res = QuadrupleUtils.CompareQuadrupleWithValue(sortFldType, cur_node.tuple, _sort_fld, lastElem);  // need tuple_utils.java
+            comp_res = QuadrupleUtils.compareQuadrupleWithQuadrupleAsPerOrderType(cur_node.tuple, lastElem, orderType);  // need tuple_utils.java
 
             if ((comp_res < 0 && order.tupleOrder == TupleOrder.Ascending) || (comp_res > 0 && order.tupleOrder == TupleOrder.Descending)) {
                 // doesn't fit in current run, put into the other queue
@@ -220,7 +223,8 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             } else {
                 // set lastElem to have the value of the current tuple,
                 // need tuple_utils.java
-                QuadrupleUtils.SetValue(lastElem, cur_node.tuple, _sort_fld, sortFldType);
+                lastElem.quadrupleCopy(cur_node.tuple);
+//                QuadrupleUtils.SetValue(lastElem, cur_node.tuple, _sort_fld, sortFldType);
                 // write tuple to output file, need io_bufs.java, type cast???
                 //	System.out.println("Putting tuple into run " + (run_num + 1));
                 //	cur_node.tuple.print(_in);
@@ -263,7 +267,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
                 // set the last Elem to be the minimum value for the sort field
                 if (order.tupleOrder == TupleOrder.Ascending) {
                     try {
-                        MIN_VAL(lastElem, sortFldType);
+                        lastElem = MIN_VAL();
                     } catch (UnknowAttrType e) {
                         throw new SortException(e, "Sort.java: UnknowAttrType caught from MIN_VAL()");
                     } catch (Exception e) {
@@ -271,7 +275,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
                     }
                 } else {
                     try {
-                        MAX_VAL(lastElem, sortFldType);
+                        MAX_VAL();
                     } catch (UnknowAttrType e) {
                         throw new SortException(e, "Sort.java: UnknowAttrType caught from MAX_VAL()");
                     } catch (Exception e) {
@@ -355,7 +359,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
                     // set the last Elem to be the minimum value for the sort field
                     if (order.tupleOrder == TupleOrder.Ascending) {
                         try {
-                            MIN_VAL(lastElem, sortFldType);
+                            lastElem = MIN_VAL();
                         } catch (UnknowAttrType e) {
                             throw new SortException(e, "Sort.java: UnknowAttrType caught from MIN_VAL()");
                         } catch (Exception e) {
@@ -363,7 +367,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
                         }
                     } else {
                         try {
-                            MAX_VAL(lastElem, sortFldType);
+                            MAX_VAL();
                         } catch (UnknowAttrType e) {
                             throw new SortException(e, "Sort.java: UnknowAttrType caught from MAX_VAL()");
                         } catch (Exception e) {
@@ -415,11 +419,11 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             // run not exhausted
             new_tuple = new Quadruple(tuple_size); // need tuple.java??
 
-            try {
-                new_tuple.setHdr(n_cols, _in, str_lens);
-            } catch (Exception e) {
-                throw new SortException(e, "Sort.java: setHdr() failed");
-            }
+//            try {
+//                new_tuple.setHdr(n_cols, _in, str_lens);
+//            } catch (Exception e) {
+//                throw new SortException(e, "Sort.java: setHdr() failed");
+//            }
 
             new_tuple = i_buf[cur_node.run_num].Get(new_tuple);
             if (new_tuple != null) {
@@ -453,39 +457,21 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
      * @throws IOException    from lower layers
      * @throws UnknowAttrType attrSymbol or attrNull encountered
      */
-    private void MIN_VAL(Quadruple lastElem, AttrType sortFldType)
+    private Quadruple MIN_VAL()
             throws IOException,
             FieldNumberOutOfBoundException,
-            UnknowAttrType {
+            UnknowAttrType, InvalidTupleSizeException, InvalidTypeException {
 
         //    short[] s_size = new short[Tuple.max_size]; // need Tuple.java
         //    AttrType[] junk = new AttrType[1];
         //    junk[0] = new AttrType(sortFldType.attrType);
-        char[] c = new char[1];
-        c[0] = Character.MIN_VALUE;
-        String s = new String(c);
-        //    short fld_no = 1;
 
-        switch (sortFldType.attrType) {
-            case AttrType.attrInteger:
-                //      lastElem.setHdr(fld_no, junk, null);
-                lastElem.setIntFld(_sort_fld, Integer.MIN_VALUE);
-                break;
-            case AttrType.attrReal:
-                //      lastElem.setHdr(fld-no, junk, null);
-                lastElem.setFloFld(_sort_fld, Float.MIN_VALUE);
-                break;
-            case AttrType.attrString:
-                //      lastElem.setHdr(fld_no, junk, s_size);
-                lastElem.setStrFld(_sort_fld, s);
-                break;
-            default:
-                // don't know how to handle attrSymbol, attrNull
-                //System.err.println("error in sort.java");
-                throw new UnknowAttrType("Sort.java: don't know how to handle attrSymbol, attrNull");
-        }
-
-        return;
+        EID minSubjectId = new EID(new PageId(INVALID_PAGE), 1);
+        PID minPredicateId = new PID(new PageId(INVALID_PAGE), 1);
+        EID minObjectId = new EID(new PageId(INVALID_PAGE), 1);
+        float minConfidenceValue = -1;
+        Quadruple lastElem = new Quadruple(minSubjectId, minPredicateId, minObjectId, minConfidenceValue);
+        return lastElem;
     }
 
     /**
@@ -496,7 +482,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
      * @throws IOException    from lower layers
      * @throws UnknowAttrType attrSymbol or attrNull encountered
      */
-    private void MAX_VAL(Quadruple lastElem, AttrType sortFldType)
+    private void MAX_VAL()
             throws IOException,
             FieldNumberOutOfBoundException,
             UnknowAttrType {
@@ -509,24 +495,24 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
         String s = new String(c);
         //    short fld_no = 1;
 
-        switch (sortFldType.attrType) {
-            case AttrType.attrInteger:
-                //      lastElem.setHdr(fld_no, junk, null);
-                lastElem.setIntFld(_sort_fld, Integer.MAX_VALUE);
-                break;
-            case AttrType.attrReal:
-                //      lastElem.setHdr(fld_no, junk, null);
-                lastElem.setFloFld(_sort_fld, Float.MAX_VALUE);
-                break;
-            case AttrType.attrString:
-                //      lastElem.setHdr(fld_no, junk, s_size);
-                lastElem.setStrFld(_sort_fld, s);
-                break;
-            default:
-                // don't know how to handle attrSymbol, attrNull
-                //System.err.println("error in sort.java");
-                throw new UnknowAttrType("Sort.java: don't know how to handle attrSymbol, attrNull");
-        }
+//        switch (sortFldType.attrType) {
+//            case AttrType.attrInteger:
+//                //      lastElem.setHdr(fld_no, junk, null);
+//                lastElem.setIntFld(_sort_fld, Integer.MAX_VALUE);
+//                break;
+//            case AttrType.attrReal:
+//                //      lastElem.setHdr(fld_no, junk, null);
+//                lastElem.setFloFld(_sort_fld, Float.MAX_VALUE);
+//                break;
+//            case AttrType.attrString:
+//                //      lastElem.setHdr(fld_no, junk, s_size);
+//                lastElem.setStrFld(_sort_fld, s);
+//                break;
+//            default:
+//                // don't know how to handle attrSymbol, attrNull
+//                //System.err.println("error in sort.java");
+//                throw new UnknowAttrType("Sort.java: don't know how to handle attrSymbol, attrNull");
+//        }
 
         return;
     }
@@ -546,7 +532,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
      * @throws IOException   from lower layers
      * @throws SortException something went wrong in the lower layer.
      */
-    public QuadrupleSort(AttrType[] in,
+    public QuadrupleSort(RDFDB rdfdb, int orderType, AttrType[] in,
                          short len_in,
                          short[] str_sizes,
                          TScan am,
@@ -555,6 +541,8 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
                          int sort_fld_len,
                          int n_pages
     ) throws IOException, SortException {
+        this.rdfdb = rdfdb;
+        this.orderType = orderType;
         _in = new AttrType[len_in];
         n_cols = len_in;
         int n_strs = 0;
@@ -576,13 +564,13 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             }
         }
 
-        Quadruple t = new Quadruple(); // need Tuple.java
-        try {
-            t.setHdr(len_in, _in, str_sizes);
-        } catch (Exception e) {
-            throw new SortException(e, "Sort.java: t.setHdr() failed");
-        }
-        tuple_size = t.size();
+        Quadruple t = new Quadruple(Quadruple.QUADRUPLE_SIZE); // need Tuple.java
+//        try {
+//            t.setHdr(len_in, _in, str_sizes);
+//        } catch (Exception e) {
+//            throw new SortException(e, "Sort.java: t.setHdr() failed");
+//        }
+        tuple_size = t.getLength();
 
         _am = am;
         _sort_fld = sort_fld;
@@ -629,12 +617,12 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
 
         Q = new pnodeSplayPQ(sort_fld, in[sort_fld - 1], order);
 
-        op_buf = new Quadruple(tuple_size);   // need Tuple.java
-        try {
-            op_buf.setHdr(n_cols, _in, str_lens);
-        } catch (Exception e) {
-            throw new SortException(e, "Sort.java: op_buf.setHdr() failed");
-        }
+//        op_buf = new Quadruple(tuple_size);   // need Tuple.java
+//        try {
+//            op_buf.setHdr(n_cols, _in, str_lens);
+//        } catch (Exception e) {
+//            throw new SortException(e, "Sort.java: op_buf.setHdr() failed");
+//        }
     }
 
     /**

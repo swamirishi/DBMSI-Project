@@ -19,6 +19,7 @@ public class Quadruple extends Tuple {
     private static final AttrType floType = new AttrType(AttrType.attrReal);
     private static final AttrType[] headerTypes = new AttrType[]{intType,intType,intType,intType,intType,intType,floType};
     private static final int[] offsets = new int[]{0,4,8,12,16,20,24};
+    public static final short QUADRUPLE_SIZE = 28;
 
     public Quadruple() {
         this(max_size);
@@ -33,7 +34,7 @@ public class Quadruple extends Tuple {
         }
     }
     private void setAttributes() throws IOException, FieldNumberOutOfBoundException {
-        if(this.getLength()>=28){
+        if(this.getLength()>=QUADRUPLE_SIZE){
             this.subject = new EID(new PageId(Convert.getIntValue(offsets[0],super.getData())),Convert.getIntValue(offsets[1],super.getData()));
             this.predicate = new PID(new PageId(Convert.getIntValue(offsets[2],super.getData())),Convert.getIntValue(offsets[3],super.getData()));
             this.object = new EID(new PageId(Convert.getIntValue(offsets[4],super.getData())),Convert.getIntValue(offsets[5],super.getData()));
@@ -42,19 +43,19 @@ public class Quadruple extends Tuple {
     }
 
     public Quadruple(EID subject, PID predicate, EID object, float value) throws IOException, FieldNumberOutOfBoundException, InvalidTupleSizeException, InvalidTypeException {
-        this();
         this.setSubject(subject);
         this.setPredicate(predicate);
         this.setObject(object);
         this.setValue(value);
+        this.quadrupleCopy(this);
     }
 
     public Quadruple(Quadruple fromQuadruple) throws InvalidTupleSizeException {
-        this(fromQuadruple.getQuadrupleByteArray(),fromQuadruple.getLength(),0);
+        this(fromQuadruple.getQuadrupleByteArray(),0,fromQuadruple.getLength());
     }
 
     public byte[] getQuadrupleByteArray() {
-        byte[] ret = new byte[28];
+        byte[] ret = new byte[QUADRUPLE_SIZE];
         try {
             if(this.subject!=null){
                 Convert.setIntValue(this.subject.getPageNo().pid,offsets[0],ret);
@@ -94,9 +95,21 @@ public class Quadruple extends Tuple {
     }
     public void tupleCopy(Quadruple quadruple){
         super.tupleCopy(quadruple);
+        try {
+            setAttributes();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (FieldNumberOutOfBoundException e) {
+            e.printStackTrace();
+        }
     }
     public void quadrupleCopy(Quadruple fromQuadruple) throws IOException, FieldNumberOutOfBoundException {
-        this.tupleCopy(fromQuadruple);
+        byte[] quadrupleByteArray = fromQuadruple.getQuadrupleByteArray();
+        try {
+            this.quadrupleSet(quadrupleByteArray, 0, quadrupleByteArray.length);
+        } catch (InvalidTupleSizeException e) {
+            e.printStackTrace();
+        }
     }
 
     public LID getGenericObjectFromByteArray(int pidFld, int slotNoFld) throws FieldNumberOutOfBoundException, IOException {
@@ -189,7 +202,8 @@ public class Quadruple extends Tuple {
     public void tupleSet(byte[] record,int offset, int length) throws InvalidTupleSizeException {
         super.tupleSet(record,offset,length);
     }
-    public void quadrupleSet(byte [] record, int offset, int length) throws InvalidTupleSizeException {
+    public void quadrupleSet(byte [] record, int offset, int length) throws InvalidTupleSizeException, FieldNumberOutOfBoundException, IOException {
         this.tupleSet(record,offset,length);
+        this.setAttributes();
     }
 }

@@ -56,7 +56,7 @@ public class RDFDB extends DB {
         try {
 //            LID lid = getLIDFromHeapFileScan(entityLabel);
 //            if (lid.getPageNo().pid == INVALID_PAGE) {
-            LID lid = entityLabelHeapFile.insertRecord(entityLabel.getBytes());
+            LID lid = entityLabelHeapFile.insertRecord(new Label(entityLabel).getLabelByteArray());
 //            }
             return lid.returnEid();
         } catch (Exception e) {
@@ -75,8 +75,8 @@ public class RDFDB extends DB {
         }
     }
 
-    public PID insertPredicate(String predicateLabel) throws SpaceNotAvailableException, HFDiskMgrException, HFException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException {
-        LID lid = predicateLabelHeapFile.insertRecord(predicateLabel.getBytes());
+    public PID insertPredicate(String predicateLabel) throws SpaceNotAvailableException, HFDiskMgrException, HFException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException, FieldNumberOutOfBoundException {
+        LID lid = predicateLabelHeapFile.insertRecord(new Label(predicateLabel).getLabelByteArray());
         return lid.returnPid();
     }
 
@@ -96,7 +96,7 @@ public class RDFDB extends DB {
     }
 
     public Stream openStream(int orderType, String subjectFilter, String predicateFilter,
-                             String objectFilter, double confidenceFilter) {
+                             String objectFilter, Double confidenceFilter) {
         Stream stream = null;
         try {
             stream = new Stream(this, orderType, subjectFilter, predicateFilter, objectFilter, confidenceFilter);

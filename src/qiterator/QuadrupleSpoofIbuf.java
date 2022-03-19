@@ -24,7 +24,7 @@ public class QuadrupleSpoofIbuf implements GlobalConst  {
     /**
      *Initialize some necessary inormation, call Iobuf to create the
      *object, and call init to finish intantiation
-     *@param bufs[][] the I/O buffer
+     *@param bufs the I/O buffer
      *@param n_pages the numbers of page of this buffer
      *@param tSize the tuple size
      *@param fd the reference to an Heapfile
@@ -52,7 +52,7 @@ public class QuadrupleSpoofIbuf implements GlobalConst  {
         if (hf_scan != null)  hf_scan = null;
 
         try {
-            hf_scan = _fd.openScan();
+            hf_scan = (TScan) _fd.openScan();
         }
         catch(Exception e){
             throw e;

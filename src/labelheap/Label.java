@@ -60,7 +60,7 @@ public class Label extends Tuple {
     }
 
     public Label(Label label) throws InvalidTupleSizeException {
-        this(label.getTupleByteArray(),label.getLength(),0);
+        this(label.getTupleByteArray(),0,label.getLength());
     }
 
     public void setLabel(String label) throws FieldNumberOutOfBoundException, IOException {
