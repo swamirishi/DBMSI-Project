@@ -214,7 +214,7 @@ public class Stream {
 
         /** copy data about first directory page */
 
-        dirpageId.pid = quadrupleHeapFile._firstDirPageId.pid;
+        dirpageId.pid = quadrupleHeapFile.getFirstDirPageId().pid;
         nextUserStatus = true;
 
         /** get first directory page and pin it */

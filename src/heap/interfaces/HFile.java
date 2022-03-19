@@ -4,6 +4,11 @@ import java.io.*;
 import diskmgr.*;
 import global.*;
 import heap.*;
+import utils.supplier.dpageinfo.DPageInfoSupplier;
+import utils.supplier.hfilepage.HFilePageSupplier;
+import utils.supplier.id.IDSupplier;
+import utils.supplier.scan.ScanSupplier;
+import utils.supplier.tuple.TupleSupplier;
 
 /**  This heapfile implementation is directory-based. We maintain a
  *  directory of info about the data pages (which are of type HFPage
@@ -40,26 +45,23 @@ interface  Filetype {
     
 } // end of Filetype
 
-public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage, DPI extends DPageInfo, S extends ScanI> implements Filetype,  GlobalConst {
+public abstract class HFile<I extends ID, T extends Tuple> implements Filetype,  GlobalConst {
     
     
-    PageId      _firstDirPageId;   // page number of header page
+    private PageId      _firstDirPageId;   // page number of header page
     int         _ftype;
     private     boolean     _file_deleted;
     private     String 	 _fileName;
     private static int tempfilecount = 0;
-    
-    protected abstract DPI getDataPageInfo();
-    protected abstract DPI getDataPageInfo(T tuple) throws InvalidTupleSizeException, IOException;
-    protected abstract HFP getHeapFilePage();
-    protected abstract HFP getHeapFilePage(HFP heapFilePage);
-    protected abstract S getScan() throws InvalidTupleSizeException, IOException;
-    protected abstract I getID();
-    protected abstract T getTuple();
+    protected abstract HFilePageSupplier<I,T> getHFilePageSupplier();
+    protected abstract DPageInfoSupplier<T> getDPageInfoSupplier();
+    protected abstract IDSupplier<I> getIDSupplier();
+    protected abstract ScanSupplier<I,T> getScanSupplier();
+    protected abstract TupleSupplier<T> getTupleSupplier();
     /* get a new datapage from the buffer manager and initialize dpinfo
        @param dpinfop the information in the new HFPage
     */
-    private HFP _newDatapage(DPI dpinfop)
+    private HFilePage<I,T> _newDatapage(DPageInfo<T> dpinfop)
             throws HFException, HFBufMgrException, HFDiskMgrException,
             IOException
     {
@@ -71,7 +73,7 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
             throw new HFException(null, "can't new pae");
         
         // initialize internal values of the new page:
-        HFP hfpage = getHeapFilePage();
+        HFilePage<I,T> hfpage = getHFilePageSupplier().getHFilePage();
         hfpage.init(pageId, apage);
         
         dpinfop.pageId.pid = pageId.pid;
@@ -88,8 +90,8 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
        If the user record cannot be found, return false.
     */
     private boolean  _findDataPage( I rid,
-                                    PageId dirPageId, HFP dirpage,
-                                    PageId dataPageId, HFP datapage,
+                                    PageId dirPageId, HFilePage<I,T> dirpage,
+                                    PageId dataPageId, HFilePage<I,T> datapage,
                                     I rpDataPageRid)
             throws InvalidSlotNumberException,
             InvalidTupleSizeException,
@@ -100,16 +102,16 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
     {
         PageId currentDirPageId = new PageId(_firstDirPageId.pid);
         
-        HFP currentDirPage = getHeapFilePage();
-        HFP currentDataPage = getHeapFilePage();
-        I currentDataPageRid = getID();
+        HFilePage<I,T> currentDirPage = getHFilePageSupplier().getHFilePage();
+        HFilePage<I,T> currentDataPage = getHFilePageSupplier().getHFilePage();
+        I currentDataPageRid = getIDSupplier().getID();
         PageId nextDirPageId = new PageId();
         // datapageId is stored in dpinfo.pageId
         
         
         pinPage(currentDirPageId, currentDirPage, false/*read disk*/);
         
-        T atuple = getTuple();
+        T atuple = getTupleSupplier().getTuple();
         
         while (currentDirPageId.pid != INVALID_PAGE)
         {// Start While01
@@ -128,7 +130,7 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
                     return false;
                 }
                 
-                DPI dpinfo = getDataPageInfo(atuple);
+                DPageInfo<T> dpinfo = getDPageInfoSupplier().getDataPageInfo(atuple);
                 try{
                     pinPage(dpinfo.pageId, currentDataPage, false/*Rddisk*/);
                     
@@ -273,7 +275,7 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
             add_file_entry(_fileName, _firstDirPageId);
             // check error(new exception: Could not add file entry
             
-            HFP firstDirPage = getHeapFilePage();
+            HFilePage<I,T> firstDirPage = getHFilePageSupplier().getHFilePage();
             firstDirPage.init(_firstDirPageId, apage);
             PageId pageId = new PageId(INVALID_PAGE);
             
@@ -314,21 +316,21 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
         
         PageId nextDirPageId = new PageId(0);
         
-        HFP currentDirPage = getHeapFilePage();
+        HFilePage<I,T> currentDirPage = getHFilePageSupplier().getHFilePage();
         Page pageinbuffer = new Page();
         
         while(currentDirPageId.pid != INVALID_PAGE)
         {
             pinPage(currentDirPageId, currentDirPage, false);
             
-            I rid = getID();
+            I rid = getIDSupplier().getID();
             T atuple;
             for (rid = (I) currentDirPage.firstRecord();
                  rid != null;	// rid==NULL means no more record
                  rid = (I) currentDirPage.nextRecord(rid))
             {
                 atuple = (T) currentDirPage.getRecord(rid);
-                DPI dpinfo = getDataPageInfo(atuple);
+                DPageInfo<T> dpinfo = getDPageInfoSupplier().getDataPageInfo(atuple);
                 
                 answer += dpinfo.recct;
             }
@@ -378,12 +380,12 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
         int dpinfoLen = 0;
         int recLen = recPtr.length;
         boolean found;
-        I currentDataPageRid = getID();
+        I currentDataPageRid = getIDSupplier().getID();
         Page pageinbuffer = new Page();
-        HFP currentDirPage = getHeapFilePage();
-        HFP currentDataPage = getHeapFilePage();
+        HFilePage<I,T> currentDirPage = getHFilePageSupplier().getHFilePage();
+        HFilePage<I,T> currentDataPage = getHFilePageSupplier().getHFilePage();
         
-        HFP nextDirPage = getHeapFilePage();
+        HFilePage<I,T> nextDirPage = getHFilePageSupplier().getHFilePage();
         PageId currentDirPageId = new PageId(_firstDirPageId.pid);
         PageId nextDirPageId = new PageId();  // OK
         
@@ -391,7 +393,7 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
         
         found = false;
         T atuple;
-        DPI dpinfo = getDataPageInfo();
+        DPageInfo<T> dpinfo = getDPageInfoSupplier().getDataPageInfo();
         while (found == false)
         { //Start While01
             // look for suitable dpinfo-struct
@@ -401,7 +403,7 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
             {
                 atuple = (T) currentDirPage.getRecord(currentDataPageRid);
                 
-                dpinfo = getDataPageInfo(atuple);
+                dpinfo = getDPageInfoSupplier().getDataPageInfo(atuple);
                 
                 // need check the record length == DataPageInfo'slength
                 
@@ -526,7 +528,7 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
                         unpinPage(currentDirPageId, true/*dirty*/);
                         
                         currentDirPageId.pid = nextDirPageId.pid;
-                        currentDirPage = getHeapFilePage(nextDirPage);
+                        currentDirPage = getHFilePageSupplier().getHFilePage(nextDirPage);
                         
                         // remark that MINIBASE_BM->newPage already
                         // pinned the new directory page!
@@ -585,7 +587,7 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
         
         // DataPage is now released
         atuple = (T) currentDirPage.returnRecord(currentDataPageRid);
-        DPI dpinfo_ondirpage = getDataPageInfo(atuple);
+        DPageInfo<T> dpinfo_ondirpage = getDPageInfoSupplier().getDataPageInfo(atuple);
         
         
         dpinfo_ondirpage.availspace = dpinfo.availspace;
@@ -622,11 +624,11 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
     
     {
         boolean status;
-        HFP currentDirPage = getHeapFilePage();
+        HFilePage<I,T> currentDirPage = getHFilePageSupplier().getHFilePage();
         PageId currentDirPageId = new PageId();
-        HFP currentDataPage = getHeapFilePage();
+        HFilePage<I,T> currentDataPage = getHFilePageSupplier().getHFilePage();
         PageId currentDataPageId = new PageId();
-        I currentDataPageRid = getID();
+        I currentDataPageRid = getIDSupplier().getID();
         
         status = _findDataPage(rid,
                                currentDirPageId, currentDirPage,
@@ -643,7 +645,7 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
         T atuple;
         
         atuple = (T) currentDirPage.returnRecord(currentDataPageRid);
-        DPI pdpinfo = getDataPageInfo(atuple);
+        DPageInfo<T> pdpinfo = getDPageInfoSupplier().getDataPageInfo(atuple);
         
         // delete the record on the datapage
         currentDataPage.deleteRecord(rid);
@@ -700,7 +702,7 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
                 
                 // point previous page around deleted page:
                 
-                HFP prevDirPage = getHeapFilePage();
+                HFilePage<I,T> prevDirPage = getHFilePageSupplier().getHFilePage();
                 pinPage(pageId, prevDirPage, false);
                 
                 pageId = currentDirPage.getNextPage();
@@ -713,7 +715,7 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
                 pageId = currentDirPage.getNextPage();
                 if(pageId.pid != INVALID_PAGE)
                 {
-                    HFP nextDirPage = getHeapFilePage();
+                    HFilePage<I,T> nextDirPage = getHFilePageSupplier().getHFilePage();
                     pageId = currentDirPage.getNextPage();
                     pinPage(pageId, nextDirPage, false);
                     
@@ -770,11 +772,11 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
             Exception
     {
         boolean status;
-        HFP dirPage = getHeapFilePage();
+        HFilePage<I,T> dirPage = getHFilePageSupplier().getHFilePage();
         PageId currentDirPageId = new PageId();
-        HFP dataPage = getHeapFilePage();
+        HFilePage<I,T> dataPage = getHFilePageSupplier().getHFilePage();
         PageId currentDataPageId = new PageId();
-        I currentDataPageRid = getID();
+        I currentDataPageRid = getIDSupplier().getID();
         
         status = _findDataPage(rid,
                                currentDirPageId, dirPage,
@@ -782,7 +784,7 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
                                currentDataPageRid);
         
         if(status != true) return status;	// record not found
-        T atuple = getTuple();
+        T atuple = getTupleSupplier().getTuple();
         atuple = (T) dataPage.returnRecord(rid);
         
         // Assume update a record with a record whose length is equal to
@@ -830,11 +832,11 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
             Exception
     {
         boolean status;
-        HFP dirPage = getHeapFilePage();
+        HFilePage<I,T> dirPage = getHFilePageSupplier().getHFilePage();
         PageId currentDirPageId = new PageId();
-        HFP dataPage = getHeapFilePage();
+        HFilePage<I,T> dataPage = getHFilePageSupplier().getHFilePage();
         PageId currentDataPageId = new PageId();
-        I currentDataPageRid = getID();
+        I currentDataPageRid = getIDSupplier().getID();
         
         status = _findDataPage(rid,
                                currentDirPageId, dirPage,
@@ -843,7 +845,7 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
         
         if(status != true) return null; // record not found
         
-        T atuple = getTuple();
+        T atuple = getTupleSupplier().getTuple();
         atuple = (T) dataPage.getRecord(rid);
         
         /*
@@ -867,11 +869,11 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
      * @exception IOException I/O errors
      *
      */
-    public S openScan()
+    public ScanI<I,T> openScan()
             throws InvalidTupleSizeException,
             IOException
     {
-        return getScan();
+        return getScanSupplier().getScan(this);
     }
     
     
@@ -905,13 +907,13 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
         PageId nextDirPageId = new PageId();
         nextDirPageId.pid = 0;
         Page pageinbuffer = new Page();
-        HFP currentDirPage =  getHeapFilePage();
+        HFilePage<I,T> currentDirPage =  getHFilePageSupplier().getHFilePage();
         T atuple;
         
         pinPage(currentDirPageId, currentDirPage, false);
         //currentDirPage.openHFpage(pageinbuffer);
         
-        I rid = getID();
+        I rid = getIDSupplier().getID();
         while(currentDirPageId.pid != INVALID_PAGE)
         {
             for(rid = (I) currentDirPage.firstRecord();
@@ -919,7 +921,7 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
                 rid = (I) currentDirPage.nextRecord(rid))
             {
                 atuple = (T) currentDirPage.getRecord(rid);
-                DPI dpinfo = getDataPageInfo( atuple);
+                DPageInfo<T> dpinfo = getDPageInfoSupplier().getDataPageInfo( atuple);
                 //int dpinfoLen = arecord.length;
                 
                 freePage(dpinfo.pageId);
@@ -1041,9 +1043,10 @@ public abstract class HFile<I extends ID, T extends Tuple, HFP extends HFilePage
             throw new HFDiskMgrException(e,"Heapfile.java: delete_file_entry() failed");
         }
         
-    } // end of delete_file_entry
+    }// end of delete_file_entry
     
-    
-    
+    public PageId getFirstDirPageId() {
+        return _firstDirPageId;
+    }
 }// End of HeapFile
 

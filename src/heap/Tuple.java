@@ -127,8 +127,7 @@ public class Tuple implements GlobalConst{
   * @param	offset  the offset of the tuple ( =0 by default)
   * @param	length	the length of the tuple
   */
- public void tupleSet(byte [] record, int offset, int length)  
-  {
+ public void tupleSet(byte [] record, int offset, int length) throws InvalidTupleSizeException {
       System.arraycopy(record, offset, data, 0, length);
       tuple_offset = 0;
       tuple_length = length;

@@ -164,7 +164,7 @@ public boolean runTests () {
       System.out.println ("  - Scan the records just inserted\n");
       
       try {
-	scan = f.openScan();
+	scan = (Scan) f.openScan();
       }
       catch (Exception e) {
 	status = FAIL;
@@ -287,7 +287,7 @@ public boolean runTests () {
     if ( status == OK ) {
       System.out.println ("  - Delete half the records\n");
       try {
-	scan = f.openScan();
+	scan = (Scan) f.openScan();
       }
       catch (Exception e) {
 	status = FAIL;
@@ -350,7 +350,7 @@ public boolean runTests () {
     if ( status == OK ) {
       System.out.println ("  - Scan the remaining records\n");
       try {
-	scan = f.openScan();
+	scan = (Scan) f.openScan();
       }
       catch (Exception e ) {
 	status = FAIL;
@@ -429,7 +429,7 @@ public boolean runTests () {
     if ( status == OK ) {
       System.out.println ("  - Change the records\n");
       try {
-	scan = f.openScan();
+	scan = (Scan) f.openScan();
       }
       catch (Exception e) {
 	status = FAIL;
@@ -511,7 +511,7 @@ public boolean runTests () {
     if ( status == OK ) {
       System.out.println ("  - Check that the updates are really there\n");
       try {
-	scan = f.openScan();
+	scan = (Scan) f.openScan();
       }
       catch (Exception e) {
 	status = FAIL;
@@ -621,7 +621,7 @@ public boolean runTests () {
     if ( status == OK ) {
       System.out.println ("  - Try to change the size of a record\n");
       try {
-	scan = f.openScan();
+	scan = (Scan) f.openScan();
       }
       catch (Exception e) {
 	status = FAIL;

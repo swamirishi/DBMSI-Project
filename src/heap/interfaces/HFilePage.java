@@ -8,6 +8,7 @@ import java.lang.*;
 import global.*;
 import diskmgr.*;
 import heap.InvalidSlotNumberException;
+import heap.InvalidTupleSizeException;
 import heap.Tuple;
 
 /**
@@ -539,10 +540,7 @@ public abstract class HFilePage<T extends ID,E extends Tuple> extends Page
    * @exception  	IOException I/O errors
    * @see 	Tuple
    */
-  public E getRecord ( T rid )
-    throws IOException,  
-	   InvalidSlotNumberException
-    {
+  public E getRecord ( T rid ) throws IOException, InvalidSlotNumberException {
       short recLen;
       short offset;
       byte []record;
@@ -582,10 +580,7 @@ public abstract class HFilePage<T extends ID,E extends Tuple> extends Page
    * @exception   IOException I/O errors
    * @see 	Tuple
    */  
-  public E returnRecord ( T rid )
-    throws IOException, 
-	   InvalidSlotNumberException
-    {
+  public E returnRecord ( T rid ) throws IOException, InvalidSlotNumberException, InvalidTupleSizeException {
       short recLen;
       short offset;
       PageId pageNo = new PageId();

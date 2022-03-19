@@ -6,6 +6,16 @@ import bufmgr.*;
 import global.*;
 import heap.*;
 import heap.interfaces.HFile;
+import utils.supplier.dpageinfo.DPageInfoSupplier;
+import utils.supplier.dpageinfo.QIDDPageInfoSupplier;
+import utils.supplier.hfilepage.HFilePageSupplier;
+import utils.supplier.hfilepage.QIDHFilePageSupplier;
+import utils.supplier.id.IDSupplier;
+import utils.supplier.id.QIDSupplier;
+import utils.supplier.scan.QIDScanSupplier;
+import utils.supplier.scan.ScanSupplier;
+import utils.supplier.tuple.QIDTupleSupplier;
+import utils.supplier.tuple.TupleSupplier;
 
 /**  This heapfile implementation is directory-based. We maintain a
  *  directory of info about the data pages (which are of type THFPage
@@ -37,7 +47,32 @@ import heap.interfaces.HFile;
 
 
 
-public class QuadrupleHeapFile extends HFile<QID,Quadruple,THFPage,QuadrapleDataPageInfo,TScan> {
+public class QuadrupleHeapFile extends HFile<QID,Quadruple> {
+    @Override
+    protected HFilePageSupplier<QID, Quadruple> getHFilePageSupplier() {
+        return QIDHFilePageSupplier.getSupplier();
+    }
+    
+    @Override
+    protected DPageInfoSupplier<Quadruple> getDPageInfoSupplier() {
+        return QIDDPageInfoSupplier.getSupplier();
+    }
+    
+    @Override
+    protected IDSupplier<QID> getIDSupplier() {
+        return QIDSupplier.getSupplier();
+    }
+    
+    @Override
+    protected ScanSupplier<QID, Quadruple> getScanSupplier() {
+        return QIDScanSupplier.getSupplier();
+    }
+    
+    @Override
+    protected TupleSupplier<Quadruple> getTupleSupplier() {
+        return QIDTupleSupplier.getSupplier();
+    }
+    
     /**
      * Initialize.  A null name produces a temporary heapfile which will be
      * deleted by the destructor.  If the name already denotes a file, the
@@ -51,40 +86,5 @@ public class QuadrupleHeapFile extends HFile<QID,Quadruple,THFPage,QuadrapleData
      */
     public QuadrupleHeapFile(String name) throws HFException, HFBufMgrException, HFDiskMgrException, IOException {
         super(name);
-    }
-    
-    @Override
-    protected QuadrapleDataPageInfo getDataPageInfo() {
-        return new QuadrapleDataPageInfo();
-    }
-    
-    @Override
-    protected QuadrapleDataPageInfo getDataPageInfo(Quadruple tuple) throws InvalidTupleSizeException, IOException {
-        return new QuadrapleDataPageInfo(tuple);
-    }
-    
-    @Override
-    protected THFPage getHeapFilePage() {
-        return new THFPage();
-    }
-    
-    @Override
-    protected THFPage getHeapFilePage(THFPage heapFilePage) {
-        return new THFPage(heapFilePage);
-    }
-    
-    @Override
-    protected TScan getScan() throws InvalidTupleSizeException, IOException {
-        return new TScan(this);
-    }
-    
-    @Override
-    protected QID getID() {
-        return new QID();
-    }
-    
-    @Override
-    protected Quadruple getTuple() {
-        return new Quadruple();
     }
 }// End of HeapFile

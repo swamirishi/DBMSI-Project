@@ -11,8 +11,14 @@ import global.*;
 import diskmgr.*;
 import heap.interfaces.HFile;
 import heap.interfaces.ScanI;
+import utils.supplier.dpageinfo.DPageInfoSupplier;
+import utils.supplier.dpageinfo.RIDDPageInfoSupplier;
+import utils.supplier.hfilepage.HFilePageSupplier;
+import utils.supplier.hfilepage.RIDHFilePageSupplier;
+import utils.supplier.id.IDSupplier;
+import utils.supplier.id.RIDSupplier;
 
-public class Scan extends ScanI<Tuple,HFPage,RID,DataPageInfo> {
+public class Scan extends ScanI<RID,Tuple> {
     /**
      * The constructor pins the first directory page in the file
      * and initializes its private data members from the private
@@ -27,17 +33,17 @@ public class Scan extends ScanI<Tuple,HFPage,RID,DataPageInfo> {
     }
     
     @Override
-    protected HFPage getHeapFilePage() {
-        return new HFPage();
+    protected HFilePageSupplier<RID, Tuple> getHFilePageSupplier() {
+        return RIDHFilePageSupplier.getSupplier();
     }
     
     @Override
-    protected RID getID() {
-        return new RID();
+    protected DPageInfoSupplier<Tuple> getDPageInfoSupplier() {
+        return RIDDPageInfoSupplier.getSupplier();
     }
     
     @Override
-    protected DataPageInfo getDataPageInfo(Tuple tuple) throws InvalidTupleSizeException, IOException {
-        return new DataPageInfo(tuple);
+    protected IDSupplier<RID> getIDSupplier() {
+        return RIDSupplier.getSupplier();
     }
 }

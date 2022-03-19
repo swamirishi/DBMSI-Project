@@ -12,6 +12,9 @@ import diskmgr.*;
 import heap.HFBufMgrException;
 import heap.InvalidTupleSizeException;
 import heap.Tuple;
+import utils.supplier.dpageinfo.DPageInfoSupplier;
+import utils.supplier.hfilepage.HFilePageSupplier;
+import utils.supplier.id.IDSupplier;
 
 /**
  * A Scan object is created ONLY through the function openScan
@@ -21,7 +24,7 @@ import heap.Tuple;
  * An object of type scan will always have pinned one directory page
  * of the heapfile.
  */
-public abstract class ScanI<T extends Tuple, HFP extends HFilePage, I extends ID, DPI extends DPageInfo> implements GlobalConst{
+public abstract class ScanI<I extends ID,T extends Tuple> implements GlobalConst{
     
     /**
      * Note that one record in our way-cool HeapFile implementation is
@@ -30,34 +33,34 @@ public abstract class ScanI<T extends Tuple, HFP extends HFilePage, I extends ID
      */
     
     /** The heapfile we are using. */
-    private HFile  _hf;
+    private HFile<I,T>  _hf;
     
     /** PageId of current directory page (which is itself an HFPage) */
     private PageId dirpageId = new PageId();
     
     /** pointer to in-core data of dirpageId (page is pinned) */
-    private HFP dirpage = getHeapFilePage();
+    private HFilePage<I,T> dirpage = getHFilePageSupplier().getHFilePage();
     
     /** record ID of the DataPageInfo struct (in the directory page) which
      * describes the data page where our current record lives.
      */
-    private I datapageRid = getID();
+    private I datapageRid = getIDSupplier().getID();
     
     /** the actual PageId of the data page with the current record */
     private PageId datapageId = new PageId();
     
     /** in-core copy (pinned) of the same */
-    private HFP datapage = getHeapFilePage();
+    private HFilePage<I,T> datapage = getHFilePageSupplier().getHFilePage();
     
     /** record ID of the current record (from the current data page) */
-    private I userrid = getID();
+    private I userrid = getIDSupplier().getID();
     
     /** Status of next user status */
     private boolean nextUserStatus;
     
-    protected abstract HFP getHeapFilePage();
-    protected abstract I getID();
-    protected abstract DPI getDataPageInfo(T tuple) throws InvalidTupleSizeException, IOException;
+    protected abstract HFilePageSupplier<I,T> getHFilePageSupplier();
+    protected abstract DPageInfoSupplier<T> getDPageInfoSupplier();
+    protected abstract IDSupplier<I> getIDSupplier();
     /** The constructor pins the first directory page in the file
      * and initializes its private data members from the private
      * data member from hf
@@ -67,7 +70,7 @@ public abstract class ScanI<T extends Tuple, HFP extends HFilePage, I extends ID
      *
      * @param hf A HeapFile object
      */
-    public ScanI(HFile hf)
+    public ScanI(HFile<I,T> hf)
             throws InvalidTupleSizeException,
             IOException
     {
@@ -129,7 +132,7 @@ public abstract class ScanI<T extends Tuple, HFP extends HFilePage, I extends ID
             throws InvalidTupleSizeException,
             IOException
     {
-        I    nxtrid = getID();
+        I    nxtrid = getIDSupplier().getID();
         boolean bst;
         
         bst = peekNext(nxtrid);
@@ -251,18 +254,18 @@ public abstract class ScanI<T extends Tuple, HFP extends HFilePage, I extends ID
             throws InvalidTupleSizeException,
             IOException
     {
-        DPI dpinfo;
+        DPageInfo<T> dpinfo;
         T        rectuple = null;
         Boolean      bst;
         
         /** copy data about first directory page */
         
-        dirpageId.pid = _hf._firstDirPageId.pid;
+        dirpageId.pid = _hf.getFirstDirPageId().pid;
         nextUserStatus = true;
         
         /** get first directory page and pin it */
         try {
-            dirpage  = getHeapFilePage();
+            dirpage  = getHFilePageSupplier().getHFilePage();
             pinPage(dirpageId, (Page) dirpage, false);
         }
         
@@ -286,7 +289,7 @@ public abstract class ScanI<T extends Tuple, HFP extends HFilePage, I extends ID
                 e.printStackTrace();
             }
             
-            dpinfo = getDataPageInfo(rectuple);
+            dpinfo = getDPageInfoSupplier().getDataPageInfo(rectuple);
             datapageId.pid = dpinfo.pageId.pid;
             
         } else {
@@ -314,7 +317,7 @@ public abstract class ScanI<T extends Tuple, HFP extends HFilePage, I extends ID
                 
                 try {
                     
-                    dirpage = getHeapFilePage();
+                    dirpage = getHFilePageSupplier().getHFilePage();
                     pinPage(nextDirPageId, (Page )dirpage, false);
                     
                 }
@@ -348,10 +351,10 @@ public abstract class ScanI<T extends Tuple, HFP extends HFilePage, I extends ID
                         e.printStackTrace();
                     }
                     
-                    if (rectuple.getLength() != DPI.size)
+                    if (rectuple.getLength() != DPageInfo.size)
                         return false;
                     
-                    dpinfo = getDataPageInfo(rectuple);
+                    dpinfo = getDPageInfoSupplier().getDataPageInfo(rectuple);
                     datapageId.pid = dpinfo.pageId.pid;
                     
                 } else {
@@ -401,7 +404,7 @@ public abstract class ScanI<T extends Tuple, HFP extends HFilePage, I extends ID
             throws InvalidTupleSizeException,
             IOException
     {
-        DPI dpinfo;
+        DPageInfo<T> dpinfo;
         
         boolean nextDataPageStatus;
         PageId nextDirPageId = new PageId();
@@ -442,7 +445,7 @@ public abstract class ScanI<T extends Tuple, HFP extends HFilePage, I extends ID
                 
                 // pin first data page
                 try {
-                    datapage  = getHeapFilePage();
+                    datapage  = getHFilePageSupplier().getHFilePage();
                     pinPage(datapageId, (Page) datapage, false);
                 }
                 catch (Exception e){
@@ -510,7 +513,7 @@ public abstract class ScanI<T extends Tuple, HFP extends HFilePage, I extends ID
                 dirpageId = nextDirPageId;
                 
                 try {
-                    dirpage  = getHeapFilePage();
+                    dirpage  = getHFilePageSupplier().getHFilePage();
                     pinPage(dirpageId, (Page)dirpage, false);
                 }
                 
@@ -548,14 +551,14 @@ public abstract class ScanI<T extends Tuple, HFP extends HFilePage, I extends ID
             System.err.println("HeapFile: Error in Scan" + e);
         }
         
-        if (rectuple.getLength() != DPI.size)
+        if (rectuple.getLength() != DPageInfo.size)
             return false;
         
-        dpinfo = getDataPageInfo(rectuple);
+        dpinfo = getDPageInfoSupplier().getDataPageInfo(rectuple);
         datapageId.pid = dpinfo.pageId.pid;
         
         try {
-            datapage = getHeapFilePage();
+            datapage = getHFilePageSupplier().getHFilePage();
             pinPage(dpinfo.pageId, (Page) datapage, false);
         }
         

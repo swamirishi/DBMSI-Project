@@ -543,7 +543,7 @@ public class IndexCatalog extends Heapfile
       }
       
       try {
-	pscan = datafile.openScan();
+	pscan = (Scan) datafile.openScan();
       }
       catch (Exception e) {
 	throw new IndexCatalogException(e,"openScan() failed");

@@ -5,6 +5,16 @@ import diskmgr.*;
 import global.*;
 import heap.interfaces.HFile;
 import heap.interfaces.HFilePage;
+import utils.supplier.dpageinfo.DPageInfoSupplier;
+import utils.supplier.dpageinfo.RIDDPageInfoSupplier;
+import utils.supplier.hfilepage.HFilePageSupplier;
+import utils.supplier.hfilepage.RIDHFilePageSupplier;
+import utils.supplier.id.IDSupplier;
+import utils.supplier.id.RIDSupplier;
+import utils.supplier.scan.RIDScanSupplier;
+import utils.supplier.scan.ScanSupplier;
+import utils.supplier.tuple.RIDTupleSupplier;
+import utils.supplier.tuple.TupleSupplier;
 
 /**  This heapfile implementation is directory-based. We maintain a
  *  directory of info about the data pages (which are of type HFPage
@@ -37,7 +47,32 @@ import heap.interfaces.HFilePage;
 
 
 
-public class Heapfile extends HFile<RID,Tuple,HFPage,DataPageInfo,Scan> {
+public class Heapfile extends HFile<RID,Tuple> {
+	@Override
+	protected HFilePageSupplier<RID, Tuple> getHFilePageSupplier() {
+		return RIDHFilePageSupplier.getSupplier();
+	}
+	
+	@Override
+	protected DPageInfoSupplier<Tuple> getDPageInfoSupplier() {
+		return RIDDPageInfoSupplier.getSupplier();
+	}
+	
+	@Override
+	protected IDSupplier<RID> getIDSupplier() {
+		return RIDSupplier.getSupplier();
+	}
+	
+	@Override
+	protected ScanSupplier<RID, Tuple> getScanSupplier() {
+		return RIDScanSupplier.getSupplier();
+	}
+	
+	@Override
+	protected TupleSupplier<Tuple> getTupleSupplier() {
+		return RIDTupleSupplier.getSupplier();
+	}
+	
 	/**
 	 * Initialize.  A null name produces a temporary heapfile which will be
 	 * deleted by the destructor.  If the name already denotes a file, the
@@ -53,38 +88,4 @@ public class Heapfile extends HFile<RID,Tuple,HFPage,DataPageInfo,Scan> {
 		super(name);
 	}
 	
-	@Override
-	protected DataPageInfo getDataPageInfo() {
-		return new DataPageInfo();
-	}
-	
-	@Override
-	protected DataPageInfo getDataPageInfo(Tuple tuple) throws InvalidTupleSizeException, IOException {
-		return new DataPageInfo(tuple);
-	}
-	
-	@Override
-	protected HFPage getHeapFilePage() {
-		return new HFPage();
-	}
-	
-	@Override
-	protected HFPage getHeapFilePage(HFPage heapFilePage) {
-		return new HFPage(heapFilePage);
-	}
-	
-	@Override
-	protected Scan getScan() throws InvalidTupleSizeException, IOException {
-		return new Scan(this);
-	}
-	
-	@Override
-	protected RID getID() {
-		return new RID();
-	}
-	
-	@Override
-	protected Tuple getTuple() {
-		return new Tuple();
-	}
 }// End of HeapFile

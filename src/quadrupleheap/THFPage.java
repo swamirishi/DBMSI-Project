@@ -6,17 +6,13 @@ import java.lang.*;
 import global.*;
 import diskmgr.*;
 import heap.InvalidSlotNumberException;
+import heap.InvalidTupleSizeException;
 import heap.interfaces.HFilePage;
 
 /** Class quadruple heap file page.
  * The design assumes that records are kept compacted when
  * deletions are performed.
  */
-
-interface ConstSlot{
-    int INVALID_SLOT =  -1;
-    int EMPTY_SLOT = -1;
-}
 
 public class THFPage extends HFilePage<QID,Quadruple> {
     public THFPage() {

@@ -7,6 +7,16 @@ import global.*;
 import heap.*;
 import heap.interfaces.HFile;
 import heap.interfaces.ScanI;
+import utils.supplier.dpageinfo.DPageInfoSupplier;
+import utils.supplier.dpageinfo.LIDDPageInfoSupplier;
+import utils.supplier.hfilepage.HFilePageSupplier;
+import utils.supplier.hfilepage.LIDHFilePageSupplier;
+import utils.supplier.id.IDSupplier;
+import utils.supplier.id.LIDSupplier;
+import utils.supplier.scan.LIDScanSupplier;
+import utils.supplier.scan.ScanSupplier;
+import utils.supplier.tuple.LIDTupleSupplier;
+import utils.supplier.tuple.TupleSupplier;
 
 
 /**  This heapfile implementation is directory-based. We maintain a
@@ -37,7 +47,32 @@ import heap.interfaces.ScanI;
  * April 9, 1998
  */
 
-public class LabelHeapFile extends HFile<LID,Label,LHFPage,LabelDataPageInfo,LScan> {
+public class LabelHeapFile extends HFile<LID,Label> {
+    @Override
+    protected HFilePageSupplier<LID, Label> getHFilePageSupplier() {
+        return LIDHFilePageSupplier.getSupplier();
+    }
+    
+    @Override
+    protected DPageInfoSupplier<Label> getDPageInfoSupplier() {
+        return LIDDPageInfoSupplier.getSupplier();
+    }
+    
+    @Override
+    protected IDSupplier<LID> getIDSupplier() {
+        return LIDSupplier.getSupplier();
+    }
+    
+    @Override
+    protected ScanSupplier<LID, Label> getScanSupplier() {
+        return LIDScanSupplier.getSupplier();
+    }
+    
+    @Override
+    protected TupleSupplier<Label> getTupleSupplier() {
+        return LIDTupleSupplier.getSupplier();
+    }
+    
     /**
      * Initialize.  A null name produces a temporary heapfile which will be
      * deleted by the destructor.  If the name already denotes a file, the
@@ -51,40 +86,5 @@ public class LabelHeapFile extends HFile<LID,Label,LHFPage,LabelDataPageInfo,LSc
      */
     public LabelHeapFile(String name) throws HFException, HFBufMgrException, HFDiskMgrException, IOException {
         super(name);
-    }
-    
-    @Override
-    protected LabelDataPageInfo getDataPageInfo() {
-        return new LabelDataPageInfo();
-    }
-    
-    @Override
-    protected LabelDataPageInfo getDataPageInfo(Label tuple) throws InvalidTupleSizeException, IOException {
-        return new LabelDataPageInfo(tuple);
-    }
-    
-    @Override
-    protected LHFPage getHeapFilePage() {
-        return new LHFPage();
-    }
-    
-    @Override
-    protected LHFPage getHeapFilePage(LHFPage heapFilePage) {
-        return new LHFPage(heapFilePage);
-    }
-    
-    @Override
-    protected LScan getScan() throws InvalidTupleSizeException, IOException {
-        return new LScan(this);
-    }
-    
-    @Override
-    protected LID getID() {
-        return new LID();
-    }
-    
-    @Override
-    protected Label getTuple() {
-        return new Label();
     }
 }// End of HeapFile

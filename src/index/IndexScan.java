@@ -143,7 +143,7 @@ public class IndexScan extends Iterator {
     KeyDataEntry nextentry = null;
 
     try {
-      nextentry = indScan.get_next();
+      nextentry = (KeyDataEntry) indScan.get_next();
     }
     catch (Exception e) {
       throw new IndexException(e, "IndexScan.java: BTree error");
@@ -241,7 +241,7 @@ public class IndexScan extends Iterator {
       }
 
       try {
-	nextentry = indScan.get_next();
+	nextentry = (KeyDataEntry) indScan.get_next();
       }
       catch (Exception e) {
 	throw new IndexException(e, "IndexScan.java: BTree error");
