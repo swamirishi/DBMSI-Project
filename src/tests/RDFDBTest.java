@@ -42,13 +42,13 @@ public class RDFDBTest {
         EID objectID = rdfdb.insertEntity("Agja");
         PID predicateID = rdfdb.insertPredicate("OP");
         Quadruple q1 = quadrupleInitTest(subjectID, objectID, predicateID, 1.0f);
-        rdfdb.insertQuadruple(q1.returnQuadrupleByteArray());
+        rdfdb.insertQuadruple(q1.getQuadrupleByteArray());
 
         subjectID = rdfdb.insertEntity("Abhi");
         objectID = rdfdb.insertEntity("Jindal");
         predicateID = rdfdb.insertPredicate("Pro");
         Quadruple q2 = quadrupleInitTest(subjectID, objectID, predicateID, 2.0f);
-        rdfdb.insertQuadruple(q2.returnQuadrupleByteArray());
+        rdfdb.insertQuadruple(q2.getQuadrupleByteArray());
 
 //        Stream s = rdfdb.openStream(1, "Abhi", null, null, 0);
 //        System.out.println(rdfdb.getEntityLabelHeapFile().getRecord(s.getNext().getSubject().returnLid()).getLabel());
@@ -58,11 +58,15 @@ public class RDFDBTest {
         TScan tScan = new TScan(rdfdb.getQuadrupleHeapFile());
         TupleOrder tupleOrders = new TupleOrder(0);
         AttrType attrType = new AttrType(attrLID);
-        AttrType[] attrTypes = {attrType};
-        QuadrupleSort quadrupleSort = new QuadrupleSort(attrTypes, (short) 1, new short[4], tScan, 1, tupleOrders , 31, 10);
-        quadrupleSort.get_next();
+        AttrType[] attrTypes = {attrType, attrType, attrType, attrType};
+        QuadrupleSort quadrupleSort = new QuadrupleSort(rdfdb, 5, attrTypes, (short) 4, new short[4], tScan, 3, tupleOrders , 31, 10);
+        Quadruple q = quadrupleSort.get_next();
+        while(q!=null){
+            System.out.println("OK");
+            System.out.println(q);
+            q = quadrupleSort.get_next();
+        }
 
-        System.out.println(reportedValue);
 
     }
 }
