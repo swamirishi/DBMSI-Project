@@ -1,29 +1,34 @@
 package global;
 import java.io.*;
 
-public class LID implements Serializable {
+public class LID implements ID<LID> {
     public int slotNo;
-    public PageId pageNo = new PageId();
+    public PageId pageNo;
 
     public int getSlotNo() {
         return slotNo;
-    }
-
-    public PageId getPageNo() {
-        return pageNo;
     }
 
     public void setSlotNo(int slotNo) {
         this.slotNo = slotNo;
     }
 
+    public PageId getPageNo() {
+        return pageNo;
+    }
+
     public void setPageNo(PageId pageNo) {
         this.pageNo = pageNo;
     }
 
+    public LID(PID pid){
+        this(pid.getPageNo(),pid.getSlotNo());
+    }
+    public LID(EID eid){
+        this(eid.getPageNo(),eid.getSlotNo());
+    }
     public LID () {
-        slotNo = 0;
-        pageNo.pid = 0;
+        this(new PageId(0),0);
     }
 
     public LID (PageId pageno, int slotno) {
@@ -78,6 +83,23 @@ public class LID implements Serializable {
      */
     public PID returnPid() {
         return new PID(this.pageNo, this.slotNo);
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        
+        LID lid = (LID) o;
+        
+        if (slotNo != lid.slotNo) {
+            return false;
+        }
+        return pageNo != null ? pageNo.equals(lid.pageNo) : lid.pageNo == null;
     }
 }
 

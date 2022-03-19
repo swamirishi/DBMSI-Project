@@ -2,24 +2,39 @@ package global;
 
 import java.io.Serializable;
 
-public class QID implements Serializable {
+public class QID implements ID {
     public int slotNo;
-    public PageId pageNo = new PageId();
+    public PageId pageNo;
 
     public QID () {
-
+        this(new PageId(),0);
     }
 
     public QID (PageId pageno, int slotno) {
         pageNo = pageno;
         slotNo = slotno;
     }
-
-    public void copyEid (QID qid) {
-        pageNo = qid.pageNo;
-        slotNo = qid.slotNo;
+    
+    @Override
+    public int getSlotNo() {
+        return this.slotNo;
     }
-
+    
+    @Override
+    public PageId getPageNo() {
+        return this.pageNo;
+    }
+    
+    @Override
+    public void setSlotNo(int slotNo) {
+        this.slotNo = slotNo;
+    }
+    
+    @Override
+    public void setPageNo(PageId pageId) {
+        this.pageNo = pageId;
+    }
+    
     /** Write the qid into a byte array at offset
      * @param ary the specified byte array
      * @param offset the offset of byte array to write
@@ -42,6 +57,30 @@ public class QID implements Serializable {
             return true;
         else
             return false;
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        
+        QID qid = (QID) o;
+        
+        if (slotNo != qid.slotNo) {
+            return false;
+        }
+        return pageNo != null ? pageNo.equals(qid.pageNo) : qid.pageNo == null;
+    }
+    
+    @Override
+    public int hashCode() {
+        int result = slotNo;
+        result = 31 * result + (pageNo != null ? pageNo.hashCode() : 0);
+        return result;
     }
 }
 

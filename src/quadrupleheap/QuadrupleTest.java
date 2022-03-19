@@ -10,7 +10,7 @@ public class QuadrupleTest {
 
     static Quadruple q;
 
-    public static void main(String[] args) throws FieldNumberOutOfBoundException, IOException, ClassNotFoundException {
+    public static void main(String[] args) throws FieldNumberOutOfBoundException, IOException, ClassNotFoundException, InvalidTupleSizeException, InvalidTypeException {
         System.out.println("Running test 1: quadrupleInitTest");
         init();
         if(QuadrupleTest.quadrupleInitTest()) System.out.println("TEST 1 status: PASSED");
@@ -18,16 +18,16 @@ public class QuadrupleTest {
         System.out.println("### END OF TESTS ###");
     }
 
-    private static void init() throws FieldNumberOutOfBoundException, IOException {
+    private static void init() throws FieldNumberOutOfBoundException, IOException, InvalidTupleSizeException, InvalidTypeException {
         EID subject = new EID(new PageId(1), -2);
         PID predicate = new PID(new PageId(2), 3);
         EID object = new EID(new PageId(10), 21);
-        double value = 1.2;
+        float value = 1.2f;
         q = new Quadruple(subject, predicate, object, value);
     }
 
     private static boolean checkQuadrupleConstructor() {
-        Quadruple tmp = new Quadruple(q.data, 0, q.data.length);
+        Quadruple tmp = new Quadruple(q.getData(), 0, q.getData().length);
         if(!assertEquals(tmp.getSubject().slotNo, q.getSubject().slotNo)) return false;
         if(!assertEquals(tmp.getSubject().pageNo.pid, q.getSubject().pageNo.pid)) return false;
         if(!assertEquals(tmp.getValue(), q.getValue())) return false;
@@ -38,7 +38,7 @@ public class QuadrupleTest {
 
         if(!assertEquals(q.getIntFld(1), 1)) return false;
         if(!assertEquals(q.getIntFld(2), -2)) return false;
-        if(!assertEquals(q.getDoubleFld(7), 1.2)) return false;
+        if(!assertEquals(q.getFloFld(7), 1.2f)) return false;
         return true;
     }
 

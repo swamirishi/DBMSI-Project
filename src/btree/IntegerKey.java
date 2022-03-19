@@ -43,4 +43,23 @@ public class IntegerKey extends KeyClass {
   { 
     key=new Integer(value.intValue());
   }
+  
+  @Override
+  public IntegerKey copy() {
+    return new IntegerKey(this.getKey());
+  }
+  
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    
+    IntegerKey that = (IntegerKey) o;
+  
+    return key != null ? key.equals(that.key) : that.key == null;
+  }
 }
