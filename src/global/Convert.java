@@ -297,7 +297,15 @@ public class Convert{
       System.arraycopy (B, 0, data, position, 2);
       
     }
-  
+  public static byte[] getStrValueToBytes(String value) throws IOException {
+    OutputStream out = new ByteArrayOutputStream();
+    DataOutputStream outstr = new DataOutputStream (out);
+
+    // write the value to the output stream
+    byte []B = ((ByteArrayOutputStream) out).toByteArray();
+    outstr.writeUTF(value);
+    return B;
+  }
   /**
    * Insert or update a string in the given byte array at the specified 
    * position.
@@ -306,7 +314,7 @@ public class Convert{
    * @param       position        the position of tht value in data[]
    * @exception   java.io.IOException I/O errors
    */
- public static void setStrValue (String value, int position, byte []data)
+ public static int setStrValue (String value, int position, byte []data)
         throws java.io.IOException
  {
   /* creates a new data output stream to write data to
@@ -326,7 +334,7 @@ public class Convert{
    int sz =outstr.size();  
    // copies the contents of this byte array into data[]
    System.arraycopy (B, 0, data, position, sz);
-   
+   return sz;
  }
   
   /**

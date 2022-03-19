@@ -31,34 +31,40 @@ public class Label extends Tuple {
 
     public Label(byte [] labelbyteArray, int offset, int length) {
         super(labelbyteArray,offset,length);
-        try {
-            this.setHdr(numberOfFields,headerTypes,strLengths);
-            this.setAttributes();
-        } catch (IOException | InvalidTypeException | InvalidTupleSizeException | FieldNumberOutOfBoundException e) {
-            e.printStackTrace();
+        setAttributes();
+    }
+    private void setAttributes(){
+        if(super.getLength()>=2){
+            try {
+                short length = Convert.getShortValue(this.getOffset(),this.getData());
+                if(length>0 && super.getLength()>=2+length)
+                    this.label = Convert.getStrValue(this.getOffset()+2,this.getData(),length);
+                else if(length==0){
+                    this.label = "";
+                }else{
+                    this.label = null;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
-    private void setAttributes() throws IOException, FieldNumberOutOfBoundException {
-        this.label = this.getStrFld(1);
-    }
-    
+
     public Label(int size) {
         this(new byte[size],0,size);
-        
+
         //not handled setAttributes here
     }
     public Label(String label) throws IOException, FieldNumberOutOfBoundException {
-        this();
-        this.setLabel(label);
+        this.label = label;
     }
-    
+
     public Label(Label label) throws InvalidTupleSizeException {
-        this(label.getLabelByteArray(),label.getLength(),0);
+        this(label.getTupleByteArray(),label.getLength(),0);
     }
 
     public void setLabel(String label) throws FieldNumberOutOfBoundException, IOException {
         this.label = label;
-        this.setStrFld(1,label);
     }
 
     public void printLabel(){
@@ -75,20 +81,34 @@ public class Label extends Tuple {
         return super.getLength();
     }
 
-    public byte[] returnLabelByteArray() {
+    public byte[] returnLabelByteArray() throws IOException {
         return super.returnTupleByteArray();
     }
 
-    public byte [] getLabelByteArray() {
-        return super.getTupleByteArray();
+    public byte [] getLabelByteArray() throws IOException {
+        if(this.label==null){
+            byte[] data = new byte[2];
+            Convert.setShortValue((short)-1,0,data);
+            return data;
+        }
+
+
+        byte[] labelValue = Convert.getStrValueToBytes(label);
+        byte[] data = new byte[labelValue.length+2];
+        int length = labelValue.length;
+        System.arraycopy (labelValue, 0, data, 2, length);
+        Convert.setShortValue((short)length,0,data);
+        return data;
     }
 
     public void labelCopy(Label newLabel) {
         super.tupleCopy(newLabel);
+        this.setAttributes();
     }
-    
+
     public void tupleSet(byte[] record,int offset, int length) throws InvalidTupleSizeException {
         super.tupleSet(record,offset,length);
+        this.setAttributes();
     }
     public void labelSet(byte [] record, int offset, int length) throws InvalidTupleSizeException {
         this.tupleSet(record,offset,length);
