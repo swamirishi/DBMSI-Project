@@ -6,6 +6,7 @@ import diskmgr.RDFDB;
 import global.*;
 import heap.*;
 import iterator.*;
+import labelheap.LabelHeapFile;
 import quadrupleheap.Quadruple;
 import quadrupleheap.QuadrupleHeapFile;
 import quadrupleheap.TScan;
@@ -18,6 +19,12 @@ import quadrupleheap.TScan;
  * to clean up.
  */
 public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
+    //new variables
+    public static String subjectFilter;
+    public static String predicateFilter;
+    public static String objectFilter;
+    public static Float confidenceFilter;
+
     private static final int ARBIT_RUNS = 10;
 
     private AttrType[] _in;
@@ -186,7 +193,10 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
         while ((p_elems_curr_Q + p_elems_other_Q) < max_elems) {
             try {
                 QID qid = new QID();
-                tuple = _am.getNext(qid);  // according to java
+                tuple = _am.getNext(qid);
+                while(tuple!=null && !isFullfillingCriteria(tuple)) {
+                    tuple = _am.getNext(qid);
+                }// according to java
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new SortException(e, "Sort.java: get_next() failed");
@@ -298,6 +308,9 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
                     try {
                         QID qid = new QID();
                         tuple = _am.getNext(qid);  // according to java
+                        while(tuple!=null && !isFullfillingCriteria(tuple)) {
+                            tuple = _am.getNext(qid);
+                        }
                     } catch (Exception e) {
                         throw new SortException(e, "get_next() failed");
                     }
@@ -391,6 +404,46 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
         run_num++;
 
         return run_num;
+    }
+
+    private boolean isFullfillingCriteria(Quadruple currQuadruple) throws Exception {
+        LabelHeapFile entityLabelHeapFile = this.rdfdb.getEntityLabelHeapFile();
+        LabelHeapFile predicateLabelHeapFile = this.rdfdb.getPredicateLabelHeapFile();
+
+        LID currSubjectID = currQuadruple.getSubject().returnLid();
+        LID currObjectID = currQuadruple.getObject().returnLid();
+        LID currPredicateID = currQuadruple.getPredicate().returnLid();
+
+        //filters
+        //ignoring ordertype
+
+        //subject filter
+        if (subjectFilter != null) {
+            if (!entityLabelHeapFile.getRecord(currSubjectID).getLabel().equals(subjectFilter)) {
+                return false;
+            }
+        }
+        //predicate filter
+        if (predicateFilter != null) {
+            if (!predicateLabelHeapFile.getRecord(currPredicateID).getLabel().equals(predicateFilter)) {
+                return false;
+            }
+        }
+        //object filter
+        if (objectFilter != null) {
+            if (!entityLabelHeapFile.getRecord(currObjectID).getLabel().equals(objectFilter)) {
+                return false;
+            }
+        }
+
+        //confidence filter
+        if (confidenceFilter != 0) {
+            if (currQuadruple.getValue() < confidenceFilter) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

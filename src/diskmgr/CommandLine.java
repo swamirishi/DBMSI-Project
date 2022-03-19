@@ -19,7 +19,7 @@ public class CommandLine {
         rdfdb = new RDFDB(0);
 
         Scanner sc = new Scanner(System.in);
-        String str = "batchinsert D:\\DBMSI-Project\\phase2_test_data.txt";
+        String str = "batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/phase2_test_data.txt";
         String[] input = str.split(" ");
         String operationType = input[0];
         if (operationType.equals(Utils.BATCH_INSERT)) {
@@ -39,7 +39,9 @@ public class CommandLine {
             String line = reader.readLine();
             while (line != null) {
                 String[] tokens = line.split("\\s+");
-                insertTestData(tokens);
+                if(tokens.length==4) {
+                    insertTestData(tokens);
+                }
                 line = reader.readLine();
 //                break;
             }
@@ -64,8 +66,8 @@ public class CommandLine {
         }
         System.out.println(PCounter.rcounter);
         System.out.println(PCounter.wcounter);
-        Stream stream = rdfdb.openStream(1, ":Jorunn_Danielsen",
-                ":knows",":Eirik_Newth", 0.5232176791516268);
+        Stream stream = rdfdb.openStream(1, "abc",
+                null,null, null);
         Quadruple itr = stream.getNext();
         while (itr != null) {
             System.out.println(itr);
