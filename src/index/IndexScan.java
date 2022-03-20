@@ -41,7 +41,7 @@ public abstract class IndexScan<K> extends IndexScanI<RID,Tuple,K> {
     
     @Override
     public BTFileScanSupplier<RID, Tuple,K> getBTFileScanSupplier() {
-        return RIDBTFileScanSupplier.getSupplier();
+        return new RIDBTFileScanSupplier<K>();
     }
     
     @Override

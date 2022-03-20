@@ -4,7 +4,7 @@ import btree.IntegerKey;
 import btree.KeyClass;
 import btree.KeyTooLongException;
 
-public class FloatKeyClassManager extends IntegerKeyClassManager implements KeyClassManager<Float>{
+public class FloatKeyClassManager implements KeyClassManager<Float>{
     private int multiplier;
     private FloatKeyClassManager(int multiplier) {
         this.multiplier = multiplier;
@@ -12,7 +12,7 @@ public class FloatKeyClassManager extends IntegerKeyClassManager implements KeyC
     
     @Override
     public KeyClass getKeyClass(Float obj) throws KeyTooLongException {
-        return super.getKeyClass((int)(obj.floatValue()*this.multiplier));
+        return IntegerKeyClassManager.getSupplier().getKeyClass((int)(obj.floatValue()*this.multiplier));
     }
     
     private static FloatKeyClassManager supplier;

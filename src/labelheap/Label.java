@@ -25,7 +25,7 @@ public class Label extends Tuple {
     private static final short[] strLengths = new short[]{50};
     private static int LABEL_FLD = 1;
     private boolean hdrSet = false;
-    public Label(String label) throws InvalidTupleSizeException, IOException, InvalidTypeException {
+    public Label(String label){
         this();
         this.setLabel(label);
     }

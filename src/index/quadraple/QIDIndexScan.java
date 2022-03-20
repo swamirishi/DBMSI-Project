@@ -69,7 +69,7 @@ public abstract class QIDIndexScan<K> extends IndexScanI<QID, Quadruple,K> {
     
     @Override
     public BTreeFileSupplier<QID, Quadruple,K> getBTreeFileSupplier() {
-        return QIDBTreeFileSupplier.getSupplier();
+        return new QIDBTreeFileSupplier();
     }
     
     /**

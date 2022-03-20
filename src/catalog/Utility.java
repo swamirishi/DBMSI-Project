@@ -12,6 +12,7 @@ import global.*;
 import heap.*;
 import diskmgr.*;
 import btree.*;
+import utils.supplier.keyclass.KeyClassManager;
 
 public class Utility implements Catalogglobal{
 
@@ -255,7 +256,12 @@ ExtendedSystemDefs.MINIBASE_RELCAT.getInfo(relation, relRec);
      if (indexRecs[i].accessType.indexType == IndexType.B_Index)
         {
            try {
-		btree = new BTreeFile(indexName);
+		btree = new BTreeFile<Void>(indexName) {
+        @Override
+        public KeyClassManager<Void> getKeyClassManager() {
+            return null;
+        }
+    };
 		if (btree == null)
 		  throw new Catalognomem(null, "Catalog: No Enough Memory!");
            	btree.insert(key,rid);
