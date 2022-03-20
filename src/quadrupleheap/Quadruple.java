@@ -10,200 +10,149 @@ import java.io.IOException;
 import java.util.stream.IntStream;
 
 public class Quadruple extends Tuple {
-    private EID subject;
-    private PID predicate;
-    private EID object;
-    private float value;
+    
     private static final short numberOfFields = 7;
     private static final AttrType intType = new AttrType(AttrType.attrInteger);
     private static final AttrType floType = new AttrType(AttrType.attrReal);
     private static final AttrType[] headerTypes = new AttrType[]{intType,intType,intType,intType,intType,intType,floType};
-    private static final int[] offsets = new int[]{0,4,8,12,16,20,24};
-    public static final short QUADRUPLE_SIZE = 28;
+    private static final short[] strSizes = new short[]{0,0,0,0,0,0,0};
+    private static int SUBJECT_PG_NO_FLD = 1;
+    private static int SUBJECT_SLOT_FLD = 2;
+    private static int OBJECT_PG_NO_FLD = 3;
+    private static int OBJECT_SLOT_FLD = 4;
+    private static int PREDICATE_PG_NO_FLD = 5;
+    private static int PREDICATE_SLOT_FLD = 6;
+    private static int VALUE_FLD = 7;
+    
+    
+    
 
     public Quadruple() {
-        this(max_size);
+        super(max_size);
     }
 
     public Quadruple(byte [] aQuadruple, int offset, int length) {
         super(aQuadruple,offset,length);
-        try {
-            this.setAttributes();
-        } catch (IOException | FieldNumberOutOfBoundException e) {
-            e.printStackTrace();
-        }
-    }
-    private void setAttributes() throws IOException, FieldNumberOutOfBoundException {
-        if(this.getLength()>=QUADRUPLE_SIZE){
-            this.subject = new EID(new PageId(Convert.getIntValue(offsets[0],super.getData())),Convert.getIntValue(offsets[1],super.getData()));
-            this.predicate = new PID(new PageId(Convert.getIntValue(offsets[2],super.getData())),Convert.getIntValue(offsets[3],super.getData()));
-            this.object = new EID(new PageId(Convert.getIntValue(offsets[4],super.getData())),Convert.getIntValue(offsets[5],super.getData()));
-            this.value = Convert.getFloValue(offsets[6],super.getData());
-        }
     }
 
-    public Quadruple(EID subject, PID predicate, EID object, float value) throws IOException, FieldNumberOutOfBoundException, InvalidTupleSizeException, InvalidTypeException {
-        this.setSubject(subject);
-        this.setPredicate(predicate);
-        this.setObject(object);
-        this.setValue(value);
-        this.quadrupleCopy(this);
-    }
+//    public Quadruple(EID subject, PID predicate, EID object, float value) throws IOException, FieldNumberOutOfBoundException, InvalidTupleSizeException, InvalidTypeException {
+//        this.setSubject(subject);
+//        this.setPredicate(predicate);
+//        this.setObject(object);
+//        this.setValue(value);
+//        this.quadrupleCopy(this);
+//    }
 
     public Quadruple(Quadruple fromQuadruple) throws InvalidTupleSizeException {
-        this(fromQuadruple.getQuadrupleByteArray(),0,fromQuadruple.getLength());
+        super(fromQuadruple);
     }
 
     public byte[] getQuadrupleByteArray() {
-        byte[] ret = new byte[QUADRUPLE_SIZE];
-        try {
-            if(this.subject!=null){
-                Convert.setIntValue(this.subject.getPageNo().pid,offsets[0],ret);
-                Convert.setIntValue(this.subject.getSlotNo(),offsets[1],ret);
-            }
-            if(this.predicate!=null){
-                Convert.setIntValue(this.predicate.getPageNo().pid,offsets[2],ret);
-                Convert.setIntValue(this.predicate.getSlotNo(),offsets[3],ret);
-            }
-            if(this.object!=null){
-                Convert.setIntValue(this.object.getPageNo().pid,offsets[4],ret);
-                Convert.setIntValue(this.object.getSlotNo(),offsets[5],ret);
-            }
-            Convert.setFloValue(this.value,offsets[6],ret);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return ret;
+        return super.getTupleByteArray();
     }
-
-    public short noOfFlds() {
-        return super.noOfFlds();
-    }
-
-    public short[] copyFldOffset() {
-        return super.copyFldOffset();
-    }
-
-    public int getLength() {
-        return super.getLength();
-    }
+    
     //TODO: Check this
     public Quadruple(int size) {
-        this(new byte[size],0,size);
+        super(size);
 
         //not handled setAttributes here
     }
-    public void tupleCopy(Quadruple quadruple){
-        super.tupleCopy(quadruple);
-        try {
-            setAttributes();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (FieldNumberOutOfBoundException e) {
-            e.printStackTrace();
-        }
-    }
+    
     public void quadrupleCopy(Quadruple fromQuadruple) throws IOException, FieldNumberOutOfBoundException {
-        byte[] quadrupleByteArray = fromQuadruple.getQuadrupleByteArray();
+        super.tupleCopy(fromQuadruple);
+    }
+
+    public EID getSubject(){
         try {
-            this.quadrupleSet(quadrupleByteArray, 0, quadrupleByteArray.length);
-        } catch (InvalidTupleSizeException e) {
-            e.printStackTrace();
+            return new EID(new PageId(super.getIntFld(SUBJECT_PG_NO_FLD)),super.getIntFld(SUBJECT_SLOT_FLD));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (FieldNumberOutOfBoundException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public LID getGenericObjectFromByteArray(int pidFld, int slotNoFld) throws FieldNumberOutOfBoundException, IOException {
-        LID result;
-        int genericObjectPid = getIntFld(pidFld);
-        int genericObjectSlotNo = getIntFld(slotNoFld);
-        return new LID(new PageId(genericObjectPid), genericObjectSlotNo);
+    public PID getPredicate(){
+        try {
+            return new PID(new PageId(super.getIntFld(PREDICATE_PG_NO_FLD)),super.getIntFld(PREDICATE_SLOT_FLD));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (FieldNumberOutOfBoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public short size() {
-        return super.size();
+    public EID getObject(){
+        try {
+            return new EID(new PageId(super.getIntFld(OBJECT_PG_NO_FLD)),super.getIntFld(OBJECT_SLOT_FLD));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (FieldNumberOutOfBoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public EID getSubject() {
-        return subject;
+    public float getValue(){
+        try {
+            return super.getFloFld(VALUE_FLD);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (FieldNumberOutOfBoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public PID getPredicate() {
-        return predicate;
+    public void setSubject(EID subject){
+        try {
+            super.setIntFld(SUBJECT_PG_NO_FLD,subject.getPageNo().pid);
+            super.setIntFld(SUBJECT_SLOT_FLD,subject.getSlotNo());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (FieldNumberOutOfBoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public EID getObject() {
-        return object;
+    public void setPredicate(PID predicate){
+        try {
+            super.setIntFld(PREDICATE_PG_NO_FLD,predicate.getPageNo().pid);
+            super.setIntFld(PREDICATE_SLOT_FLD,predicate.getSlotNo());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (FieldNumberOutOfBoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public float getValue() {
-        return value;
+    public void setObject(EID object){
+        try {
+            super.setIntFld(OBJECT_PG_NO_FLD,object.getPageNo().pid);
+            super.setIntFld(OBJECT_SLOT_FLD,object.getSlotNo());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (FieldNumberOutOfBoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public void setSubject(EID subject) throws IOException, FieldNumberOutOfBoundException {
-        this.subject = subject;
-    }
-
-    public void setPredicate(PID predicate) throws IOException, FieldNumberOutOfBoundException {
-        this.predicate = predicate;
-    }
-
-    public void setObject(EID object) throws IOException, FieldNumberOutOfBoundException {
-        this.object = object;
-    }
-
-    public void setValue(float value) throws IOException, FieldNumberOutOfBoundException {
-        this.value = value;
-    }
-
-
-    public int getIntFld(int fldNo)
-            throws IOException, FieldNumberOutOfBoundException {
-        return super.getIntFld(fldNo);
-    }
-
-    public float getFloFld(int fldNo)
-            throws IOException, FieldNumberOutOfBoundException {
-        return super.getFloFld(fldNo);
-    }
-
-    public String getStrFld(int fldNo)
-            throws IOException, FieldNumberOutOfBoundException {
-        return super.getStrFld(fldNo);
-    }
-
-    public char getCharFld(int fldNo)
-            throws IOException, FieldNumberOutOfBoundException {
-        return super.getCharFld(fldNo);
-    }
-
-    public Quadruple setIntFld(int fldNo, int val)
-            throws IOException, FieldNumberOutOfBoundException {
-        return (Quadruple) super.setIntFld(fldNo,val);
-    }
-
-    public Quadruple setFloFld(int fldNo, float val)
-            throws IOException, FieldNumberOutOfBoundException {
-        return (Quadruple)  super.setFloFld(fldNo,val);
-    }
-
-    public Quadruple setStrFld(int fldNo, String val)
-            throws IOException, FieldNumberOutOfBoundException {
-        return (Quadruple) super.setStrFld(fldNo,val);
+    public void setValue(float value){
+        try {
+            super.setFloFld(VALUE_FLD,value);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (FieldNumberOutOfBoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public byte[] returnQuadrupleByteArray() {
-        return super.getTupleByteArray();
-    }
-
-    public int getOffset() {
-        return super.getOffset();
-    }
-
-    public void tupleSet(byte[] record,int offset, int length) throws InvalidTupleSizeException {
-        super.tupleSet(record,offset,length);
+        return super.returnTupleByteArray();
     }
     public void quadrupleSet(byte [] record, int offset, int length) throws InvalidTupleSizeException, FieldNumberOutOfBoundException, IOException {
         this.tupleSet(record,offset,length);
-        this.setAttributes();
+    }
+    
+    public void setHdr() throws InvalidTupleSizeException, IOException, InvalidTypeException {
+        super.setHdr(numberOfFields,headerTypes,strSizes);
     }
 }
