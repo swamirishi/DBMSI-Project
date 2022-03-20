@@ -35,12 +35,11 @@ public class Stream {
         AttrType attrTypeFloat = new AttrType(attrReal);
         AttrType[] attrTypes = {attrTypeLID, attrTypeLID, attrTypeLID, attrTypeFloat};
         QuadrupleUtils.rdfdb = rdfdb;
-        quadrupleSort = new QuadrupleSort(rdfDB, orderType, attrTypes, (short) 4, new short[4], tScan, 3, tupleOrders, 31, 1024);
         QuadrupleSort.subjectFilter = subjectFil;
         QuadrupleSort.predicateFilter = predicateFil;
         QuadrupleSort.objectFilter = objectFil;
         QuadrupleSort.confidenceFilter = confidenceFil == null ? 0 : confidenceFil.floatValue();
-
+        quadrupleSort = new QuadrupleSort(rdfDB, orderType, attrTypes, (short) 4, new short[4], tScan, 3, tupleOrders, 31, 1024);
     }
 
 

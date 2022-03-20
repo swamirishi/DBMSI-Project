@@ -13,22 +13,40 @@ import java.util.*;
 
 public class CommandLine {
     public static RDFDB rdfdb;
-
+    public static int numbuf;
     public static void main(String[] args) throws Exception {
-        SystemDefs sysdef = new SystemDefs("file", 50000, 50000, "Clock");
-        rdfdb = new RDFDB(0);
 
-        Scanner sc = new Scanner(System.in);
-        String str = "batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/phase2_test_data.txt";
-        String[] input = str.split(" ");
-        String operationType = input[0];
-        if (operationType.equals(Utils.BATCH_INSERT)) {
-            runBatchInsert(input);
-        }
-        if (input[0].equals(Utils.QUERY)) {
-            runQuery(Arrays.copyOfRange(input, 1, input.length));
-        } else {
-            runReport(Arrays.copyOfRange(input, 1, input.length));
+        SystemDefs sysdef1 = new SystemDefs("bablu", 50000, 50000, "Clock");
+        SystemDefs sysdef2 = new SystemDefs("bablu", 50000, 50000, "Clock");
+
+//        SystemDefs sysdef2 = new SystemDefs("shaitan", 50000, 50000, "Clock");
+
+
+//        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/phase2_test_data.txt 1 bablu
+//        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth 0.5232176791516268 50000
+//        report
+        String inputString = " ";
+        while(!inputString.equals("exit")){
+            System.out.println("\nNew command loop: ");
+            System.out.println("Type exit to stop!");
+
+            Scanner sc = new Scanner(System.in);
+            inputString = sc.nextLine();
+            String[] input = inputString.split(" ");
+            String operationType = input[0];
+
+            if (operationType.equals(Utils.BATCH_INSERT)) {
+                System.out.println("Running Batch Insert ....................");
+                runBatchInsert(input);
+            }
+            if (input[0].equals(Utils.QUERY)) {
+                System.out.println("Running Query ......................");
+                runQuery(Arrays.copyOfRange(input, 1, input.length));
+
+            } else if ((input[0].equals(Utils.REPORT))){
+                System.out.println("Running Report ......................");
+                runReport(Arrays.copyOfRange(input, 1, input.length));
+            }
         }
     }
 
@@ -51,7 +69,7 @@ public class CommandLine {
                 TScan tScan = new TScan(rdfdb.getQuadrupleHeapFile());
                 Quadruple q = tScan.getNext(qid);
                 while (q != null) {
-                    System.out.println(q);
+//                    System.out.println(q);
                     q = tScan.getNext(qid);
                 }
             } catch (InvalidTupleSizeException e) {
@@ -64,15 +82,16 @@ public class CommandLine {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(PCounter.rcounter);
-        System.out.println(PCounter.wcounter);
-        Stream stream = rdfdb.openStream(1, "abc",
-                null,null, null);
-        Quadruple itr = stream.getNext();
-        while (itr != null) {
-            System.out.println(itr);
-            itr = stream.getNext();
-        }
+        System.out.println("BATCH INSERTION process ENDs");
+        System.out.println("Disk page READ COUNT: " + PCounter.rcounter);
+        System.out.println("Disk page WRITE COUNT: " + PCounter.wcounter);
+//        Stream stream = rdfdb.openStream(1, null,
+//                null,null, 0.1);
+//        Quadruple itr = stream.getNext();
+//        while (itr != null) {
+//            System.out.println(itr);
+//            itr = stream.getNext();
+//        }
     }
 
     private static void insertTestData(String[] tokens) throws SpaceNotAvailableException, HFDiskMgrException, HFException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException, FieldNumberOutOfBoundException, InvalidTypeException {
@@ -80,7 +99,7 @@ public class CommandLine {
         String predicateLabel = tokens[1];
         String objectLabel = tokens[2];
         float confidence = Float.valueOf(tokens[3]);
-        System.out.println(subjectLabel + " " + predicateLabel + " " + objectLabel + " " + confidence);
+//        System.out.println(subjectLabel + " " + predicateLabel + " " + objectLabel + " " + confidence);
         EID subjectId = rdfdb.insertEntity(subjectLabel);
         PID predicateId = rdfdb.insertPredicate(predicateLabel);
         EID objectId = rdfdb.insertEntity(objectLabel);
@@ -93,8 +112,37 @@ public class CommandLine {
 
     }
 
-    private static void runQuery(String[] input) {
+    private static String applyToFilter(String filter){
+        if(filter.equals("*")){
+            return null;
+        }
+        return filter;
+    }
+    private static void runQuery(String[] input) throws Exception {
+        String RDFDBNAME = input[0];
+        String INDEXOPTION = input[1];
+        String ORDER = input[2];
+        String SUBJECTFILTER = input[3];
+        String PREDICATEFILTER= input[4];
+        String OBJECTFILTER = input[5];
+        String CONFIDENCEFILTER = input[6];
+//        int NUMBUF = input[7] != null? Integer.parseInt(input[7]) : 0;
 
+        SUBJECTFILTER = applyToFilter(SUBJECTFILTER);
+        PREDICATEFILTER = applyToFilter(PREDICATEFILTER);
+        OBJECTFILTER = applyToFilter(OBJECTFILTER);
+        CONFIDENCEFILTER = applyToFilter(CONFIDENCEFILTER);
+
+//        SystemDefs sysdef = new SystemDefs(RDFDBNAME, 50000, NUMBUF, "Clock");
+        Double confidenceFilter  = CONFIDENCEFILTER == null? null : Double.valueOf(CONFIDENCEFILTER);
+        Stream stream = rdfdb.openStream(Integer.parseInt(ORDER), SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
+
+        Quadruple currQuadruple = stream.getNext();
+
+        while(currQuadruple != null){
+            System.out.println(currQuadruple.toString());
+            currQuadruple = stream.getNext();
+        }
     }
 }
 

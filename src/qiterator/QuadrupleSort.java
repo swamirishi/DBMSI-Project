@@ -20,10 +20,10 @@ import quadrupleheap.TScan;
  */
 public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
     //new variables
-    public static String subjectFilter;
-    public static String predicateFilter;
-    public static String objectFilter;
-    public static Float confidenceFilter;
+    public static String subjectFilter =  null;
+    public static String predicateFilter = null;
+    public static String objectFilter = null;
+    public static Float confidenceFilter = null;
 
     private static final int ARBIT_RUNS = 10;
 

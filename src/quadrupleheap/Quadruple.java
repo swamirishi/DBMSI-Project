@@ -206,4 +206,9 @@ public class Quadruple extends Tuple {
         this.tupleSet(record,offset,length);
         this.setAttributes();
     }
+
+    public String toString(){
+        //make sure it variables are not null
+        return this.getSubject().toString() + " " + this.getPredicate().toString() + " " + this.getObject().toString() + " " + this.getValue();
+    }
 }
