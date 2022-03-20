@@ -11,9 +11,7 @@ import labelheap.LabelHeapFile;
 import quadrupleheap.Quadruple;
 import quadrupleheap.QuadrupleHeapFile;
 import quadrupleheap.TScan;
-import utils.supplier.keyclass.IDListKeyClassManager;
-import utils.supplier.keyclass.KeyClassManager;
-import utils.supplier.keyclass.LIDKeyClassManager;
+import utils.supplier.keyclass.*;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -53,17 +51,33 @@ public class RDFDB {
             quadrupleHeapFile = new QuadrupleHeapFile(quadrupleHeapFileName);
             entityLabelHeapFile = new LabelHeapFile(entityLabelFileName);
             predicateLabelHeapFile = new LabelHeapFile(predicateLabelFileName);
-
+            List<KeyClassManager> keyClassManagers = null;
             initializeLabelBTreeFiles();
-            initializeIndexesAsPerType();
+            switch (indexType){
+                case 1:
+                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+                    break;
+                case 2:
+                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+                    break;
+                case 3:
+                    keyClassManagers = Arrays.asList(FloatKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+                    break;
+                case 4:
+                    keyClassManagers = Arrays.asList(FloatKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+                    break;
+                case 5:
+                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+                    break;
+            }
+            initializeIndexesAsPerType(keyClassManagers);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void initializeIndexesAsPerType() throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
-        List<KeyClassManager> list = Arrays.asList(LIDKeyClassManager.getSupplier(),LIDKeyClassManager.getSupplier());
-        IDListKeyClassManager idListKeyClassManager = new IDListKeyClassManager(list,20,10);
+    private void initializeIndexesAsPerType(List<KeyClassManager> keyClassManagers) throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
+        IDListKeyClassManager idListKeyClassManager = new IDListKeyClassManager(keyClassManagers,20,10);
         QIDBTreeFile<List<?>> qtf = new QIDBTreeFile<List<?>>(qidBTreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
             @Override
             public KeyClassManager<List<?>> getKeyClassManager() {
