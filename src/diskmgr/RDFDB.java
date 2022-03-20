@@ -2,6 +2,7 @@ package diskmgr;
 
 import btree.*;
 import btree.label.LIDBTreeFile;
+import btree.quadraple.QIDBTreeFile;
 import global.*;
 import heap.*;
 import labelheap.LScan;
@@ -10,9 +11,13 @@ import labelheap.LabelHeapFile;
 import quadrupleheap.Quadruple;
 import quadrupleheap.QuadrupleHeapFile;
 import quadrupleheap.TScan;
+import utils.supplier.keyclass.IDListKeyClassManager;
 import utils.supplier.keyclass.KeyClassManager;
+import utils.supplier.keyclass.LIDKeyClassManager;
+
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 public class RDFDB {
 
@@ -25,11 +30,13 @@ public class RDFDB {
     private static String subjectBTreeFileName = "SubjectLabelBTreeIndexFile";
     private static String predicateBTreeFileName = "PredicateLabelBTreeIndexFile";
     private static String objectBTreeFileName = "ObjectLabelBTreeIndexFile";
+    private static String qidBTreeFileName = "QIDBTreeIndex";
     private int indexType = 0;
 
     private LIDBTreeFile<Void> subjectBtreeIndexFile;
     private LIDBTreeFile<Void> predicateBtreeIndexFile;
     private LIDBTreeFile<Void> objectBtreeIndexFile;
+    private QIDBTreeFile<List<?>> qidBtreeFile;
 
     private int subjectCount = 0;
     private int objectCount = 0;
@@ -42,21 +49,22 @@ public class RDFDB {
             predicateLabelHeapFile = new LabelHeapFile("predicateLabelHeapFile");
 
             initializeLabelBTreeFiles();
-            initializeIndexesAsPerType(type);
+            initializeIndexesAsPerType();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void initializeIndexesAsPerType(int type) {
-        switch (type){
-            case 1:
-                break;
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-        }
+    private void initializeIndexesAsPerType() throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
+        List<KeyClassManager> list = Arrays.asList(LIDKeyClassManager.getSupplier(),LIDKeyClassManager.getSupplier());
+        IDListKeyClassManager idListKeyClassManager = new IDListKeyClassManager(list,20,10);
+        QIDBTreeFile<List<?>> qtf = new QIDBTreeFile<List<?>>(qidBTreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
+            @Override
+            public KeyClassManager<List<?>> getKeyClassManager() {
+                return idListKeyClassManager;
+            }
+        };
+        this.qidBtreeFile = qtf;
     }
 
     private void initializeLabelBTreeFiles() throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
@@ -225,5 +233,36 @@ public class RDFDB {
 
     public int getIndexType() {
         return indexType;
+    }
+
+    public void insertInQIDBTree(Quadruple q, QID qid) throws IteratorException, ConstructPageException, ConvertException, InsertException, LeafDeleteException, IndexInsertRecException, NodeNotMatchException, LeafInsertRecException, PinPageException, IOException, UnpinPageException, DeleteRecException, KeyTooLongException, KeyNotMatchException, IndexSearchException {
+        LID subjectId = q.getSubject().returnLid();
+        LID predicateId = q.getPredicate().returnLid();
+        LID objectId = q.getObject().returnLid();
+        float confidence = q.getValue();
+        List keyList;
+
+        switch (indexType){
+            case 1:
+                keyList = Arrays.asList(subjectId, objectId);
+                qidBtreeFile.insert(keyList, qid);
+                break;
+            case 2:
+                keyList = Arrays.asList(objectId, subjectId);
+                qidBtreeFile.insert(keyList, qid);
+                break;
+            case 3:
+                keyList = Arrays.asList(confidence, subjectId);
+                qidBtreeFile.insert(keyList, qid);
+                break;
+            case 4:
+                keyList = Arrays.asList(confidence, objectId);
+                qidBtreeFile.insert(keyList, qid);
+                break;
+            case 5:
+                keyList = Arrays.asList(predicateId, subjectId, objectId);
+                qidBtreeFile.insert(keyList, qid);
+                break;
+        }
     }
 }

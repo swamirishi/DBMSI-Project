@@ -116,8 +116,9 @@ public class CommandLine {
         PID predicateId = rdfdb.insertPredicate(predicateLabel);
         EID objectId = rdfdb.insertEntity(objectLabel);
         Quadruple q = new Quadruple(subjectId, predicateId, objectId, confidence);
-        rdfdb.insertQuadruple(q.getQuadrupleByteArray());
+        QID qid = rdfdb.insertQuadruple(q.getQuadrupleByteArray());
         rdfdb.insertInLabelBTree(subjectLabel, subjectId, predicateLabel, predicateId, objectLabel, objectId);
+        rdfdb.insertInQIDBTree(q, qid);
     }
     private static void runReport(String[] input) {
 
