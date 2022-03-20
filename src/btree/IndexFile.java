@@ -2,8 +2,7 @@ package btree;
 
 import java.io.*;
 import global.*;
-
-
+import utils.supplier.keyclass.KeyClassManager;
 
 /**
  * Contains the enumerated types of state of the scan
@@ -18,8 +17,16 @@ class ScanState
 /**
  * Base class for a index file
  */
-public abstract class IndexFile<I extends ID>
+public abstract class IndexFile<I extends ID,K>
 {
+	public abstract KeyClassManager<K> getKeyClassManager();
+	public void insert(final K val,final I rid) throws KeyTooLongException, KeyNotMatchException, IteratorException, NodeNotMatchException, ConstructPageException, LeafInsertRecException, IndexSearchException, UnpinPageException, PinPageException, ConvertException, DeleteRecException, LeafDeleteException, InsertException, IndexInsertRecException, IOException {
+		this.insert(getKeyClassManager().getKeyClass(val),rid);
+	}
+	public void Delete(final K val,final I rid) throws KeyTooLongException, KeyNotMatchException, IteratorException, NodeNotMatchException, ConstructPageException, LeafInsertRecException, IndexSearchException, UnpinPageException, PinPageException, ConvertException, DeleteRecException, LeafDeleteException, InsertException, IndexInsertRecException, IOException, FreePageException, IndexFullDeleteException, RecordNotFoundException, InsertRecException, LeafRedistributeException, DeleteFashionException, RedistributeException {
+		this.Delete(getKeyClassManager().getKeyClass(val),rid);
+	}
+	
   /**
    * Insert entry into the index file.
    * @param data the key for the entry

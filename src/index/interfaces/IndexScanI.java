@@ -21,6 +21,7 @@ import utils.supplier.btfilescan.BTFileScanSupplier;
 import utils.supplier.hfile.HFileSupplier;
 import utils.supplier.hfilepage.HFilePageSupplier;
 import utils.supplier.id.IDSupplier;
+import utils.supplier.keyclass.KeyClassManager;
 import utils.supplier.tuple.TupleSupplier;
 
 import java.io.IOException;
@@ -31,19 +32,20 @@ import java.io.IOException;
  * information about the tuples and the index are passed to the constructor,
  * then the user calls <code>get_next()</code> to get the tuples.
  */
-public abstract class IndexScanI<I extends ID, T extends Tuple> extends Iterator {
+public abstract class IndexScanI<I extends ID, T extends Tuple, K> extends Iterator {
 
     public abstract IDSupplier<I> getIDSupplier();
 
+    public abstract KeyClassManager<K> getKeyClassManager();
     public abstract HFilePageSupplier<I, T> getHFilePageSupplier();
 
-    public abstract BTFileScanSupplier<I, T> getBTFileScanSupplier();
+    public abstract BTFileScanSupplier<I, T,K> getBTFileScanSupplier();
 
     public abstract TupleSupplier<T> getTupleSupplier();
 
     public abstract HFileSupplier<I, T> getHFileSupplier();
 
-    public abstract BTreeFileSupplier<I, T> getBTreeFileSupplier();
+    public abstract BTreeFileSupplier<I, T,K> getBTreeFileSupplier();
 
     /**
      * class constructor. set up the index scan.
@@ -126,13 +128,13 @@ public abstract class IndexScanI<I extends ID, T extends Tuple> extends Iterator
                 // must be of the type: value op symbol || symbol op value
                 // but not symbol op symbol || value op value
                 try {
-                    indFile = getBTreeFileSupplier().getBTreeFile(indName);
+                    indFile = getBTreeFileSupplier().getBTreeFile(indName,getKeyClassManager());
                 } catch (Exception e) {
                     throw new IndexException(e, "IndexScan.java: BTreeFile exceptions caught from BTreeFile constructor");
                 }
 
                 try {
-                    indScan = (BTFileScanI<I, T>) IndexUtils.BTree_scan(selects, indFile);
+                    indScan = (BTFileScanI<I, T,K>) IndexUtils.BTree_scan(selects, indFile);
                 } catch (Exception e) {
                     throw new IndexException(e, "IndexScan.java: BTreeFile exceptions caught from IndexUtils.BTree_scan().");
                 }
@@ -331,7 +333,7 @@ public abstract class IndexScanI<I extends ID, T extends Tuple> extends Iterator
         if (!closeFlag) {
             if (indScan instanceof BTFileScan) {
                 try {
-                    ((BTFileScanI<I, T>) indScan).DestroyBTreeFileScan();
+                    ((BTFileScanI<I, T,K>) indScan).DestroyBTreeFileScan();
                 } catch (Exception e) {
                     throw new IndexException(e, "BTree error in destroying index scan.");
                 }
@@ -342,7 +344,7 @@ public abstract class IndexScanI<I extends ID, T extends Tuple> extends Iterator
     }
 
     public FldSpec[] perm_mat;
-    private IndexFile<I> indFile;
+    private IndexFile<I,K> indFile;
     private IndexFileScan<I> indScan;
     private AttrType[] _types;
     private short[] _s_sizes;

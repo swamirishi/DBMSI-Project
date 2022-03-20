@@ -7,24 +7,14 @@ import global.QID;
 import labelheap.Label;
 import quadrupleheap.Quadruple;
 
-public class LIDBTFileScanSupplier implements BTFileScanSupplier<LID, Label> {
+public class LIDBTFileScanSupplier<K> implements BTFileScanSupplier<LID, Label,K> {
     @Override
-    public LIDBTFileScan getBTFileScan() {
-        return new LIDBTFileScan();
+    public LIDBTFileScan<K> getBTFileScan() {
+        return new LIDBTFileScan<K>();
     }
     
-    private LIDBTFileScanSupplier() {
+    public LIDBTFileScanSupplier() {
     }
     
-    private static LIDBTFileScanSupplier supplier;
-    public static LIDBTFileScanSupplier getSupplier(){
-        if(supplier == null){
-            synchronized (LIDBTFileScanSupplier.class){
-                if(supplier == null){
-                    supplier = new LIDBTFileScanSupplier();
-                }
-            }
-        }
-        return supplier;
-    }
+    
 }

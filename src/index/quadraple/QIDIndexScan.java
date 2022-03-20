@@ -41,7 +41,7 @@ import java.io.IOException;
  * information about the tuples and the index are passed to the constructor,
  * then the user calls <code>get_next()</code> to get the tuples.
  */
-public class QIDIndexScan extends IndexScanI<QID, Quadruple> {
+public abstract class QIDIndexScan<K> extends IndexScanI<QID, Quadruple,K> {
     @Override
     public IDSupplier<QID> getIDSupplier() {
         return QIDSupplier.getSupplier();
@@ -53,8 +53,8 @@ public class QIDIndexScan extends IndexScanI<QID, Quadruple> {
     }
     
     @Override
-    public BTFileScanSupplier<QID, Quadruple> getBTFileScanSupplier() {
-        return QIDBTFileScanSupplier.getSupplier();
+    public BTFileScanSupplier<QID, Quadruple,K> getBTFileScanSupplier() {
+        return new QIDBTFileScanSupplier<K>();
     }
     
     @Override
@@ -68,7 +68,7 @@ public class QIDIndexScan extends IndexScanI<QID, Quadruple> {
     }
     
     @Override
-    public BTreeFileSupplier<QID, Quadruple> getBTreeFileSupplier() {
+    public BTreeFileSupplier<QID, Quadruple,K> getBTreeFileSupplier() {
         return QIDBTreeFileSupplier.getSupplier();
     }
     
