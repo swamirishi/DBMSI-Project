@@ -18,7 +18,7 @@ import utils.supplier.btleafpage.RIDBTLeafPageSupplier;
  * index files (class BTreeFile).  It derives from abstract base
  * class IndexFileScan.  
  */
-public class BTFileScan  extends BTFileScanI<RID,Tuple>
+public class BTFileScan<K>  extends BTFileScanI<RID,Tuple,K>
 {
     @Override
     public BTLeafPageSupplier<RID, Tuple> getBTLeafSupplier() {

@@ -17,6 +17,7 @@ import labelheap.Label;
 import labelheap.LabelHeapFile;
 import qiterator.QuadrupleUtils;
 import quadrupleheap.Quadruple;
+import utils.supplier.keyclass.KeyClassManager;
 
 import java.io.IOException;
 
@@ -97,7 +98,12 @@ public class QuadrupleIndexTest {
         LScan scan = new LScan(f);
 
         // create the index file
-        LIDBTreeFile btf = new LIDBTreeFile("BTreeIndex", AttrType.attrString, REC_LEN1, 1/*delete*/);
+        LIDBTreeFile<Void> btf = new LIDBTreeFile<Void>("BTreeIndex", AttrType.attrString, REC_LEN1, 1/*delete*/) {
+            @Override
+            public KeyClassManager<Void> getKeyClassManager() {
+                return null;
+            }
+        };
 
         System.out.println("BTreeIndex created successfully.\n");
 
@@ -120,9 +126,22 @@ public class QuadrupleIndexTest {
         projlist[0] = new FldSpec(rel, 1);
 
         // start index scan
-        LIDIndexScan iscan = new LIDIndexScan(new IndexType(IndexType.B_Index),
-                "test1.in", "BTreeIndex", attrType, attrSize,
-                1, 1, projlist, null, 1, true);
+        LIDIndexScan<Void> iscan = new LIDIndexScan<Void>(new IndexType(IndexType.B_Index),
+                "test1.in",
+                "BTreeIndex",
+                attrType,
+                attrSize,
+                1,
+                1,
+                projlist,
+                null,
+                1,
+                true) {
+            @Override
+            public KeyClassManager<Void> getKeyClassManager() {
+                return null;
+            }
+        };
 
         int count = 0;
         t = iscan.get_next();

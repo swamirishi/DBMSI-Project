@@ -38,7 +38,7 @@ import utils.supplier.leafdata.RIDLeafDataSupplier;
  * abstract base class IndexFile.
  * It provides an insert/delete interface.
  */
-public class BTreeFile extends BTreeFileI<RID, Tuple> {
+public abstract class BTreeFile<K> extends BTreeFileI<RID, Tuple,K> {
 	@Override
 	public BTreeHeaderPageSupplier<RID, Tuple> getBTreeHeaderPageSupplier() {
 		return RIDBTreeHeaderPageSupplier.getSupplier();
@@ -75,8 +75,8 @@ public class BTreeFile extends BTreeFileI<RID, Tuple> {
 	}
 	
 	@Override
-	public BTFileScanSupplier<RID, Tuple> getBTFileScanSupplier() {
-		return RIDBTFileScanSupplier.getSupplier();
+	public BTFileScanSupplier<RID, Tuple,K> getBTFileScanSupplier() {
+		return new RIDBTFileScanSupplier<K>();
 	}
 	
 	/**

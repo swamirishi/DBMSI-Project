@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.stream.IntStream;
 
 public class Quadruple extends Tuple {
-    
+
     private static final short numberOfFields = 7;
     private static final AttrType intType = new AttrType(AttrType.attrInteger);
     private static final AttrType floType = new AttrType(AttrType.attrReal);
@@ -24,9 +24,9 @@ public class Quadruple extends Tuple {
     private static int PREDICATE_SLOT_FLD = 6;
     private static int VALUE_FLD = 7;
     private boolean hdrSet = false;
-    
-    
-    
+
+
+
     public Quadruple(EID subject, PID predicate, EID object, float value) throws InvalidTupleSizeException, IOException, InvalidTypeException {
         this();
         this.setSubject(subject);
@@ -58,14 +58,14 @@ public class Quadruple extends Tuple {
     public byte[] getQuadrupleByteArray() {
         return super.getTupleByteArray();
     }
-    
+
     //TODO: Check this
     public Quadruple(int size) {
         super(size);
 
         //not handled setAttributes here
     }
-    
+
     public void quadrupleCopy(Quadruple fromQuadruple) throws IOException, FieldNumberOutOfBoundException {
         super.tupleCopy(fromQuadruple);
     }

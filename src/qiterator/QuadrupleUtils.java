@@ -263,9 +263,9 @@ public class QuadrupleUtils {
 	public static String getLabelStringFromQuadrupleUsingId(Quadruple quadruple, int fldno)
 			throws IOException,
 			QuadrupleUtilsException, FieldNumberOutOfBoundException {
-		LID lid_subject = quadruple.getGenericObjectFromByteArray(SUBJECT_PID_FLD_NO, SUBJECT_SLOT_FLD_NO);
-		LID lid_predicate = quadruple.getGenericObjectFromByteArray(PREDICATE_PID_FLD_NO, PREDICATE_SLOT_FLD_NO);
-		LID lid_object = quadruple.getGenericObjectFromByteArray(OBJECT_PID_FLD_NO, OBJECT_SLOT_FLD_NO);
+		LID lid_subject = quadruple.getSubject().returnLid();
+		LID lid_predicate = quadruple.getPredicate().returnLid();
+		LID lid_object = quadruple.getObject().returnLid();
         /*
             Following maps store attribute no with its LID object. Ex : (1, subjectLid) (2, predicateLid)
         * */

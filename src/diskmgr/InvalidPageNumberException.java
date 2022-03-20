@@ -8,6 +8,10 @@ public class InvalidPageNumberException extends ChainException {
     { 
       super(ex, name); 
     }
+    
+    public InvalidPageNumberException(String name){
+    super(name);
+    }
 }
 
 

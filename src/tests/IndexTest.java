@@ -9,6 +9,7 @@ import heap.*;
 import iterator.*;
 import index.*;
 import btree.*;
+import utils.supplier.keyclass.KeyClassManager;
 
 import java.util.Random;
 
@@ -186,9 +187,14 @@ class IndexDriver extends TestDriver
         }
 
         // create the index file
-        BTreeFile btf = null;
+        BTreeFile<Void> btf = null;
         try {
-            btf = new BTreeFile("BTreeIndex", AttrType.attrString, REC_LEN1, 1/*delete*/);
+            btf = new BTreeFile<Void>("BTreeIndex", AttrType.attrString, REC_LEN1, 1/*delete*/) {
+                @Override
+                public KeyClassManager<Void> getKeyClassManager() {
+                    return null;
+                }
+            };
         } catch (Exception e) {
             status = FAIL;
             e.printStackTrace();
@@ -243,9 +249,24 @@ class IndexDriver extends TestDriver
         projlist[1] = new FldSpec(rel, 2);
 
         // start index scan
-        IndexScan iscan = null;
+        IndexScan<Void> iscan = null;
         try {
-            iscan = new IndexScan(new IndexType(IndexType.B_Index), "test1.in", "BTreeIndex", attrType, attrSize, 2, 2, projlist, null, 2, true);
+            iscan = new IndexScan<Void>(new IndexType(IndexType.B_Index),
+                    "test1.in",
+                    "BTreeIndex",
+                    attrType,
+                    attrSize,
+                    2,
+                    2,
+                    projlist,
+                    null,
+                    2,
+                    true) {
+                @Override
+                public KeyClassManager<Void> getKeyClassManager() {
+                    return null;
+                }
+            };
         } catch (Exception e) {
             status = FAIL;
             e.printStackTrace();
@@ -359,9 +380,14 @@ class IndexDriver extends TestDriver
         }
 
         // open existing index
-        BTreeFile btf = null;
+        BTreeFile<Void> btf = null;
         try {
-            btf = new BTreeFile("BTreeIndex");
+            btf = new BTreeFile<Void>("BTreeIndex") {
+                @Override
+                public KeyClassManager<Void> getKeyClassManager() {
+                    return null;
+                }
+            };
         } catch (Exception e) {
             status = FAIL;
             e.printStackTrace();
@@ -391,9 +417,24 @@ class IndexDriver extends TestDriver
         expr[1] = null;
 
         // start index scan
-        IndexScan iscan = null;
+        IndexScan<Void> iscan = null;
         try {
-            iscan = new IndexScan(new IndexType(IndexType.B_Index), "test1.in", "BTreeIndex", attrType, attrSize, 2, 2, projlist, expr, 2, false);
+            iscan = new IndexScan<Void>(new IndexType(IndexType.B_Index),
+                    "test1.in",
+                    "BTreeIndex",
+                    attrType,
+                    attrSize,
+                    2,
+                    2,
+                    projlist,
+                    expr,
+                    2,
+                    false) {
+                @Override
+                public KeyClassManager<Void> getKeyClassManager() {
+                    return null;
+                }
+            };
         } catch (Exception e) {
             status = FAIL;
             e.printStackTrace();
@@ -470,7 +511,22 @@ class IndexDriver extends TestDriver
         // start index scan
         iscan = null;
         try {
-            iscan = new IndexScan(new IndexType(IndexType.B_Index), "test1.in", "BTreeIndex", attrType, attrSize, 2, 2, projlist, expr, 2, false);
+            iscan = new IndexScan<Void>(new IndexType(IndexType.B_Index),
+                    "test1.in",
+                    "BTreeIndex",
+                    attrType,
+                    attrSize,
+                    2,
+                    2,
+                    projlist,
+                    expr,
+                    2,
+                    false) {
+                @Override
+                public KeyClassManager<Void> getKeyClassManager() {
+                    return null;
+                }
+            };
         } catch (Exception e) {
             status = FAIL;
             e.printStackTrace();
@@ -623,9 +679,14 @@ class IndexDriver extends TestDriver
         }
 
         // create the index file on the integer field
-        BTreeFile btf = null;
+        BTreeFile<Void> btf = null;
         try {
-            btf = new BTreeFile("BTIndex", AttrType.attrInteger, 4, 1/*delete*/);
+            btf = new BTreeFile<Void>("BTIndex", AttrType.attrInteger, 4, 1/*delete*/) {
+                @Override
+                public KeyClassManager<Void> getKeyClassManager() {
+                    return null;
+                }
+            };
         } catch (Exception e) {
             status = FAIL;
             e.printStackTrace();
@@ -702,7 +763,22 @@ class IndexDriver extends TestDriver
         // start index scan
         IndexScan iscan = null;
         try {
-            iscan = new IndexScan(new IndexType(IndexType.B_Index), "test3.in", "BTIndex", attrType, attrSize, 4, 4, projlist, expr, 3, false);
+            iscan = new IndexScan<Void>(new IndexType(IndexType.B_Index),
+                    "test3.in",
+                    "BTIndex",
+                    attrType,
+                    attrSize,
+                    4,
+                    4,
+                    projlist,
+                    expr,
+                    3,
+                    false) {
+                @Override
+                public KeyClassManager<Void> getKeyClassManager() {
+                    return null;
+                }
+            };
         } catch (Exception e) {
             status = FAIL;
             e.printStackTrace();
@@ -797,4 +873,3 @@ public class IndexTest {
         }
     }
 }
-

@@ -28,7 +28,7 @@ import java.io.*;
  * information about the tuples and the index are passed to the constructor,
  * then the user calls <code>get_next()</code> to get the tuples.
  */
-public class IndexScan extends IndexScanI<RID,Tuple> {
+public abstract class IndexScan<K> extends IndexScanI<RID,Tuple,K> {
     @Override
     public IDSupplier<RID> getIDSupplier() {
         return RIDSupplier.getSupplier();
@@ -40,8 +40,8 @@ public class IndexScan extends IndexScanI<RID,Tuple> {
     }
     
     @Override
-    public BTFileScanSupplier<RID, Tuple> getBTFileScanSupplier() {
-        return RIDBTFileScanSupplier.getSupplier();
+    public BTFileScanSupplier<RID, Tuple,K> getBTFileScanSupplier() {
+        return new RIDBTFileScanSupplier<K>();
     }
     
     @Override
@@ -55,8 +55,8 @@ public class IndexScan extends IndexScanI<RID,Tuple> {
     }
     
     @Override
-    public BTreeFileSupplier<RID, Tuple> getBTreeFileSupplier() {
-        return RIDBTreeFileSupplier.getSupplier();
+    public BTreeFileSupplier<RID, Tuple,K> getBTreeFileSupplier() {
+        return new RIDBTreeFileSupplier<K>();
     }
     
     /**
