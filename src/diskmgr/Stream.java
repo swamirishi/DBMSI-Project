@@ -14,8 +14,7 @@ import quadrupleheap.TScan;
 import java.io.IOException;
 import java.util.*;
 
-import static global.AttrType.attrLID;
-import static global.AttrType.attrReal;
+import static global.AttrType.*;
 import static global.GlobalConst.INVALID_PAGE;
 
 public class Stream {
@@ -29,18 +28,22 @@ public class Stream {
     public Stream(RDFDB rdfdb, int orderType, String subjectFil, String predicateFil,
                   String objectFil, Double confidenceFil) throws Exception {
         rdfDB = rdfdb;
+        QuadrupleUtils.rdfdb = rdfdb;
+
         TScan tScan = new TScan(rdfDB.getQuadrupleHeapFile());
         TupleOrder tupleOrders = new TupleOrder(0);
-        AttrType attrTypeLID = new AttrType(attrLID);
-        AttrType attrTypeFloat = new AttrType(attrReal);
-        AttrType[] attrTypes = {attrTypeLID, attrTypeLID, attrTypeLID, attrTypeFloat};
-        QuadrupleUtils.rdfdb = rdfdb;
-        quadrupleSort = new QuadrupleSort(rdfDB, orderType, attrTypes, (short) 4, new short[4], tScan, 3, tupleOrders, 31, 1024);
+
+        AttrType[] attrTypes = Quadruple.headerTypes;
+        short len = (short) attrTypes.length;
+        short[] strSizes = Quadruple.strSizes;
+
         QuadrupleSort.subjectFilter = subjectFil;
         QuadrupleSort.predicateFilter = predicateFil;
         QuadrupleSort.objectFilter = objectFil;
         QuadrupleSort.confidenceFilter = confidenceFil == null ? 0 : confidenceFil.floatValue();
 
+        quadrupleSort = new QuadrupleSort(rdfDB, orderType, attrTypes, len, strSizes,
+                tScan, 3, tupleOrders, 31, 1024);
     }
 
 

@@ -24,7 +24,11 @@ public class Label extends Tuple {
     private static final AttrType[] headerTypes = new AttrType[]{stringType};
     private static final short[] strLengths = new short[]{50};
     private static int LABEL_FLD = 1;
-
+    private boolean hdrSet = false;
+    public Label(String label) throws InvalidTupleSizeException, IOException, InvalidTypeException {
+        this();
+        this.setLabel(label);
+    }
     public Label() {
         super();
     }
@@ -40,13 +44,22 @@ public class Label extends Tuple {
     public Label(Label label) throws InvalidTupleSizeException {
         super(label);
     }
-
+    public void setHdrIfNotSet() throws InvalidTupleSizeException, IOException, InvalidTypeException {
+        if(!hdrSet){
+            this.setHdr();
+        }
+    }
     public void setLabel(String label){
         try {
+            setHdrIfNotSet();
             this.setStrFld(LABEL_FLD,label);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (FieldNumberOutOfBoundException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidTupleSizeException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidTypeException e) {
             throw new RuntimeException(e);
         }
     }
@@ -59,10 +72,15 @@ public class Label extends Tuple {
 
     public String getLabel() {
         try {
+            setHdrIfNotSet();
             return super.getStrFld(LABEL_FLD);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (FieldNumberOutOfBoundException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidTupleSizeException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidTypeException e) {
             throw new RuntimeException(e);
         }
     }
@@ -78,11 +96,16 @@ public class Label extends Tuple {
     public void labelCopy(Label newLabel) {
         super.tupleCopy(newLabel);
     }
+
     public void labelSet(byte [] record, int offset, int length) throws InvalidTupleSizeException {
         super.tupleSet(record,offset,length);
     }
-    
+
+    public void setHdr(short numFlds,  AttrType types[], short strSizes[]) throws InvalidTupleSizeException, IOException, InvalidTypeException {
+        hdrSet = true;
+        super.setHdr(numFlds,types,strSizes);
+    }
     public void setHdr() throws InvalidTupleSizeException, IOException, InvalidTypeException {
-        super.setHdr(numberOfFields,headerTypes,strLengths);
+        this.setHdr(numberOfFields,headerTypes,strLengths);
     }
 }
