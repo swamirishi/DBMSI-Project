@@ -1,26 +1,39 @@
-package index;
-import global.*;
-import bufmgr.*;
-import diskmgr.*; 
-import btree.*;
+package index.label;
+
+import global.AttrType;
+import global.IndexType;
+import global.LID;
+import global.QID;
+import heap.InvalidTupleSizeException;
+import heap.InvalidTypeException;
+import index.IndexException;
+import index.UnknownIndexTypeException;
 import index.interfaces.IndexScanI;
-import iterator.*;
-import heap.*;
+import iterator.CondExpr;
+import iterator.FldSpec;
+import iterator.UnknownKeyTypeException;
+import labelheap.Label;
+import quadrupleheap.Quadruple;
 import utils.supplier.btfile.BTreeFileSupplier;
-import utils.supplier.btfile.RIDBTreeFileSupplier;
+import utils.supplier.btfile.LIDBTreeFileSupplier;
+import utils.supplier.btfile.QIDBTreeFileSupplier;
 import utils.supplier.btfilescan.BTFileScanSupplier;
-import utils.supplier.btfilescan.RIDBTFileScanSupplier;
+import utils.supplier.btfilescan.LIDBTFileScanSupplier;
+import utils.supplier.btfilescan.QIDBTFileScanSupplier;
 import utils.supplier.hfile.HFileSupplier;
-import utils.supplier.hfile.RIDHFileSupplier;
+import utils.supplier.hfile.LIDHFileSupplier;
+import utils.supplier.hfile.QIDHFileSupplier;
 import utils.supplier.hfilepage.HFilePageSupplier;
-import utils.supplier.hfilepage.RIDHFilePageSupplier;
+import utils.supplier.hfilepage.LIDHFilePageSupplier;
+import utils.supplier.hfilepage.QIDHFilePageSupplier;
 import utils.supplier.id.IDSupplier;
-import utils.supplier.id.RIDSupplier;
-import utils.supplier.tuple.RIDTupleSupplier;
+import utils.supplier.id.LIDSupplier;
+import utils.supplier.id.QIDSupplier;
+import utils.supplier.tuple.LIDTupleSupplier;
+import utils.supplier.tuple.QIDTupleSupplier;
 import utils.supplier.tuple.TupleSupplier;
 
-import java.io.*;
-
+import java.io.IOException;
 
 /**
  * Index Scan iterator will directly access the required tuple using
@@ -28,35 +41,35 @@ import java.io.*;
  * information about the tuples and the index are passed to the constructor,
  * then the user calls <code>get_next()</code> to get the tuples.
  */
-public class IndexScan extends IndexScanI<RID,Tuple> {
+public class LIDIndexScan extends IndexScanI<LID, Label> {
     @Override
-    public IDSupplier<RID> getIDSupplier() {
-        return RIDSupplier.getSupplier();
+    public IDSupplier<LID> getIDSupplier() {
+        return LIDSupplier.getSupplier();
     }
     
     @Override
-    public HFilePageSupplier<RID, Tuple> getHFilePageSupplier() {
-        return RIDHFilePageSupplier.getSupplier();
+    public HFilePageSupplier<LID, Label> getHFilePageSupplier() {
+        return LIDHFilePageSupplier.getSupplier();
     }
     
     @Override
-    public BTFileScanSupplier<RID, Tuple> getBTFileScanSupplier() {
-        return RIDBTFileScanSupplier.getSupplier();
+    public BTFileScanSupplier<LID, Label> getBTFileScanSupplier() {
+        return LIDBTFileScanSupplier.getSupplier();
     }
     
     @Override
-    public TupleSupplier<Tuple> getTupleSupplier() {
-        return RIDTupleSupplier.getSupplier();
+    public TupleSupplier<Label> getTupleSupplier() {
+        return LIDTupleSupplier.getSupplier();
     }
     
     @Override
-    public HFileSupplier<RID, Tuple> getHFileSupplier() {
-        return RIDHFileSupplier.getSupplier();
+    public HFileSupplier<LID, Label> getHFileSupplier() {
+        return LIDHFileSupplier.getSupplier();
     }
     
     @Override
-    public BTreeFileSupplier<RID, Tuple> getBTreeFileSupplier() {
-        return RIDBTreeFileSupplier.getSupplier();
+    public BTreeFileSupplier<LID, Label> getBTreeFileSupplier() {
+        return LIDBTreeFileSupplier.getSupplier();
     }
     
     /**
@@ -78,7 +91,7 @@ public class IndexScan extends IndexScanI<RID,Tuple> {
    * @exception UnknownIndexTypeException index type unknown
    * @exception IOException from the lower layer
    */
-  public IndexScan(
+  public LIDIndexScan(
 	   IndexType     index,        
 	   final String  relName,  
 	   final String  indName,  
@@ -90,8 +103,8 @@ public class IndexScan extends IndexScanI<RID,Tuple> {
 	   CondExpr      selects[],  
 	   final int     fldNum,
 	   final boolean indexOnly
-	   ) 
-    throws IndexException, 
+                     )
+    throws IndexException,
 	   InvalidTypeException,
 	   InvalidTupleSizeException,
 	   UnknownIndexTypeException,
@@ -102,7 +115,7 @@ public class IndexScan extends IndexScanI<RID,Tuple> {
   
   /**
    * returns the next tuple.
-   * if <code>index_only</code>, only returns the key value 
+   * if <code>index_only</code>, only returns the key value
    * (as the first field in a tuple)
    * otherwise, retrive the tuple and returns the whole tuple
    * @return the tuple
@@ -110,7 +123,7 @@ public class IndexScan extends IndexScanI<RID,Tuple> {
    * @exception UnknownKeyTypeException key type unknown
    * @exception IOException from the lower layer
    */
-  public Tuple get_next() 
+  public Label get_next()
     throws IndexException, 
 	   UnknownKeyTypeException,
 	   IOException

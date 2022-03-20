@@ -14,6 +14,7 @@ import java.util.*;
 public class CommandLine {
     public static RDFDB rdfdb;
     public static int numbuf;
+
     public static void main(String[] args) throws Exception {
 
         SystemDefs sysdef1 = new SystemDefs("bablu", 50000, 50000, "Clock");
@@ -26,7 +27,7 @@ public class CommandLine {
 //        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth 0.5232176791516268 50000
 //        report
         String inputString = " ";
-        while(!inputString.equals("exit")){
+        while (!inputString.equals("exit")) {
             System.out.println("\nNew command loop: ");
             System.out.println("Type exit to stop!");
 
@@ -43,7 +44,7 @@ public class CommandLine {
                 System.out.println("Running Query ......................");
                 runQuery(Arrays.copyOfRange(input, 1, input.length));
 
-            } else if ((input[0].equals(Utils.REPORT))){
+            } else if ((input[0].equals(Utils.REPORT))) {
                 System.out.println("Running Report ......................");
                 runReport(Arrays.copyOfRange(input, 1, input.length));
             }
@@ -57,7 +58,7 @@ public class CommandLine {
             String line = reader.readLine();
             while (line != null) {
                 String[] tokens = line.split("\\s+");
-                if(tokens.length==4) {
+                if (tokens.length == 4) {
                     insertTestData(tokens);
                 }
                 line = reader.readLine();
@@ -65,18 +66,18 @@ public class CommandLine {
             }
             reader.close();
             QID qid = new QID();
-            try {
-                TScan tScan = new TScan(rdfdb.getQuadrupleHeapFile());
-                Quadruple q = tScan.getNext(qid);
-                while (q != null) {
+//            try {
+//                TScan tScan = new TScan(rdfdb.getQuadrupleHeapFile());
+//                Quadruple q = tScan.getNext(qid);
+//                while (q != null) {
 //                    System.out.println(q);
-                    q = tScan.getNext(qid);
-                }
-            } catch (InvalidTupleSizeException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//                    q = tScan.getNext(qid);
+//                }
+//            } catch (InvalidTupleSizeException e) {
+//                e.printStackTrace();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -85,16 +86,11 @@ public class CommandLine {
         System.out.println("BATCH INSERTION process ENDs");
         System.out.println("Disk page READ COUNT: " + PCounter.rcounter);
         System.out.println("Disk page WRITE COUNT: " + PCounter.wcounter);
-//        Stream stream = rdfdb.openStream(1, null,
-//                null,null, 0.1);
-//        Quadruple itr = stream.getNext();
-//        while (itr != null) {
-//            System.out.println(itr);
-//            itr = stream.getNext();
-//        }
     }
 
-    private static void insertTestData(String[] tokens) throws SpaceNotAvailableException, HFDiskMgrException, HFException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException, FieldNumberOutOfBoundException, InvalidTypeException {
+
+    private static void insertTestData(String[] tokens) throws
+            SpaceNotAvailableException, HFDiskMgrException, HFException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException, FieldNumberOutOfBoundException, InvalidTypeException {
         String subjectLabel = tokens[0];
         String predicateLabel = tokens[1];
         String objectLabel = tokens[2];
@@ -112,18 +108,19 @@ public class CommandLine {
 
     }
 
-    private static String applyToFilter(String filter){
-        if(filter.equals("*")){
+    private static String applyToFilter(String filter) {
+        if (filter.equals("*")) {
             return null;
         }
         return filter;
     }
+
     private static void runQuery(String[] input) throws Exception {
         String RDFDBNAME = input[0];
         String INDEXOPTION = input[1];
         String ORDER = input[2];
         String SUBJECTFILTER = input[3];
-        String PREDICATEFILTER= input[4];
+        String PREDICATEFILTER = input[4];
         String OBJECTFILTER = input[5];
         String CONFIDENCEFILTER = input[6];
 //        int NUMBUF = input[7] != null? Integer.parseInt(input[7]) : 0;
@@ -134,12 +131,12 @@ public class CommandLine {
         CONFIDENCEFILTER = applyToFilter(CONFIDENCEFILTER);
 
 //        SystemDefs sysdef = new SystemDefs(RDFDBNAME, 50000, NUMBUF, "Clock");
-        Double confidenceFilter  = CONFIDENCEFILTER == null? null : Double.valueOf(CONFIDENCEFILTER);
+        Double confidenceFilter = CONFIDENCEFILTER == null ? null : Double.valueOf(CONFIDENCEFILTER);
         Stream stream = rdfdb.openStream(Integer.parseInt(ORDER), SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
 
         Quadruple currQuadruple = stream.getNext();
 
-        while(currQuadruple != null){
+        while (currQuadruple != null) {
             System.out.println(currQuadruple.toString());
             currQuadruple = stream.getNext();
         }
