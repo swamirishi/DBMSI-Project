@@ -47,7 +47,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
     private Quadruple output_tuple;
     private int[] n_tuples;
     private int n_runs;
-    private Quadruple op_buf = new Quadruple();
+    private Quadruple op_buf;
     private OBuf o_buf;
     private QuadrupleSpoofIbuf[] i_buf;
     private PageId[] bufs_pids;
@@ -101,11 +101,11 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             // or make a copy of the tuple, need io_bufs.java ???
             Quadruple temp_tuple = new Quadruple(tuple_size);
 
-//            try {
-//                temp_tuple.setHdr(n_cols, _in, str_lens);
-//            } catch (Exception e) {
-//                throw new SortException(e, "Sort.java: Tuple.setHdr() failed");
-//            }
+            try {
+                temp_tuple.setHdr(n_cols, _in, str_lens);
+            } catch (Exception e) {
+                throw new SortException(e, "Sort.java: Tuple.setHdr() failed");
+            }
 
             temp_tuple = i_buf[i].Get(temp_tuple);  // need io_bufs.java
 
@@ -154,11 +154,11 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
         pnodeSplayPQ pcurr_Q = Q1;
         pnodeSplayPQ pother_Q = Q2;
         Quadruple lastElem = null;  // need tuple.java
-//        try {
-//            lastElem.setHdr(n_cols, _in, str_lens);
-//        } catch (Exception e) {
-//            throw new SortException(e, "Sort.java: setHdr() failed");
-//        }
+        try {
+            lastElem.setHdr(n_cols, _in, str_lens);
+        } catch (Exception e) {
+            throw new SortException(e, "Sort.java: setHdr() failed");
+        }
 
         int run_num = 0;  // keeps track of the number of runs
 
@@ -472,11 +472,11 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             // run not exhausted
             new_tuple = new Quadruple(tuple_size); // need tuple.java??
 
-//            try {
-//                new_tuple.setHdr(n_cols, _in, str_lens);
-//            } catch (Exception e) {
-//                throw new SortException(e, "Sort.java: setHdr() failed");
-//            }
+            try {
+                new_tuple.setHdr(n_cols, _in, str_lens);
+            } catch (Exception e) {
+                throw new SortException(e, "Sort.java: setHdr() failed");
+            }
 
             new_tuple = i_buf[cur_node.run_num].Get(new_tuple);
             if (new_tuple != null) {
@@ -617,13 +617,13 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             }
         }
 
-        Quadruple t = new Quadruple(Quadruple.QUADRUPLE_SIZE); // need Tuple.java
-//        try {
-//            t.setHdr(len_in, _in, str_sizes);
-//        } catch (Exception e) {
-//            throw new SortException(e, "Sort.java: t.setHdr() failed");
-//        }
-        tuple_size = t.getLength();
+        Quadruple t = new Quadruple(); // need Tuple.java
+        try {
+            t.setHdr(len_in, _in, str_sizes);
+        } catch (Exception e) {
+            throw new SortException(e, "Sort.java: t.setHdr() failed");
+        }
+        tuple_size = t.size();
 
         _am = am;
         _sort_fld = sort_fld;
@@ -670,12 +670,12 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
 
         Q = new pnodeSplayPQ(sort_fld, in[sort_fld - 1], order);
 
-//        op_buf = new Quadruple(tuple_size);   // need Tuple.java
-//        try {
-//            op_buf.setHdr(n_cols, _in, str_lens);
-//        } catch (Exception e) {
-//            throw new SortException(e, "Sort.java: op_buf.setHdr() failed");
-//        }
+        op_buf = new Quadruple(tuple_size);   // need Tuple.java
+        try {
+            op_buf.setHdr(n_cols, _in, str_lens);
+        } catch (Exception e) {
+            throw new SortException(e, "Sort.java: op_buf.setHdr() failed");
+        }
     }
 
     /**
