@@ -15,7 +15,7 @@ public class QuadrupleUtilsTest {
 
     String dbpath = "file";
     SystemDefs sysdef = new SystemDefs(dbpath, 8193, 100, "Clock");
-    public static RDFDB rdfdb = new RDFDB(0);
+    public static RDFDB rdfdb;
 
     public static boolean assertEquals(int reportedValue, int expectedValue){
         return (reportedValue == expectedValue);
@@ -39,6 +39,8 @@ public class QuadrupleUtilsTest {
     }
 
     public static void main(String[] args) throws Exception {
+        rdfdb = SystemDefs.JavabaseDB;
+        rdfdb.init(1);
         init();
         if(QuadrupleUtilsTest.checkQuadrupleCompare()) System.out.println("TEST 1 status: PASSED");
     }

@@ -13,14 +13,21 @@ import quadrupleheap.TScan;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class RDFDB{
+public class RDFDB extends DB{
     private QuadrupleHeapFile quadrupleHeapFile;
     private LabelHeapFile entityLabelHeapFile;
     private LabelHeapFile predicateLabelHeapFile;
+    private int entityCount = 0;
+    private int quadrupleCount = 0;
+    private int predicateCount = 0;
     private int subjectCount = 0;
     private int objectCount = 0;
 
-    public RDFDB(int type) {
+    public RDFDB(){
+
+    }
+    public void init(int type) {
+
 //        BTIndexPage btIndexPage = new BTIndexPage();
         try {
             quadrupleHeapFile = new QuadrupleHeapFile("quadrupleHeapFile");
@@ -32,15 +39,18 @@ public class RDFDB{
     }
 
     public int getQuadrupleCnt() throws HFDiskMgrException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException {
-        return quadrupleHeapFile.getRecCnt();
+//        return quadrupleHeapFile.getRecCnt();
+        return quadrupleCount;
     }
 
     public int getEntityCnt() throws HFDiskMgrException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException {
-        return entityLabelHeapFile.getRecCnt();
+//        return entityLabelHeapFile.getRecCnt();
+        return entityCount;
     }
 
     public int getPredicateCnt() throws HFDiskMgrException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException {
-        return predicateLabelHeapFile.getRecCnt();
+//        return predicateLabelHeapFile.getRecCnt();
+        return  predicateCount;
     }
 
     public int getSubjectCnt() {
@@ -58,6 +68,7 @@ public class RDFDB{
 //            if (lid.getPageNo().pid == INVALID_PAGE) {
             LID lid = entityLabelHeapFile.insertRecord(new Label(entityLabel).getLabelByteArray());
 //            }
+            entityCount++;
             return lid.returnEid();
         } catch (Exception e) {
             e.printStackTrace();
@@ -68,6 +79,7 @@ public class RDFDB{
     public boolean deleteEntity(String entityLabel) {
         try {
             LID lid = getLIDFromHeapFileScan(entityLabel);
+            entityCount--;
             return entityLabelHeapFile.deleteRecord(lid);
         } catch (Exception e) {
             e.printStackTrace();
@@ -77,21 +89,25 @@ public class RDFDB{
 
     public PID insertPredicate(String predicateLabel) throws SpaceNotAvailableException, HFDiskMgrException, HFException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException, FieldNumberOutOfBoundException {
         LID lid = predicateLabelHeapFile.insertRecord(new Label(predicateLabel).getLabelByteArray());
+        predicateCount++;
         return lid.returnPid();
     }
 
     public boolean deletePredicate(String predicateLabel) throws Exception {
         LID lid = getLIDFromHeapFileScan(predicateLabel);
+        predicateCount--;
         return predicateLabelHeapFile.deleteRecord(lid);
     }
 
     //Need to return QID. Change type void to QID
     public QID insertQuadruple(byte[] quadruplePtr) throws SpaceNotAvailableException, HFDiskMgrException, HFException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException {
+        quadrupleCount++;
         return quadrupleHeapFile.insertRecord(quadruplePtr);
     }
 
     public boolean deleteQuadruple(byte[] quadruplePtr) throws Exception {
         QID qid = getQIDFromHeapFileScan(quadruplePtr);
+        quadrupleCount--;
         return quadrupleHeapFile.deleteRecord(qid);
     }
 
@@ -152,5 +168,13 @@ public class RDFDB{
 
     public LabelHeapFile getPredicateLabelHeapFile() {
         return predicateLabelHeapFile;
+    }
+
+    public void incrementSubject() {
+        subjectCount++;
+    }
+
+    public void incrementObject() {
+        objectCount++;
     }
 }

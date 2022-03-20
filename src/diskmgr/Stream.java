@@ -39,7 +39,7 @@ public class Stream {
         QuadrupleSort.predicateFilter = predicateFil;
         QuadrupleSort.objectFilter = objectFil;
         QuadrupleSort.confidenceFilter = confidenceFil == null ? 0 : confidenceFil.floatValue();
-        quadrupleSort = new QuadrupleSort(rdfDB, orderType, attrTypes, (short) 4, new short[4], tScan, 3, tupleOrders, 31, 1024);
+        quadrupleSort = new QuadrupleSort(orderType, attrTypes, (short) 4, new short[4], tScan, 3, tupleOrders, 31, 1024);
     }
 
 

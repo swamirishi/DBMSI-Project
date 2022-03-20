@@ -585,7 +585,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
      * @throws IOException   from lower layers
      * @throws SortException something went wrong in the lower layer.
      */
-    public QuadrupleSort(RDFDB rdfdb, int orderType, AttrType[] in,
+    public QuadrupleSort(int orderType, AttrType[] in,
                          short len_in,
                          short[] str_sizes,
                          TScan am,
@@ -594,7 +594,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
                          int sort_fld_len,
                          int n_pages
     ) throws IOException, SortException {
-        this.rdfdb = rdfdb;
+        this.rdfdb = SystemDefs.JavabaseDB;
         this.orderType = orderType;
         _in = new AttrType[len_in];
         n_cols = len_in;

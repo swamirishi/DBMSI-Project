@@ -80,3 +80,5 @@ hs_err_pid*
 
 # ignore dependency-reduced-pom.xml
 dependency-reduced-pom.xml
+
+databases

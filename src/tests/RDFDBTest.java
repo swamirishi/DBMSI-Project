@@ -36,7 +36,7 @@ public class RDFDBTest {
         pgid.pid = 0;
         SystemDefs sysdef = new SystemDefs(dbpath, 8193, 100, "Clock");
 //        SystemDefs.JavabaseDB.add_file_entry("quadrupleHeapFile", pgid);
-        RDFDB rdfdb = new RDFDB(0);
+        RDFDB rdfdb = new RDFDB();
         QuadrupleUtils.rdfdb = rdfdb;
         EID subjectID = rdfdb.insertEntity("Dhruv");
         EID objectID = rdfdb.insertEntity("Agja");
@@ -59,7 +59,7 @@ public class RDFDBTest {
         TupleOrder tupleOrders = new TupleOrder(0);
         AttrType attrType = new AttrType(attrLID);
         AttrType[] attrTypes = {attrType, attrType, attrType, attrType};
-        QuadrupleSort quadrupleSort = new QuadrupleSort(rdfdb, 5, attrTypes, (short) 4, new short[4], tScan, 3, tupleOrders , 31, 10);
+        QuadrupleSort quadrupleSort = new QuadrupleSort(5, attrTypes, (short) 4, new short[4], tScan, 3, tupleOrders , 31, 10);
         Quadruple q = quadrupleSort.get_next();
         while(q!=null){
             System.out.println("OK");
