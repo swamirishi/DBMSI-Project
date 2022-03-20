@@ -58,8 +58,12 @@ public class CommandLine {
     private static void runBatchInsert(String[] input) throws Exception {
         //batchinsert DATAFILENAME INDEXOPTION RDFDBNAME,        input => 0-indexed
 
-        SystemDefs sysdef1 = new SystemDefs(input[3]+"_"+input[2], 50000, 50000, "Clock");
-        rdfdb = new RDFDB(0);
+        String dbName = input[3];
+        int index_option = Integer.parseInt(input[2]);
+        String dbPath= dbName + "_" + index_option;
+
+        SystemDefs sysdef1 = new SystemDefs(dbPath, 50000, 50000, "Clock");
+        rdfdb = new RDFDB(index_option);
 
         String fileName = input[1];
         try {
@@ -68,7 +72,7 @@ public class CommandLine {
             while (line != null) {
                 String[] tokens = line.split("\\s+");
                 if (tokens.length == 4) {
-                    insertTestData(tokens, input);
+                    insertTestData(tokens, index_option);
                 }
                 line = reader.readLine();
 //                break;
@@ -99,12 +103,12 @@ public class CommandLine {
     }
 
 
-    private static void insertTestData(String[] tokens, String[] input) throws
+    private static void insertTestData(String[] tokens, int indexChoice) throws
             SpaceNotAvailableException, HFDiskMgrException, HFException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException, FieldNumberOutOfBoundException, InvalidTypeException, IteratorException, ConstructPageException, ConvertException, InsertException, IndexInsertRecException, LeafDeleteException, NodeNotMatchException, LeafInsertRecException, PinPageException, UnpinPageException, DeleteRecException, KeyTooLongException, KeyNotMatchException, IndexSearchException {
         String subjectLabel = tokens[0];
         String predicateLabel = tokens[1];
         String objectLabel = tokens[2];
-        float confidence = Float.valueOf(tokens[3]);
+        float confidence = Float.parseFloat(tokens[3]);
 
         System.out.println(subjectLabel + " " + predicateLabel + " " + objectLabel + " " + confidence);
 
@@ -113,18 +117,7 @@ public class CommandLine {
         EID objectId = rdfdb.insertEntity(objectLabel);
         Quadruple q = new Quadruple(subjectId, predicateId, objectId, confidence);
         rdfdb.insertQuadruple(q.getQuadrupleByteArray());
-
-        //index insert
-        LIDBTreeFile<Void> btreeIndexFile1 = rdfdb.getBtreeIndexFile1();
-        LIDBTreeFile<Void> btreeIndexFile2 = rdfdb.getBtreeIndexFile2();
-        LIDBTreeFile<Void> btreeIndexFile3 = rdfdb.getBtreeIndexFile3();
-
-        int indexChoice = Integer.parseInt(input[2]);
-        switch (indexChoice) {
-            case 1 -> btreeIndexFile1.insert(new StringKey(subjectLabel), subjectId.returnLid());
-            case 2 -> btreeIndexFile2.insert(new StringKey(predicateLabel), predicateId.returnLid());
-            case 3 -> btreeIndexFile3.insert(new StringKey(objectLabel), objectId.returnLid());
-        }
+        rdfdb.insertInLabelBTree(subjectLabel, subjectId, predicateLabel, predicateId, objectLabel, objectId);
     }
     private static void runReport(String[] input) {
 
@@ -140,7 +133,7 @@ public class CommandLine {
     private static void runQuery(String[] input) throws Exception {
         String RDFDBNAME = input[0];
         String INDEXOPTION = input[1];
-        String ORDER = input[2];
+        int ORDER = Integer.parseInt(input[2]);
         String SUBJECTFILTER = input[3];
         String PREDICATEFILTER = input[4];
         String OBJECTFILTER = input[5];
@@ -202,13 +195,13 @@ public class CommandLine {
 
         iscan.close();
 
-//        Stream stream = rdfdb.openStream(Integer.parseInt(ORDER), SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
-//        Quadruple currQuadruple = stream.getNext();
-//
-//        while (currQuadruple != null) {
-//            System.out.println(currQuadruple.toString());
-//            currQuadruple = stream.getNext();
-//        }
+        Stream stream = rdfdb.openStream(ORDER, SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
+        Quadruple currQuadruple = stream.getNext();
+
+        while (currQuadruple != null) {
+            System.out.println(currQuadruple.toString());
+            currQuadruple = stream.getNext();
+        }
     }
 }
 

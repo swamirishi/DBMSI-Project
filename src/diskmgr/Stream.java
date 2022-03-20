@@ -42,6 +42,8 @@ public class Stream {
         QuadrupleSort.objectFilter = objectFil;
         QuadrupleSort.confidenceFilter = confidenceFil == null ? 0 : confidenceFil.floatValue();
 
+        int indexType = rdfDB.getIndexType();
+
         quadrupleSort = new QuadrupleSort(rdfDB, orderType, attrTypes, len, strSizes,
                 tScan, 3, tupleOrders, 31, 1024);
     }
