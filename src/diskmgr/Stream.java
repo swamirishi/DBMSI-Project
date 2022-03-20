@@ -1,5 +1,7 @@
 package diskmgr;
 
+import btree.label.LIDBTreeFile;
+import btree.quadraple.QIDBTreeFile;
 import global.*;
 import heap.*;
 import iterator.SortException;
@@ -20,10 +22,10 @@ import static global.GlobalConst.INVALID_PAGE;
 public class Stream {
     public static QuadrupleSort quadrupleSort;
     public static RDFDB rdfDB;
-//    public static String subjectFilter;
-//    public static String predicateFilter;
-//    public static String objectFilter;
-//    public static Float confidenceFilter;
+    public static String subjectFilter;
+    public static String predicateFilter;
+    public static String objectFilter;
+    public static Float confidenceFilter;
 
     public Stream(RDFDB rdfdb, int orderType, String subjectFil, String predicateFil,
                   String objectFil, Double confidenceFil) throws Exception {
@@ -42,7 +44,12 @@ public class Stream {
         QuadrupleSort.objectFilter = objectFil;
         QuadrupleSort.confidenceFilter = confidenceFil == null ? 0 : confidenceFil.floatValue();
 
-        int indexType = rdfDB.getIndexType();
+        subjectFilter = subjectFil;
+        predicateFilter = predicateFil;
+        objectFilter = objectFil;
+        confidenceFilter = confidenceFil == null ? 0 : confidenceFil.floatValue();
+
+        int indexType = rdfdb.getIndexType();
 
         quadrupleSort = new QuadrupleSort(rdfDB, orderType, attrTypes, len, strSizes,
                 tScan, 3, tupleOrders, 31, 1024);
@@ -50,7 +57,15 @@ public class Stream {
 
 
     public Quadruple getNext() throws Exception {
+        LIDBTreeFile<Void> subjectBtreeIndexFile = rdfDB.getSubjectBtreeIndexFile();
+        LIDBTreeFile<Void> predicateBtreeIndexFile = rdfDB.getPredicateBtreeIndexFile();
+        LIDBTreeFile<Void> objectBtreeIndexFile = rdfDB.getObjectBtreeIndexFile();
+        QIDBTreeFile<List<?>> qidBtreeFile = rdfDB.getQidBtreeFile();
+        queryInLabelBTreeFile(subjectBtreeIndexFile);
         return quadrupleSort.get_next();
+    }
+
+    private void queryInLabelBTreeFile(LIDBTreeFile<Void> labelBtreeIndexFile) {
     }
 
     /**

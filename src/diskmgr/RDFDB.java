@@ -213,16 +213,20 @@ public class RDFDB {
         return predicateLabelHeapFile;
     }
 
-    public LIDBTreeFile<Void> getBtreeIndexFile1() {
+    public LIDBTreeFile<Void> getSubjectBtreeIndexFile() {
         return subjectBtreeIndexFile;
     }
 
-    public LIDBTreeFile<Void> getBtreeIndexFile2() {
+    public LIDBTreeFile<Void> getPredicateBtreeIndexFile() {
         return predicateBtreeIndexFile;
     }
 
-    public LIDBTreeFile<Void> getBtreeIndexFile3() {
+    public LIDBTreeFile<Void> getObjectBtreeIndexFile() {
         return objectBtreeIndexFile;
+    }
+
+    public QIDBTreeFile<List<?>> getQidBtreeFile() {
+        return qidBtreeFile;
     }
 
     public void insertInLabelBTree(String subjectLabel, EID subjectId, String predicateLabel, PID predicateId, String objectLabel, EID objectId) throws IteratorException, ConstructPageException, ConvertException, InsertException, IndexInsertRecException, LeafDeleteException, NodeNotMatchException, LeafInsertRecException, PinPageException, IOException, UnpinPageException, DeleteRecException, KeyTooLongException, KeyNotMatchException, IndexSearchException {
