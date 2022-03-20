@@ -1,5 +1,8 @@
 package qiterator;
 
+import btree.AddFileEntryException;
+import btree.ConstructPageException;
+import btree.GetFileEntryException;
 import diskmgr.RDFDB;
 import global.*;
 import heap.*;
@@ -15,7 +18,15 @@ public class QuadrupleUtilsTest {
 
     String dbpath = "file";
     SystemDefs sysdef = new SystemDefs(dbpath, 8193, 100, "Clock");
-    public static RDFDB rdfdb = new RDFDB(0);
+    public static RDFDB rdfdb;
+
+    static {
+        try {
+            rdfdb = new RDFDB(0);
+        } catch (ConstructPageException | AddFileEntryException | GetFileEntryException | IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static boolean assertEquals(int reportedValue, int expectedValue){
         return (reportedValue == expectedValue);
