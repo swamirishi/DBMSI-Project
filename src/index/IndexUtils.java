@@ -1,7 +1,11 @@
 package index;
+import btree.interfaces.BTreeFileI;
 import global.*;
 import btree.*;
+import heap.Tuple;
 import iterator.*;
+import utils.supplier.btfile.BTreeFileSupplier;
+
 import java.io.*;
 
 
@@ -25,7 +29,7 @@ public class IndexUtils {
    * @exception IteratorException iterator exception
    * @exception ConstructPageException failed to construct a header page
    */
-  public static IndexFileScan BTree_scan(CondExpr[] selects, IndexFile indFile) 
+  public static <I extends ID,T extends Tuple> IndexFileScan<I> BTree_scan(CondExpr[] selects, IndexFile<I> indFile)
     throws IOException, 
 	   UnknownKeyTypeException, 
 	   InvalidSelectionException,
@@ -35,10 +39,10 @@ public class IndexUtils {
 	   IteratorException,
 	   ConstructPageException
     {
-      IndexFileScan indScan;
+      IndexFileScan<I> indScan;
       
       if (selects == null || selects[0] == null) {
-	indScan = ((BTreeFile)indFile).new_scan(null, null);
+	indScan = ((BTreeFileI<I,T>)indFile).new_scan(null, null);
 	return indScan;
       }
       
@@ -53,11 +57,11 @@ public class IndexUtils {
 	if (selects[0].op.attrOperator == AttrOperator.aopEQ) {
 	  if (selects[0].type1.attrType != AttrType.attrSymbol) {
 	    key = getValue(selects[0], selects[0].type1, 1);
-	    indScan = ((BTreeFile)indFile).new_scan(key, key);
+	    indScan = ((BTreeFileI<I,T>)indFile).new_scan(key, key);
 	  }
 	  else {
 	    key = getValue(selects[0], selects[0].type2, 2);
-	    indScan = ((BTreeFile)indFile).new_scan(key, key);
+	    indScan = ((BTreeFileI<I,T>)indFile).new_scan(key, key);
 	  }
 	  return indScan;
 	}
@@ -66,11 +70,11 @@ public class IndexUtils {
 	if (selects[0].op.attrOperator == AttrOperator.aopLT || selects[0].op.attrOperator == AttrOperator.aopLE) {
 	  if (selects[0].type1.attrType != AttrType.attrSymbol) {
 	    key = getValue(selects[0], selects[0].type1, 1);
-	    indScan = ((BTreeFile)indFile).new_scan(null, key);
+	    indScan = ((BTreeFileI<I,T>)indFile).new_scan(null, key);
 	  }
 	  else {
 	    key = getValue(selects[0], selects[0].type2, 2);
-	    indScan = ((BTreeFile)indFile).new_scan(null, key);
+	    indScan = ((BTreeFileI<I,T>)indFile).new_scan(null, key);
 	  }
 	  return indScan;
 	}
@@ -79,11 +83,11 @@ public class IndexUtils {
 	if (selects[0].op.attrOperator == AttrOperator.aopGT || selects[0].op.attrOperator == AttrOperator.aopGE) {
 	  if (selects[0].type1.attrType != AttrType.attrSymbol) {
 	    key = getValue(selects[0], selects[0].type1, 1);
-	    indScan = ((BTreeFile)indFile).new_scan(key, null);
+	    indScan = ((BTreeFileI<I,T>)indFile).new_scan(key, null);
 	  }
 	  else {
 	    key = getValue(selects[0], selects[0].type2, 2);
-	    indScan = ((BTreeFile)indFile).new_scan(key, null);
+	    indScan = ((BTreeFileI<I,T>)indFile).new_scan(key, null);
 	  }
 	  return indScan;
 	}
@@ -123,19 +127,19 @@ public class IndexUtils {
 	switch (type.attrType) {
 	case AttrType.attrString:
 	  if (((StringKey)key1).getKey().compareTo(((StringKey)key2).getKey()) < 0) {
-	    indScan = ((BTreeFile)indFile).new_scan(key1, key2);
+	    indScan = ((BTreeFileI<I, T>)indFile).new_scan(key1, key2);
 	  }
 	  else {
-	    indScan = ((BTreeFile)indFile).new_scan(key2, key1);
+	    indScan = ((BTreeFileI<I,T>)indFile).new_scan(key2, key1);
 	  }
 	  return indScan;
 	  
 	case AttrType.attrInteger:
 	  if (((IntegerKey)key1).getKey().intValue() < ((IntegerKey)key2).getKey().intValue()) {
-	    indScan = ((BTreeFile)indFile).new_scan(key1, key2);
+	    indScan = ((BTreeFileI<I,T>)indFile).new_scan(key1, key2);
 	  }
 	  else {
-	    indScan = ((BTreeFile)indFile).new_scan(key2, key1);
+	    indScan = ((BTreeFileI<I,T>)indFile).new_scan(key2, key1);
 	  }
 	  return indScan;
 	  

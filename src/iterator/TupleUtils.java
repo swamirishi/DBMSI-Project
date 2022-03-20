@@ -291,8 +291,7 @@ public class TupleUtils
    *@exception TupleUtilsException exception from this class
    *@exception InvalidRelation invalid relation 
    */
-
-  public static short[] setup_op_tuple(Tuple Jtuple, AttrType res_attrs[],
+  public static <T extends Tuple> short[]  setup_op_tuple(T Jtuple, AttrType res_attrs[],
 				       AttrType in1[], int len_in1,
 				       short t1_str_sizes[], 
 				       FldSpec proj_list[], int nOutFlds)
