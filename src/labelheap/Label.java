@@ -19,66 +19,52 @@ import static global.GlobalConst.MINIBASE_PAGESIZE;
  */
 
 public class Label extends Tuple {
-    private String label;
     private static final short numberOfFields = 1;
     private static final AttrType stringType = new AttrType(AttrType.attrString);
     private static final AttrType[] headerTypes = new AttrType[]{stringType};
     private static final short[] strLengths = new short[]{50};
+    private static int LABEL_FLD = 1;
 
     public Label() {
-        this(max_size);
+        super();
     }
 
     public Label(byte [] labelbyteArray, int offset, int length) {
         super(labelbyteArray,offset,length);
-        setAttributes();
-    }
-    private void setAttributes(){
-        if(super.getLength()>=2){
-            try {
-                short length = Convert.getShortValue(this.getOffset(),this.getData());
-                if(length>0 && super.getLength()>=2+length)
-                    this.label = Convert.getStrValue(this.getOffset()+2,this.getData(),length);
-                else if(length==0){
-                    this.label = "";
-                }else{
-                    this.label = null;
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     public Label(int size) {
-        this(new byte[size],0,size);
-
-        //not handled setAttributes here
-    }
-    public Label(String label) throws IOException, FieldNumberOutOfBoundException {
-        this.label = label;
+        super(size);
     }
 
     public Label(Label label) throws InvalidTupleSizeException {
-        this(label.getTupleByteArray(),0,label.getLength());
+        super(label);
     }
 
-    public void setLabel(String label) throws FieldNumberOutOfBoundException, IOException {
-        this.label = label;
+    public void setLabel(String label){
+        try {
+            this.setStrFld(LABEL_FLD,label);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (FieldNumberOutOfBoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void printLabel(){
         System.out.println("### Printing label ###");
-        System.out.println(this.label);
+        System.out.println(this.getLabel());
         System.out.println("### END : Printing label ###");
     }
 
     public String getLabel() {
-        return label;
-    }
-
-    public int getLength() {
-        return super.getLength();
+        try {
+            return super.getStrFld(LABEL_FLD);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (FieldNumberOutOfBoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public byte[] returnLabelByteArray() throws IOException {
@@ -86,31 +72,17 @@ public class Label extends Tuple {
     }
 
     public byte [] getLabelByteArray() throws IOException {
-        if(this.label==null){
-            byte[] data = new byte[2];
-            Convert.setShortValue((short)-1,0,data);
-            return data;
-        }
-
-
-        byte[] labelValue = Convert.getStrValueToBytes(label);
-        byte[] data = new byte[labelValue.length+2];
-        int length = labelValue.length;
-        System.arraycopy (labelValue, 0, data, 2, length);
-        Convert.setShortValue((short)length,0,data);
-        return data;
+        return super.getTupleByteArray();
     }
 
     public void labelCopy(Label newLabel) {
         super.tupleCopy(newLabel);
-        this.setAttributes();
-    }
-
-    public void tupleSet(byte[] record,int offset, int length) throws InvalidTupleSizeException {
-        super.tupleSet(record,offset,length);
-        this.setAttributes();
     }
     public void labelSet(byte [] record, int offset, int length) throws InvalidTupleSizeException {
-        this.tupleSet(record,offset,length);
+        super.tupleSet(record,offset,length);
+    }
+    
+    public void setHdr() throws InvalidTupleSizeException, IOException, InvalidTypeException {
+        super.setHdr(numberOfFields,headerTypes,strLengths);
     }
 }

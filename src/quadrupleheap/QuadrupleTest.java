@@ -23,10 +23,14 @@ public class QuadrupleTest {
         PID predicate = new PID(new PageId(2), 3);
         EID object = new EID(new PageId(10), 21);
         float value = 1.2f;
-        q = new Quadruple(subject, predicate, object, value);
+        q = new Quadruple();
+        q.setHdr();
+        q.setSubject(subject);
+        q.setPredicate(predicate);
+        q.setObject(object);
     }
 
-    private static boolean checkQuadrupleConstructor() {
+    private static boolean checkQuadrupleConstructor() throws IOException, FieldNumberOutOfBoundException {
         Quadruple tmp = new Quadruple(q.getData(), 0, q.getData().length);
         if(!assertEquals(tmp.getSubject().slotNo, q.getSubject().slotNo)) return false;
         if(!assertEquals(tmp.getSubject().pageNo.pid, q.getSubject().pageNo.pid)) return false;
