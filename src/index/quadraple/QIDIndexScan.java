@@ -1,26 +1,39 @@
-package index;
-import global.*;
-import bufmgr.*;
-import diskmgr.*; 
-import btree.*;
+package index.quadraple;
+
+import global.AttrType;
+import global.IndexType;
+import global.QID;
+import global.RID;
+import heap.InvalidTupleSizeException;
+import heap.InvalidTypeException;
+import heap.Tuple;
+import index.IndexException;
+import index.UnknownIndexTypeException;
 import index.interfaces.IndexScanI;
-import iterator.*;
-import heap.*;
+import iterator.CondExpr;
+import iterator.FldSpec;
+import iterator.UnknownKeyTypeException;
+import quadrupleheap.Quadruple;
 import utils.supplier.btfile.BTreeFileSupplier;
+import utils.supplier.btfile.QIDBTreeFileSupplier;
 import utils.supplier.btfile.RIDBTreeFileSupplier;
 import utils.supplier.btfilescan.BTFileScanSupplier;
+import utils.supplier.btfilescan.QIDBTFileScanSupplier;
 import utils.supplier.btfilescan.RIDBTFileScanSupplier;
 import utils.supplier.hfile.HFileSupplier;
+import utils.supplier.hfile.QIDHFileSupplier;
 import utils.supplier.hfile.RIDHFileSupplier;
 import utils.supplier.hfilepage.HFilePageSupplier;
+import utils.supplier.hfilepage.QIDHFilePageSupplier;
 import utils.supplier.hfilepage.RIDHFilePageSupplier;
 import utils.supplier.id.IDSupplier;
+import utils.supplier.id.QIDSupplier;
 import utils.supplier.id.RIDSupplier;
+import utils.supplier.tuple.QIDTupleSupplier;
 import utils.supplier.tuple.RIDTupleSupplier;
 import utils.supplier.tuple.TupleSupplier;
 
-import java.io.*;
-
+import java.io.IOException;
 
 /**
  * Index Scan iterator will directly access the required tuple using
@@ -28,35 +41,35 @@ import java.io.*;
  * information about the tuples and the index are passed to the constructor,
  * then the user calls <code>get_next()</code> to get the tuples.
  */
-public class IndexScan extends IndexScanI<RID,Tuple> {
+public class QIDIndexScan extends IndexScanI<QID, Quadruple> {
     @Override
-    public IDSupplier<RID> getIDSupplier() {
-        return RIDSupplier.getSupplier();
+    public IDSupplier<QID> getIDSupplier() {
+        return QIDSupplier.getSupplier();
     }
     
     @Override
-    public HFilePageSupplier<RID, Tuple> getHFilePageSupplier() {
-        return RIDHFilePageSupplier.getSupplier();
+    public HFilePageSupplier<QID, Quadruple> getHFilePageSupplier() {
+        return QIDHFilePageSupplier.getSupplier();
     }
     
     @Override
-    public BTFileScanSupplier<RID, Tuple> getBTFileScanSupplier() {
-        return RIDBTFileScanSupplier.getSupplier();
+    public BTFileScanSupplier<QID, Quadruple> getBTFileScanSupplier() {
+        return QIDBTFileScanSupplier.getSupplier();
     }
     
     @Override
-    public TupleSupplier<Tuple> getTupleSupplier() {
-        return RIDTupleSupplier.getSupplier();
+    public TupleSupplier<Quadruple> getTupleSupplier() {
+        return QIDTupleSupplier.getSupplier();
     }
     
     @Override
-    public HFileSupplier<RID, Tuple> getHFileSupplier() {
-        return RIDHFileSupplier.getSupplier();
+    public HFileSupplier<QID, Quadruple> getHFileSupplier() {
+        return QIDHFileSupplier.getSupplier();
     }
     
     @Override
-    public BTreeFileSupplier<RID, Tuple> getBTreeFileSupplier() {
-        return RIDBTreeFileSupplier.getSupplier();
+    public BTreeFileSupplier<QID, Quadruple> getBTreeFileSupplier() {
+        return QIDBTreeFileSupplier.getSupplier();
     }
     
     /**
@@ -78,7 +91,7 @@ public class IndexScan extends IndexScanI<RID,Tuple> {
    * @exception UnknownIndexTypeException index type unknown
    * @exception IOException from the lower layer
    */
-  public IndexScan(
+  public QIDIndexScan(
 	   IndexType     index,        
 	   final String  relName,  
 	   final String  indName,  
@@ -90,7 +103,7 @@ public class IndexScan extends IndexScanI<RID,Tuple> {
 	   CondExpr      selects[],  
 	   final int     fldNum,
 	   final boolean indexOnly
-	   ) 
+                     )
     throws IndexException, 
 	   InvalidTypeException,
 	   InvalidTupleSizeException,
@@ -110,7 +123,7 @@ public class IndexScan extends IndexScanI<RID,Tuple> {
    * @exception UnknownKeyTypeException key type unknown
    * @exception IOException from the lower layer
    */
-  public Tuple get_next() 
+  public Quadruple get_next()
     throws IndexException, 
 	   UnknownKeyTypeException,
 	   IOException
