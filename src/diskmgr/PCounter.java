@@ -1,12 +1,10 @@
 package diskmgr;
 
 public class PCounter {
-    public static int rcounter;
-    public static int wcounter;
+    public static int rcounter = 0;
+    public static int wcounter = 0;
 
     public static void initialize() {
-        rcounter = 0;
-        wcounter = 0;
     }
 
     public static void readIncrement() {

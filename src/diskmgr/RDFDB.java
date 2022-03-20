@@ -13,7 +13,7 @@ import quadrupleheap.TScan;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class RDFDB extends DB {
+public class RDFDB{
     private QuadrupleHeapFile quadrupleHeapFile;
     private LabelHeapFile entityLabelHeapFile;
     private LabelHeapFile predicateLabelHeapFile;
@@ -120,7 +120,7 @@ public class RDFDB extends DB {
             }
         }
         if (!isFound) {
-            lid.getPageNo().pid = INVALID_PAGE;
+            lid.getPageNo().pid = -1;
         }
         return lid;
     }
@@ -137,7 +137,7 @@ public class RDFDB extends DB {
             }
         }
         if (!isFound) {
-            qid.pageNo.pid = INVALID_PAGE;
+            qid.pageNo.pid = -1;
         }
         return qid;
     }

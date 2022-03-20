@@ -19,13 +19,13 @@ public class CommandLine {
         rdfdb = new RDFDB(0);
 
         Scanner sc = new Scanner(System.in);
-        String str = "batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/phase2_test_data.txt";
+        String str = "batchinsert D:\\DBMSI-Project\\phase2_test_data.txt";
         String[] input = str.split(" ");
         String operationType = input[0];
         if (operationType.equals(Utils.BATCH_INSERT)) {
             runBatchInsert(input);
         }
-        if (input[0].equals(Utils.QUERY)) {
+        if (operationType.equals(Utils.QUERY)) {
             runQuery(Arrays.copyOfRange(input, 1, input.length));
         } else {
             runReport(Arrays.copyOfRange(input, 1, input.length));
@@ -47,18 +47,18 @@ public class CommandLine {
             }
             reader.close();
             QID qid = new QID();
-            try {
-                TScan tScan = new TScan(rdfdb.getQuadrupleHeapFile());
-                Quadruple q = tScan.getNext(qid);
-                while (q != null) {
-                    System.out.println(q);
-                    q = tScan.getNext(qid);
-                }
-            } catch (InvalidTupleSizeException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                TScan tScan = new TScan(rdfdb.getQuadrupleHeapFile());
+//                Quadruple q = tScan.getNext(qid);
+//                while (q != null) {
+//                    System.out.println(q);
+//                    q = tScan.getNext(qid);
+//                }
+//            } catch (InvalidTupleSizeException e) {
+//                e.printStackTrace();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
