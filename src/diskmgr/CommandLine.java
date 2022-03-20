@@ -16,13 +16,13 @@ public class CommandLine {
     public static int numbuf;
 
     public static void main(String[] args) throws Exception {
-
+//        SystemDefs.MINIBASE_RESTART_FLAG = true;
         SystemDefs sysdef1 = new SystemDefs("bablu", 50000, 50000, "Clock");
-        SystemDefs sysdef2 = new SystemDefs("bablu", 50000, 50000, "Clock");
-
+//        SystemDefs sysdef2 = new SystemDefs("bablu", 50000, 50000, "Clock");
+        rdfdb = new RDFDB(0);
 //        SystemDefs sysdef2 = new SystemDefs("shaitan", 50000, 50000, "Clock");
 
-
+//        batchinsert D:\DBMSI-Project\phase2_test_data.txt
 //        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/phase2_test_data.txt 1 bablu
 //        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth 0.5232176791516268 50000
 //        report
@@ -66,18 +66,19 @@ public class CommandLine {
             }
             reader.close();
             QID qid = new QID();
-//            try {
-//                TScan tScan = new TScan(rdfdb.getQuadrupleHeapFile());
-//                Quadruple q = tScan.getNext(qid);
-//                while (q != null) {
-//                    System.out.println(q);
-//                    q = tScan.getNext(qid);
-//                }
-//            } catch (InvalidTupleSizeException e) {
-//                e.printStackTrace();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
+            try {
+                TScan tScan = new TScan(rdfdb.getQuadrupleHeapFile());
+                Quadruple q = tScan.getNext(qid);
+                while (q != null) {
+                    q.setHdr();
+                    System.out.println(q);
+                    q = tScan.getNext(qid);
+                }
+            } catch (InvalidTupleSizeException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -95,7 +96,7 @@ public class CommandLine {
         String predicateLabel = tokens[1];
         String objectLabel = tokens[2];
         float confidence = Float.valueOf(tokens[3]);
-//        System.out.println(subjectLabel + " " + predicateLabel + " " + objectLabel + " " + confidence);
+        System.out.println(subjectLabel + " " + predicateLabel + " " + objectLabel + " " + confidence);
         EID subjectId = rdfdb.insertEntity(subjectLabel);
         PID predicateId = rdfdb.insertPredicate(predicateLabel);
         EID objectId = rdfdb.insertEntity(objectLabel);

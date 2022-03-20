@@ -2,6 +2,7 @@ package qiterator;
 
 import java.io.*;
 
+import com.sun.org.apache.bcel.internal.util.ClassStack;
 import diskmgr.RDFDB;
 import global.*;
 import heap.*;
@@ -154,11 +155,7 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
         pnodeSplayPQ pcurr_Q = Q1;
         pnodeSplayPQ pother_Q = Q2;
         Quadruple lastElem = null;  // need tuple.java
-        try {
-            lastElem.setHdr(n_cols, _in, str_lens);
-        } catch (Exception e) {
-            throw new SortException(e, "Sort.java: setHdr() failed");
-        }
+
 
         int run_num = 0;  // keeps track of the number of runs
 
@@ -523,7 +520,12 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
         PID minPredicateId = new PID(new PageId(INVALID_PAGE), 1);
         EID minObjectId = new EID(new PageId(INVALID_PAGE), 1);
         float minConfidenceValue = -1;
-        Quadruple lastElem = new Quadruple(minSubjectId, minPredicateId, minObjectId, minConfidenceValue);
+        Quadruple lastElem = new Quadruple();
+        lastElem.setHdr();
+        lastElem.setSubject(minSubjectId);
+        lastElem.setPredicate(minPredicateId);
+        lastElem.setObject(minObjectId);
+        lastElem.setValue(minConfidenceValue);
         return lastElem;
     }
 

@@ -23,6 +23,7 @@ public class RDFDB{
     public RDFDB(int type) {
 //        BTIndexPage btIndexPage = new BTIndexPage();
         try {
+            SystemDefs.MINIBASE_RESTART_FLAG = true;
             quadrupleHeapFile = new QuadrupleHeapFile("quadrupleHeapFile");
             entityLabelHeapFile = new LabelHeapFile("entityLabelHeapFile");
             predicateLabelHeapFile = new LabelHeapFile("predicateLabelHeapFile");
@@ -75,7 +76,7 @@ public class RDFDB{
         }
     }
 
-    public PID insertPredicate(String predicateLabel) throws SpaceNotAvailableException, HFDiskMgrException, HFException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException, FieldNumberOutOfBoundException {
+    public PID insertPredicate(String predicateLabel) throws SpaceNotAvailableException, HFDiskMgrException, HFException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException, FieldNumberOutOfBoundException, InvalidTypeException {
         LID lid = predicateLabelHeapFile.insertRecord(new Label(predicateLabel).getLabelByteArray());
         return lid.returnPid();
     }
