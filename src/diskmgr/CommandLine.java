@@ -68,7 +68,7 @@ public class CommandLine {
             while (line != null) {
                 String[] tokens = line.split("\\s+");
                 if (tokens.length == 4) {
-                    insertTestData(tokens);
+                    insertTestData(tokens, input);
                 }
                 line = reader.readLine();
 //                break;
@@ -99,7 +99,7 @@ public class CommandLine {
     }
 
 
-    private static void insertTestData(String[] tokens) throws
+    private static void insertTestData(String[] tokens, String[] input) throws
             SpaceNotAvailableException, HFDiskMgrException, HFException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException, FieldNumberOutOfBoundException, InvalidTypeException, IteratorException, ConstructPageException, ConvertException, InsertException, IndexInsertRecException, LeafDeleteException, NodeNotMatchException, LeafInsertRecException, PinPageException, UnpinPageException, DeleteRecException, KeyTooLongException, KeyNotMatchException, IndexSearchException {
         String subjectLabel = tokens[0];
         String predicateLabel = tokens[1];
@@ -114,17 +114,18 @@ public class CommandLine {
         Quadruple q = new Quadruple(subjectId, predicateId, objectId, confidence);
         rdfdb.insertQuadruple(q.getQuadrupleByteArray());
 
+        //index insert
         LIDBTreeFile<Void> btreeIndexFile1 = rdfdb.getBtreeIndexFile1();
         LIDBTreeFile<Void> btreeIndexFile2 = rdfdb.getBtreeIndexFile2();
         LIDBTreeFile<Void> btreeIndexFile3 = rdfdb.getBtreeIndexFile3();
 
-        //index insert
-        btreeIndexFile1.insert(new StringKey(subjectLabel), subjectId.returnLid());
-        btreeIndexFile2.insert(new StringKey(predicateLabel), predicateId.returnLid());
-        btreeIndexFile3.insert(new StringKey(objectLabel), objectId.returnLid());
-
+        int indexChoice = Integer.parseInt(input[2]);
+        switch (indexChoice) {
+            case 1 -> btreeIndexFile1.insert(new StringKey(subjectLabel), subjectId.returnLid());
+            case 2 -> btreeIndexFile2.insert(new StringKey(predicateLabel), predicateId.returnLid());
+            case 3 -> btreeIndexFile3.insert(new StringKey(objectLabel), objectId.returnLid());
+        }
     }
-
     private static void runReport(String[] input) {
 
     }
