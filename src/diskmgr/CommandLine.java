@@ -150,41 +150,7 @@ public class CommandLine {
 
         // start index scan
 
-        AttrType[] attrType = new AttrType[1];
-        attrType[0] = new AttrType(AttrType.attrString);
-        short[] attrSize = new short[1];
-        attrSize[0] = 150;
 
-        FldSpec[] projlist = new FldSpec[1];
-        RelSpec rel = new RelSpec(RelSpec.outer);
-        projlist[0] = new FldSpec(rel, 1);
-
-        CondExpr[] expr = new CondExpr[2];
-        expr[0] = new CondExpr();
-        expr[0].op = new AttrOperator(AttrOperator.aopEQ);
-        expr[0].type1 = new AttrType(AttrType.attrSymbol);
-        expr[0].type2 = new AttrType(AttrType.attrString);
-        expr[0].operand1.symbol = new FldSpec(new RelSpec(RelSpec.outer), 1);
-        expr[0].operand2.string = SUBJECTFILTER;
-        expr[0].next = null;
-        expr[1]=null;
-
-        LIDIndexScan<Void> iscan = new LIDIndexScan<Void>(new IndexType(IndexType.B_Index),
-                "entityLabelHeapFile",
-                "BTreeIndex1",
-                attrType,
-                attrSize,
-                1,
-                1,
-                projlist,
-                expr,
-                1,
-                false) {
-            @Override
-            public KeyClassManager<Void> getKeyClassManager() {
-                return null;
-            }
-        };
 
         System.out.println("Printing index query output");
         Label l = iscan.get_next();;

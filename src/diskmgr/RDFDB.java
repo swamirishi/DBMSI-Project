@@ -23,14 +23,20 @@ public class RDFDB {
 
     private static final short REC_LEN1 = 150;
 
+
     private QuadrupleHeapFile quadrupleHeapFile;
     private LabelHeapFile entityLabelHeapFile;
     private LabelHeapFile predicateLabelHeapFile;
 
-    private static String subjectBTreeFileName = "SubjectLabelBTreeIndexFile";
-    private static String predicateBTreeFileName = "PredicateLabelBTreeIndexFile";
-    private static String objectBTreeFileName = "ObjectLabelBTreeIndexFile";
-    private static String qidBTreeFileName = "QIDBTreeIndex";
+    public static String quadrupleHeapFileName = "quadrupleHeapFile";
+    public static String entityLabelFileName = "entityLabelHeapFile";
+    public static String predicateLabelFileName = "predicateLabelHeapFile";
+
+    public static String subjectBTreeFileName = "SubjectLabelBTreeIndexFile";
+    public static String predicateBTreeFileName = "PredicateLabelBTreeIndexFile";
+    public static String objectBTreeFileName = "ObjectLabelBTreeIndexFile";
+    public static String qidBTreeFileName = "QIDBTreeIndex";
+
     private int indexType = 0;
 
     private LIDBTreeFile<Void> subjectBtreeIndexFile;
@@ -44,9 +50,9 @@ public class RDFDB {
     public RDFDB(int type) throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
         try {
             indexType = type;
-            quadrupleHeapFile = new QuadrupleHeapFile("quadrupleHeapFile");
-            entityLabelHeapFile = new LabelHeapFile("entityLabelHeapFile");
-            predicateLabelHeapFile = new LabelHeapFile("predicateLabelHeapFile");
+            quadrupleHeapFile = new QuadrupleHeapFile(quadrupleHeapFileName);
+            entityLabelHeapFile = new LabelHeapFile(entityLabelFileName);
+            predicateLabelHeapFile = new LabelHeapFile(predicateLabelFileName);
 
             initializeLabelBTreeFiles();
             initializeIndexesAsPerType();
