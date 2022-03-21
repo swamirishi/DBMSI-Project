@@ -33,8 +33,8 @@ public class TestingEntities {
 
     private static void init() throws Exception {
         rdfdb = new RDFDB(1);
-        EID subjectID = rdfdb.insertEntity("Dhruv");
-        EID subjectID2 = rdfdb.insertEntity("Dhruv");
+//        EID subjectID = rdfdb.insertEntity("Dhruv");
+//        EID subjectID2 = rdfdb.insertEntity("Dhruv");
 
     }
 

@@ -28,16 +28,17 @@ public class CommandLine {
 
 //        batchinsert D:\DBMSI-Project\phase2_test_data.txt
 //        batchinsert D:\DBMSI-Project\phase2_test_data.txt 1 bablu
-//        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth 0.5232176791516268 50000
+//        batchinsert Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
+
+//        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
 //        report
-        String[] inputStrings = {"batchinsert D:\\DBMSI-Project\\phase2_test_data.txt 1 bablu","query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth 0.5232176791516268 50000"};
-//        while (!inputString.equals("exit")) {
-        for(String inputString:inputStrings){
+        String inputString = " ";
+        while (!inputString.equals("exit")) {
             System.out.println("\nNew command loop: ");
             System.out.println("Type exit to stop!");
 
-//            Scanner sc = new Scanner(System.in);
-//            inputString = sc.nextLine();
+            Scanner sc = new Scanner(System.in);
+            inputString = sc.nextLine();
             String[] input = inputString.split(" ");
             String operationType = input[0];
 
@@ -63,7 +64,7 @@ public class CommandLine {
         int index_option = Integer.parseInt(input[2]);
         String dbPath= dbName + "_" + index_option;
 
-        SystemDefs sysdef1 = new SystemDefs("databases/dbPath", 50000, 50000, "Clock");
+        SystemDefs sysdef1 = new SystemDefs(dbPath, 50000, 50000, "Clock");
         rdfdb = new RDFDB(index_option);
 
         String fileName = input[1];
