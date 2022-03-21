@@ -80,13 +80,14 @@ public class Stream {
 
 
     public Quadruple getNext() throws Exception {
-        int option = rdfDB.getIndexType();
-        if (option == 6) {
-            return quadrupleSort.get_next();
-        } else {
-            orderSubjectPredicateObject();
-            return null;
-        }
+//        int option = rdfDB.getIndexType();
+//        if (option == 6) {
+//            return quadrupleSort.get_next();
+//        } else {
+//            orderSubjectPredicateObject();
+//            return null;
+//        }
+        return quadrupleSort.get_next();
     }
 
     private LIDIndexScan<Void> initializeLabelScan(String heapFileName, String bTreeFileName, String filter) throws IndexException, InvalidTupleSizeException, IOException, UnknownIndexTypeException, InvalidTypeException {

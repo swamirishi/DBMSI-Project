@@ -699,7 +699,7 @@ public class DB implements GlobalConst {
 
     private RandomAccessFile fp;
     private int num_pages;
-    private String name;
+    public String name;
 
 
     /**

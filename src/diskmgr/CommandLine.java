@@ -28,7 +28,7 @@ public class CommandLine {
 
 //        batchinsert D:\DBMSI-Project\phase2_test_data.txt
 //        batchinsert D:\DBMSI-Project\phase2_test_data.txt 1 bablu
-//        batchinsert Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
+//        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
 
 //        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
 //        report
@@ -66,6 +66,7 @@ public class CommandLine {
 
         SystemDefs sysdef1 = new SystemDefs(dbPath, 50000, 50000, "Clock");
         rdfdb = new RDFDB(index_option);
+        rdfdb.name = dbPath;
 
         String fileName = input[1];
         try {
@@ -160,10 +161,10 @@ public class CommandLine {
         Stream stream = rdfdb.openStream(ORDER, SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
         Quadruple currQuadruple = stream.getNext();
 
-//        while (currQuadruple != null) {
-//            System.out.println(currQuadruple.toString());
-//            currQuadruple = stream.getNext();
-//        }
+        while (currQuadruple != null) {
+            System.out.println(currQuadruple.toString());
+            currQuadruple = stream.getNext();
+        }
     }
 }
 

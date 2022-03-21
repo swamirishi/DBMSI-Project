@@ -139,6 +139,13 @@ public class RDFDB extends DB{
             LID lid = getLIDFromHeapFileScan("entityLabelHeapFile", entityLabel);
             if (lid.getPageNo().pid == INVALID_PAGE) {
                 lid = entityLabelHeapFile.insertRecord(new Label(entityLabel).getLabelByteArray());
+
+                //updating subject/object counters
+                if(isSubject)
+                    subjectCount++;
+                else
+                    objectCount++;
+
                 if(isSubject){
                     subjectBtreeIndexFile.insert(new StringKey(entityLabel), lid);
                 }else{
@@ -152,9 +159,15 @@ public class RDFDB extends DB{
         }
     }
 
-    public boolean deleteEntity(String entityLabel) {
+    public boolean deleteEntity(String entityLabel, boolean isSubject) {
         try {
             LID lid = getLIDFromHeapFileScan("entityLabelHeapFile", entityLabel);
+            //updating subject/object counters
+            if(isSubject)
+                subjectCount--;
+            else
+                objectCount--;
+
             return entityLabelHeapFile.deleteRecord(lid);
         } catch (Exception e) {
             e.printStackTrace();

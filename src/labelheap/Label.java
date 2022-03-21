@@ -74,13 +74,7 @@ public class Label extends Tuple {
         try {
             setHdrIfNotSet();
             return super.getStrFld(LABEL_FLD);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (FieldNumberOutOfBoundException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidTupleSizeException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidTypeException e) {
+        } catch (IOException | FieldNumberOutOfBoundException | InvalidTupleSizeException | InvalidTypeException e) {
             throw new RuntimeException(e);
         }
     }
