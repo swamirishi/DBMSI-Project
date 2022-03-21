@@ -64,13 +64,13 @@ public class RDFDB extends DB{
                     keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
                     break;
                 case 3:
-                    keyClassManagers = Arrays.asList(FloatKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier());
                     break;
                 case 4:
-                    keyClassManagers = Arrays.asList(FloatKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier());
                     break;
                 case 5:
-                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier());
                     break;
             }
             initializeIndexesAsPerType(keyClassManagers);
@@ -357,21 +357,22 @@ public class RDFDB extends DB{
                 qidBtreeFile.insert(keyList, qid);
                 break;
             case 2:
-                keyList = Arrays.asList(objectId, subjectId);
-                qidBtreeFile.insert(keyList, qid);
-                break;
-            case 3:
-                keyList = Arrays.asList(confidence, subjectId);
-                qidBtreeFile.insert(keyList, qid);
-                break;
-            case 4:
-                keyList = Arrays.asList(confidence, objectId);
-                qidBtreeFile.insert(keyList, qid);
-                break;
-            case 5:
                 keyList = Arrays.asList(predicateId, subjectId, objectId);
                 qidBtreeFile.insert(keyList, qid);
                 break;
+            case 3:
+                keyList = Arrays.asList(subjectId);
+                qidBtreeFile.insert(keyList, qid);
+                break;
+            case 4:
+                keyList = Arrays.asList(predicateId);
+                qidBtreeFile.insert(keyList, qid);
+                break;
+            case 5:
+                keyList = Arrays.asList(objectId);
+                qidBtreeFile.insert(keyList, qid);
+                break;
+            
         }
     }
 }

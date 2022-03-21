@@ -2,7 +2,6 @@ package qiterator;
 
 import java.io.*;
 
-import com.sun.org.apache.bcel.internal.util.ClassStack;
 import diskmgr.RDFDB;
 import global.*;
 import heap.*;
