@@ -6,36 +6,36 @@ import java.io.*;
 import java.lang.*;
 
 public class Convert{
- 
- /**
- * read 4 bytes from given byte array at the specified position
- * convert it to an integer
- * @param  	data 		a byte array 
- * @param       position  	in data[]
- * @exception   java.io.IOException I/O errors
- * @return      the integer 
- */
+
+  /**
+   * read 4 bytes from given byte array at the specified position
+   * convert it to an integer
+   * @param  	data 		a byte array
+   * @param       position  	in data[]
+   * @exception   java.io.IOException I/O errors
+   * @return      the integer
+   */
   public static int getIntValue (int position, byte []data)
-   throws java.io.IOException
-    {
-      InputStream in;
-      DataInputStream instr;
-      int value;
-      byte tmp[] = new byte[4];
-      
-      // copy the value from data array out to a tmp byte array
-      System.arraycopy (data, position, tmp, 0, 4);
-      
-      /* creates a new data input stream to read data from the
-       * specified input stream
-       */
-      in = new ByteArrayInputStream(tmp);
-      instr = new DataInputStream(in);
-      value = instr.readInt();  
-      
-      return value;
-    }
-  
+          throws java.io.IOException
+  {
+    InputStream in;
+    DataInputStream instr;
+    int value;
+    byte tmp[] = new byte[4];
+
+    // copy the value from data array out to a tmp byte array
+    System.arraycopy (data, position, tmp, 0, 4);
+
+    /* creates a new data input stream to read data from the
+     * specified input stream
+     */
+    in = new ByteArrayInputStream(tmp);
+    instr = new DataInputStream(in);
+    value = instr.readInt();
+
+    return value;
+  }
+
   /**
    * read 4 bytes from given byte array at the specified position
    * convert it to a float value
@@ -45,56 +45,27 @@ public class Convert{
    * @return      the float value
    */
   public static float getFloValue (int position, byte []data)
-    throws java.io.IOException
-    {
-      InputStream in;
-      DataInputStream instr;
-      float value;
-      byte tmp[] = new byte[4];
-      
-      // copy the value from data array out to a tmp byte array
-      System.arraycopy (data, position, tmp, 0, 4);
-      
-      /* creates a new data input stream to read data from the
-       * specified input stream
-       */
-      in = new ByteArrayInputStream(tmp);
-      instr = new DataInputStream(in);
-      value = instr.readFloat();  
-      
-      return value;
-    }
-
-  /**
-   * read 8 bytes from given byte array at the specified position
-   * convert it to a double value
-   * @param  	data 		a byte array
-   * @param       position  	in data[]
-   * @exception   java.io.IOException I/O errors
-   * @return      the float value
-   */
-  public static double getDoubleValue (int position, byte []data)
           throws java.io.IOException
   {
     InputStream in;
     DataInputStream instr;
-    double value;
-    byte tmp[] = new byte[8];
+    float value;
+    byte tmp[] = new byte[4];
 
     // copy the value from data array out to a tmp byte array
-    System.arraycopy (data, position, tmp, 0, 8);
+    System.arraycopy (data, position, tmp, 0, 4);
 
     /* creates a new data input stream to read data from the
      * specified input stream
      */
     in = new ByteArrayInputStream(tmp);
     instr = new DataInputStream(in);
-    value = instr.readDouble();
+    value = instr.readFloat();
 
     return value;
   }
-  
-  
+
+
   /**
    * read 2 bytes from given byte array at the specified position
    * convert it to a short integer
@@ -104,26 +75,26 @@ public class Convert{
    * @return      the short integer
    */
   public static short getShortValue (int position, byte []data)
-    throws java.io.IOException
-    {
-      InputStream in;
-      DataInputStream instr;
-      short value;
-      byte tmp[] = new byte[2];
-      
-      // copy the value from data array out to a tmp byte array
-      System.arraycopy (data, position, tmp, 0, 2);
-      
-      /* creates a new data input stream to read data from the
-       * specified input stream
-       */
-      in = new ByteArrayInputStream(tmp);
-      instr = new DataInputStream(in);
-      value = instr.readShort();
-      
-      return value;
-    }
-  
+          throws java.io.IOException
+  {
+    InputStream in;
+    DataInputStream instr;
+    short value;
+    byte tmp[] = new byte[2];
+
+    // copy the value from data array out to a tmp byte array
+    System.arraycopy (data, position, tmp, 0, 2);
+
+    /* creates a new data input stream to read data from the
+     * specified input stream
+     */
+    in = new ByteArrayInputStream(tmp);
+    instr = new DataInputStream(in);
+    value = instr.readShort();
+
+    return value;
+  }
+
   /**
    * reads a string that has been encoded using a modified UTF-8 format from
    * the given byte array at the specified position
@@ -135,25 +106,25 @@ public class Convert{
    * @return      the string
    */
   public static String getStrValue (int position, byte []data, int length)
-    throws java.io.IOException
-    {
-      InputStream in;
-      DataInputStream instr;
-      String value;
-      byte tmp[] = new byte[length];  
-      
-      // copy the value from data array out to a tmp byte array
-      System.arraycopy (data, position, tmp, 0, length);
-      
-      /* creates a new data input stream to read data from the
-       * specified input stream
-       */
-      in = new ByteArrayInputStream(tmp);
-      instr = new DataInputStream(in);
-      value = instr.readUTF();
-      return value;
-    }
-  
+          throws java.io.IOException
+  {
+    InputStream in;
+    DataInputStream instr;
+    String value;
+    byte tmp[] = new byte[length];
+
+    // copy the value from data array out to a tmp byte array
+    System.arraycopy (data, position, tmp, 0, length);
+
+    /* creates a new data input stream to read data from the
+     * specified input stream
+     */
+    in = new ByteArrayInputStream(tmp);
+    instr = new DataInputStream(in);
+    value = instr.readUTF();
+    return value;
+  }
+
   /**
    * reads 2 bytes from the given byte array at the specified position
    * convert it to a character
@@ -163,25 +134,25 @@ public class Convert{
    * @return      the character
    */
   public static char getCharValue (int position, byte []data)
-    throws java.io.IOException
-    {
-      InputStream in;
-      DataInputStream instr;
-      char value;
-      byte tmp[] = new byte[2];
-      // copy the value from data array out to a tmp byte array  
-      System.arraycopy (data, position, tmp, 0, 2);
-      
-      /* creates a new data input stream to read data from the
-       * specified input stream
-       */
-      in = new ByteArrayInputStream(tmp);
-      instr = new DataInputStream(in);
-      value = instr.readChar();
-      return value;
-    }
-  
-  
+          throws java.io.IOException
+  {
+    InputStream in;
+    DataInputStream instr;
+    char value;
+    byte tmp[] = new byte[2];
+    // copy the value from data array out to a tmp byte array
+    System.arraycopy (data, position, tmp, 0, 2);
+
+    /* creates a new data input stream to read data from the
+     * specified input stream
+     */
+    in = new ByteArrayInputStream(tmp);
+    instr = new DataInputStream(in);
+    value = instr.readChar();
+    return value;
+  }
+
+
   /**
    * update an integer value in the given byte array at the specified position
    * @param  	data 		a byte array
@@ -189,29 +160,29 @@ public class Convert{
    * @param	position  	the position of tht value in data[]
    * @exception   java.io.IOException I/O errors
    */
-  public static void setIntValue (int value, int position, byte []data) 
-    throws java.io.IOException
-    {
-      /* creates a new data output stream to write data to 
-       * underlying output stream
-       */
-      
-      OutputStream out = new ByteArrayOutputStream();
-      DataOutputStream outstr = new DataOutputStream (out);
-      
-      // write the value to the output stream
-      
-      outstr.writeInt(value);
-      
-      // creates a byte array with this output stream size and the
-      // valid contents of the buffer have been copied into it
-      byte []B = ((ByteArrayOutputStream) out).toByteArray();
-      
-      // copies the first 4 bytes of this byte array into data[] 
-      System.arraycopy (B, 0, data, position, 4);
-      
-    }
-  
+  public static void setIntValue (int value, int position, byte []data)
+          throws java.io.IOException
+  {
+    /* creates a new data output stream to write data to
+     * underlying output stream
+     */
+
+    OutputStream out = new ByteArrayOutputStream();
+    DataOutputStream outstr = new DataOutputStream (out);
+
+    // write the value to the output stream
+
+    outstr.writeInt(value);
+
+    // creates a byte array with this output stream size and the
+    // valid contents of the buffer have been copied into it
+    byte []B = ((ByteArrayOutputStream) out).toByteArray();
+
+    // copies the first 4 bytes of this byte array into data[]
+    System.arraycopy (B, 0, data, position, 4);
+
+  }
+
   /**
    * update a float value in the given byte array at the specified position
    * @param  	data 		a byte array
@@ -219,55 +190,29 @@ public class Convert{
    * @param	position  	the position of tht value in data[]
    * @exception   java.io.IOException I/O errors
    */
-  public static void setFloValue (float value, int position, byte []data) 
-    throws java.io.IOException
-    {
-      /* creates a new data output stream to write data to 
-       * underlying output stream
-       */
-      
-      OutputStream out = new ByteArrayOutputStream();
-      DataOutputStream outstr = new DataOutputStream (out);
-      
-      // write the value to the output stream
-      
-      outstr.writeFloat(value);
-      
-      // creates a byte array with this output stream size and the
-      // valid contents of the buffer have been copied into it
-      byte []B = ((ByteArrayOutputStream) out).toByteArray();
-      
-      // copies the first 4 bytes of this byte array into data[] 
-      System.arraycopy (B, 0, data, position, 4);
-      
-    }
-
-  /**
-   * update a double value in the given byte array at the specified position
-   * @param  	data 		a byte array
-   * @param	value   	the value to be copied into the data[]
-   * @param	position  	the position of tht value in data[]
-   * @exception   java.io.IOException I/O errors
-   */
-  public static void setDoubleValue (double value, int position, byte []data)
-          throws java.io.IOException {
+  public static void setFloValue (float value, int position, byte []data)
+          throws java.io.IOException
+  {
+    /* creates a new data output stream to write data to
+     * underlying output stream
+     */
 
     OutputStream out = new ByteArrayOutputStream();
     DataOutputStream outstr = new DataOutputStream (out);
 
     // write the value to the output stream
 
-    outstr.writeDouble(value);
+    outstr.writeFloat(value);
 
     // creates a byte array with this output stream size and the
     // valid contents of the buffer have been copied into it
     byte []B = ((ByteArrayOutputStream) out).toByteArray();
 
-    // copies the first 8 bytes of this byte array into data[]
-    System.arraycopy (B, 0, data, position, 8);
+    // copies the first 4 bytes of this byte array into data[]
+    System.arraycopy (B, 0, data, position, 4);
 
   }
-  
+
   /**
    * update a short integer in the given byte array at the specified position
    * @param  	data 		a byte array
@@ -275,69 +220,60 @@ public class Convert{
    * @param	position  	the position of tht value in data[]
    * @exception   java.io.IOException I/O errors
    */
-  public static void setShortValue (short value, int position, byte []data) 
-    throws java.io.IOException
-    {
-      /* creates a new data output stream to write data to 
-       * underlying output stream
-       */
-      
-      OutputStream out = new ByteArrayOutputStream();
-      DataOutputStream outstr = new DataOutputStream (out);
-      
-      // write the value to the output stream
-      
-      outstr.writeShort(value);
-      
-      // creates a byte array with this output stream size and the
-      // valid contents of the buffer have been copied into it
-      byte []B = ((ByteArrayOutputStream) out).toByteArray();
-      
-      // copies the first 2 bytes of this byte array into data[] 
-      System.arraycopy (B, 0, data, position, 2);
-      
-    }
-  public static byte[] getStrValueToBytes(String value) throws IOException {
+  public static void setShortValue (short value, int position, byte []data)
+          throws java.io.IOException
+  {
+    /* creates a new data output stream to write data to
+     * underlying output stream
+     */
+
     OutputStream out = new ByteArrayOutputStream();
     DataOutputStream outstr = new DataOutputStream (out);
 
     // write the value to the output stream
-    outstr.writeUTF(value);
+
+    outstr.writeShort(value);
+
+    // creates a byte array with this output stream size and the
+    // valid contents of the buffer have been copied into it
     byte []B = ((ByteArrayOutputStream) out).toByteArray();
 
-    return B;
+    // copies the first 2 bytes of this byte array into data[]
+    System.arraycopy (B, 0, data, position, 2);
+
   }
+
   /**
-   * Insert or update a string in the given byte array at the specified 
+   * Insert or update a string in the given byte array at the specified
    * position.
    * @param       data            a byte array
    * @param       value           the value to be copied into data[]
    * @param       position        the position of tht value in data[]
    * @exception   java.io.IOException I/O errors
    */
- public static int setStrValue (String value, int position, byte []data)
-        throws java.io.IOException
- {
-  /* creates a new data output stream to write data to
-   * underlying output stream
-   */
- 
-   OutputStream out = new ByteArrayOutputStream();
-   DataOutputStream outstr = new DataOutputStream (out);
-   
-   // write the value to the output stream
-   
-   outstr.writeUTF(value);
-   // creates a byte array with this output stream size and the 
-   // valid contents of the buffer have been copied into it
-   byte []B = ((ByteArrayOutputStream) out).toByteArray();
-   
-   int sz =outstr.size();  
-   // copies the contents of this byte array into data[]
-   System.arraycopy (B, 0, data, position, sz);
-   return sz;
- }
-  
+  public static void setStrValue (String value, int position, byte []data)
+          throws java.io.IOException
+  {
+    /* creates a new data output stream to write data to
+     * underlying output stream
+     */
+
+    OutputStream out = new ByteArrayOutputStream();
+    DataOutputStream outstr = new DataOutputStream (out);
+
+    // write the value to the output stream
+
+    outstr.writeUTF(value);
+    // creates a byte array with this output stream size and the
+    // valid contents of the buffer have been copied into it
+    byte []B = ((ByteArrayOutputStream) out).toByteArray();
+
+    int sz =outstr.size();
+    // copies the contents of this byte array into data[]
+    System.arraycopy (B, 0, data, position, sz);
+
+  }
+
   /**
    * Update a character in the given byte array at the specified position.
    * @param       data            a byte array
@@ -346,74 +282,24 @@ public class Convert{
    * @exception   java.io.IOException I/O errors
    */
   public static void setCharValue (char value, int position, byte []data)
-    throws java.io.IOException
-    {
-      /* creates a new data output stream to write data to
-       * underlying output stream
-       */
-      
-      OutputStream out = new ByteArrayOutputStream();
-      DataOutputStream outstr = new DataOutputStream (out);
-      
-      // write the value to the output stream
-      outstr.writeChar(value);  
-      
-      // creates a byte array with this output stream size and the
-      // valid contents of the buffer have been copied into it
-      byte []B = ((ByteArrayOutputStream) out).toByteArray();
-      
-      // copies contents of this byte array into data[]
-      System.arraycopy (B, 0, data, position, 2);
-      
-    }
+          throws java.io.IOException
+  {
+    /* creates a new data output stream to write data to
+     * underlying output stream
+     */
 
-    public static LID getLIDValue(short position, byte[] data, int length) throws java.io.IOException, ClassNotFoundException {
-      InputStream in;
-      DataInputStream instr;
-      String value;
-      byte tmp[] = new byte[length];
+    OutputStream out = new ByteArrayOutputStream();
+    DataOutputStream outstr = new DataOutputStream (out);
 
-      System.arraycopy (data, position, tmp, 0, length);
+    // write the value to the output stream
+    outstr.writeChar(value);
 
-      LID convertAgainObj = (LID) convertFromBytes(tmp);
-      return convertAgainObj;
-    }
+    // creates a byte array with this output stream size and the
+    // valid contents of the buffer have been copied into it
+    byte []B = ((ByteArrayOutputStream) out).toByteArray();
 
-  public static void setLIDValue (LID obj, int position, byte []data)
-          throws java.io.IOException {
-    byte[] byteArrayOfLIDObject = convertToBytes(obj);
-    int size = byteArrayOfLIDObject.length;
-    System.arraycopy (byteArrayOfLIDObject, 0, data, position, size);
-  }
+    // copies contents of this byte array into data[]
+    System.arraycopy (B, 0, data, position, 2);
 
-    public static byte[] convertToBytes(Object object) throws IOException {
-      try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-           ObjectOutputStream out = new ObjectOutputStream(bos)) {
-        out.writeObject(object);
-        return bos.toByteArray();
-      }
-    }
-
-    public static Object convertFromBytes(byte[] bytes) throws IOException, ClassNotFoundException {
-      try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-           ObjectInputStream in = new ObjectInputStream(bis)) {
-        return in.readObject();
-      }
-    }
-
-  public static double getDoubleValue(short position, byte[] data) throws IOException {
-    InputStream in;
-    DataInputStream instr;
-    double value;
-    byte tmp[] = new byte[8];
-
-    // copy the value from data array out to a tmp byte array
-    System.arraycopy (data, position, tmp, 0, 8);
-
-    in = new ByteArrayInputStream(tmp);
-    instr = new DataInputStream(in);
-    value = instr.readDouble();
-
-    return value;
   }
 }

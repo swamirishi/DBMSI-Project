@@ -233,12 +233,12 @@ public class RDFDB extends DB{
 
             //if record exist, store only the quadruple with higher confidence!
             boolean updated = quadrupleHeapFile.updateRecord(qid, thisQuadruple);
-            QID qidThisQuadruple = new QID();
-            if(updated) {
-                qidThisQuadruple = getQIDFromHeapFileScan(thisQuadruple.getQuadrupleByteArray());
-            }
+//            QID qidThisQuadruple = new QID();
+//            if(updated) {
+//                qidThisQuadruple = getQIDFromHeapFileScan(thisQuadruple.getQuadrupleByteArray());
+//            }
 
-            return qidThisQuadruple;
+//            return qidThisQuadruple;
         }
 
         return qid;
@@ -268,7 +268,7 @@ public class RDFDB extends DB{
         Label label = scan.getNext(lid);
         while (label!=null) {
             if (inputLabel.equals(label.getLabel())) {
-                System.out.println("Found " + inputLabel + " wont create new");
+//                System.out.println("Found " + inputLabel + " wont create new");
                 isFound = true;
                 break;
             }
@@ -277,6 +277,7 @@ public class RDFDB extends DB{
         if (!isFound) {
             lid.getPageNo().pid = -1;
         }
+        scan.closescan();
         return lid;
     }
 
@@ -303,6 +304,7 @@ public class RDFDB extends DB{
         if (!isFound) {
             qid.pageNo.pid = -1;
         }
+        scan.closescan();
         return qid;
     }
 

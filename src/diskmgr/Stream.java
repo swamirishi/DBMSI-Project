@@ -42,7 +42,7 @@ public class Stream {
 //    LIDIndexScan<Void> predicateIndexScan;
 //    LIDIndexScan<Void> objectIndexScan;
 
-    public static final int maxLabelLen = 50;
+    public static final int maxLabelLen = 200;
     public int orderType;
 
     public Stream(RDFDB rdfdb, int orderType, String subjectFil, String predicateFil,
