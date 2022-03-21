@@ -15,6 +15,8 @@ import quadrupleheap.TScan;
 import utils.supplier.keyclass.KeyClassManager;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class CommandLine {
@@ -27,9 +29,8 @@ public class CommandLine {
 //        SystemDefs sysdef2 = new SystemDefs("shaitan", 50000, 50000, "Clock");
 
 //        batchinsert D:\DBMSI-Project\phase2_test_data.txt
-//        batchinsert D:\DBMSI-Project\phase2_test_data.txt 1 bablu
-//        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
-
+//        batchinsert D:\DBMSI-Project\phase2.txt 1 test_db
+//        batchinsert Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
 //        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
 //        report
         String inputString = " ";
@@ -59,18 +60,21 @@ public class CommandLine {
 
     private static void runBatchInsert(String[] input) throws Exception {
         //batchinsert DATAFILENAME INDEXOPTION RDFDBNAME,        input => 0-indexed
-
+        System.out.println("Insertion Started");
+        long startTime = System.currentTimeMillis();
         String dbName = input[3];
         int index_option = Integer.parseInt(input[2]);
         String dbPath= dbName + "_" + index_option;
 
-        SystemDefs sysdef1 = new SystemDefs(dbPath, 50000, 50000, "Clock");
+        SystemDefs sysdef1 = new SystemDefs(dbPath, 1024, 1024, "Clock");
         rdfdb = new RDFDB(index_option);
         rdfdb.name = dbPath;
 
         String fileName = input[1];
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(fileName));
+            FileInputStream fis = new FileInputStream(fileName);
+            InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8);
+            BufferedReader reader = new BufferedReader(isr);
             String line = reader.readLine();
             while (line != null) {
                 String[] tokens = line.split("\\s+");
@@ -78,31 +82,17 @@ public class CommandLine {
                     insertTestData(tokens);
                 }
                 line = reader.readLine();
-//                break;
             }
             reader.close();
-            QID qid = new QID();
-            try {
-                TScan tScan = new TScan(rdfdb.getQuadrupleHeapFile());
-                Quadruple q = tScan.getNext(qid);
-                while (q != null) {
-                    q.setHdr();
-                    System.out.println(q);
-                    q = tScan.getNext(qid);
-                }
-            } catch (InvalidTupleSizeException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
         System.out.println("BATCH INSERTION process ENDs");
         System.out.println("Disk page READ COUNT: " + PCounter.rcounter);
         System.out.println("Disk page WRITE COUNT: " + PCounter.wcounter);
+        long endTime = System.currentTimeMillis();
+        long elapsedTime = endTime-startTime;
+        System.out.println("Time Elapsed in Insertion "+elapsedTime);
     }
 
     private static void insertTestData(String[] tokens) throws
@@ -117,6 +107,7 @@ public class CommandLine {
         EID subjectId = rdfdb.insertEntity(subjectLabel, true);
         PID predicateId = rdfdb.insertPredicate(predicateLabel);
         EID objectId = rdfdb.insertEntity(objectLabel, false);
+
         Quadruple q = new Quadruple(subjectId, predicateId, objectId, confidence);
         rdfdb.insertQuadruple(q.getQuadrupleByteArray());
     }
@@ -160,9 +151,8 @@ public class CommandLine {
 
         Stream stream = rdfdb.openStream(ORDER, SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
         Quadruple currQuadruple = stream.getNext();
-
         while (currQuadruple != null) {
-            System.out.println(currQuadruple.toString());
+            System.out.println(currQuadruple);
             currQuadruple = stream.getNext();
         }
     }
