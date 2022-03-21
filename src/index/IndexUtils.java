@@ -9,6 +9,7 @@ import heap.Tuple;
 import index.label.LIDIndexScan;
 import index.quadraple.QIDIndexScan;
 import iterator.*;
+import javafx.util.Pair;
 import labelheap.Label;
 import quadrupleheap.Quadruple;
 import utils.supplier.keyclass.IDListKeyClassManager;
@@ -325,18 +326,33 @@ public class IndexUtils {
   	
   }
   
-  public static boolean isLabelRecordInBtreeFound(String heapFileName, String bTreeFileName, String record) throws UnknownIndexTypeException, InvalidTypeException, IndexException, InvalidTupleSizeException, IOException, UnknownKeyTypeException {
+  public static LID isLabelRecordInBtreeFound(String heapFileName, String bTreeFileName, String record) throws UnknownIndexTypeException, InvalidTypeException, IndexException, InvalidTupleSizeException, IOException, UnknownKeyTypeException {
 	  LIDIndexScan<Void> iscan = getLabelBTreeScan(heapFileName, bTreeFileName, record);
-	  boolean isFound = iscan.get_next()!=null;
+	  LID lid = iscan.get_next_rid();
 	  iscan.close();
-	  return isFound;
+//	  return isFound;
+	  return lid;
   }
   
-  public static <K> boolean isKeyFoundInQIDBtree(String heapFileName, String bTreeFileName, KeyClassManager<K> keyClassManager, K key, int index) throws KeyTooLongException, KeyNotMatchException, UnknownKeyTypeException, IndexException, IOException, InvalidTypeException, InvalidTupleSizeException, UnknownIndexTypeException {
+  public static <K> Quadruple isKeyFoundInQIDBtree(String heapFileName, String bTreeFileName, KeyClassManager<K> keyClassManager, K key, int index) throws KeyTooLongException, KeyNotMatchException, UnknownKeyTypeException, IndexException, IOException, InvalidTypeException, InvalidTupleSizeException, UnknownIndexTypeException {
 	  QIDIndexScan<K> iscan = initializeQIDScan(keyClassManager.getKeyClass(key),keyClassManager,index);
-	  boolean isFound = iscan.get_next()!=null;
+	  Quadruple quadruple = iscan.get_next();
 	  iscan.close();
-	  return isFound;
+	  return quadruple;
   }
+
+	public static <K> QID getQIDFromQIDTree(String heapFileName, String bTreeFileName, KeyClassManager<K> keyClassManager, K key, int index) throws KeyTooLongException, KeyNotMatchException, UnknownKeyTypeException, IndexException, IOException, InvalidTypeException, InvalidTupleSizeException, UnknownIndexTypeException {
+		QIDIndexScan<K> iscan = initializeQIDScan(keyClassManager.getKeyClass(key),keyClassManager,index);
+		QID qid = iscan.get_next_rid();
+		iscan.close();
+		return qid;
+	}
+
+	public static <K> Pair<QID, Quadruple> getQIDQuadrupleFromQIDTree(String heapFileName, String bTreeFileName, KeyClassManager<K> keyClassManager, K key, int index) throws KeyTooLongException, KeyNotMatchException, UnknownKeyTypeException, IndexException, IOException, InvalidTypeException, InvalidTupleSizeException, UnknownIndexTypeException {
+		QIDIndexScan<K> iscan = initializeQIDScan(keyClassManager.getKeyClass(key),keyClassManager,index);
+		Pair<QID, Quadruple> itr = iscan.get_next_rid_tuple();
+		iscan.close();
+		return itr;
+	}
   
 }

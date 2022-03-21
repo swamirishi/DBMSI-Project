@@ -80,14 +80,13 @@ public class Stream {
 
 
     public Quadruple getNext() throws Exception {
-//        int option = rdfDB.getIndexType();
-//        if (option == 6) {
-//            return quadrupleSort.get_next();
-//        } else {
-//            orderSubjectPredicateObject();
-//            return null;
-//        }
-        return quadrupleSort.get_next();
+        int option = rdfDB.getIndexType();
+        if (option == 6) {
+            return quadrupleSort.get_next();
+        } else {
+            orderSubjectPredicateObject();
+            return null;
+        }
     }
 
     private LIDIndexScan<Void> initializeLabelScan(String heapFileName, String bTreeFileName, String filter) throws IndexException, InvalidTupleSizeException, IOException, UnknownIndexTypeException, InvalidTypeException {
@@ -110,6 +109,9 @@ public class Stream {
         expr[0].next = null;
         expr[1] = null;
 
+        if(filter==null){
+            expr = null;
+        }
         LIDIndexScan<Void> iscan = new LIDIndexScan<Void>(new IndexType(IndexType.B_Index),
                 heapFileName,
                 bTreeFileName,
@@ -132,27 +134,27 @@ public class Stream {
     public void orderSubjectPredicateObject() throws Exception {
         LIDIndexScan<Void> subjectIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.subjectBTreeFileName, subjectFilter);
         LID subjectID = subjectIndexScan.get_next_rid();
-        int subjectC= 0;
+//        int subjectC= 0;
         while (subjectID != null) {
-            subjectC++;
+//            subjectC++;
             LIDIndexScan<Void> predicateIndexScan = initializeLabelScan(RDFDB.predicateLabelFileName, RDFDB.predicateBTreeFileName, predicateFilter);
             LID predicateID = predicateIndexScan.get_next_rid();
-            int predicateC=0;
+//            int predicateC=0;
             while (predicateID != null) {
-                predicateC++;
+//                predicateC++;
                 LIDIndexScan<Void> objectIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.objectBTreeFileName, objectFilter);
                 LID objectID = objectIndexScan.get_next_rid();
                 int objectC=0;
                 while (objectID != null) {
-                    objectC++;
+//                    objectC++;
                     queryInQIDBTreeFile(subjectID, predicateID, objectID);
-                    System.out.println("ObjectCounter: "+objectC);
+//                    System.out.println("ObjectCounter: "+objectC);
                     objectID = objectIndexScan.get_next_rid();
                 }
-                System.out.println("PredicateCounter: "+predicateC);
+//                System.out.println("PredicateCounter: "+predicateC);
                 predicateID = predicateIndexScan.get_next_rid();
             }
-            System.out.println("SubjectCounter: "+subjectC);
+//            System.out.println("SubjectCounter: "+subjectC);
             subjectID = subjectIndexScan.get_next_rid();
         }
 
@@ -160,7 +162,7 @@ public class Stream {
 //            subjectC++;
 //            subjectID = subjectIndexScan.get_next_rid();
 //        }
-        System.out.println(subjectC);
+//        System.out.println(subjectC);
 
     }
 
@@ -195,9 +197,11 @@ public class Stream {
             String predicateLabel = rdfDB.getPredicateLabelHeapFile().getRecord(q.getPredicate().returnLid()).getLabel();
             String objectLabel = rdfDB.getEntityLabelHeapFile().getRecord(q.getObject().returnLid()).getLabel();
             String subjectLabel = rdfDB.getEntityLabelHeapFile().getRecord(q.getSubject().returnLid()).getLabel();
-
-            if (subjectFilter != null && subjectFilter.equals(subjectLabel) && objectFilter != null
-                    && objectFilter.equals(objectLabel) && predicateFilter != null && predicateFilter.equals(predicateLabel)) {
+            float confidenceValue = q.getValue();
+            if ((subjectFilter == null || subjectFilter.equals(subjectLabel))
+                    && (objectFilter == null || objectFilter.equals(objectLabel))
+                    && (predicateFilter == null || predicateFilter.equals(predicateLabel))
+                    && (confidenceFilter ==null || confidenceValue >= confidenceFilter)) {
                 System.out.println(q);
             }
             q = qidIndexScan.get_next();
@@ -239,7 +243,6 @@ public class Stream {
     }
 
     public void orderSubject() {
-
     }
 
     public void orderPredicate() {

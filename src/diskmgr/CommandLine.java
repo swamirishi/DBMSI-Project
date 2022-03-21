@@ -26,12 +26,14 @@ public class CommandLine {
     public static void main(String[] args) throws Exception {
 //        SystemDefs.MINIBASE_RESTART_FLAG = true;
 
-//        SystemDefs sysdef2 = new SystemDefs("shaitan", 50000, 50000, "Clock");
-
-//        batchinsert D:\DBMSI-Project\phase2_test_data.txt
-//        batchinsert D:\DBMSI-Project\phase2.txt 1 test_db
 //        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
 //        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
+//        batchinsert D:\DBMSI-Project\phase1.txt 1 test_db
+
+//        batchinsert Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
+//        query test_db 1 1 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
+        //        query test_db 1 1 * * * * 50000
+
 //        report
         String inputString = " ";
         while (!inputString.equals("exit")) {

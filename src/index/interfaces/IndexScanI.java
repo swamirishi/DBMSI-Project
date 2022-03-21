@@ -17,6 +17,7 @@ import index.IndexException;
 import index.IndexUtils;
 import index.UnknownIndexTypeException;
 import iterator.*;
+import javafx.util.Pair;
 import utils.supplier.btfile.BTreeFileSupplier;
 import utils.supplier.btfilescan.BTFileScanSupplier;
 import utils.supplier.hfile.HFileSupplier;
@@ -268,7 +269,60 @@ public abstract class IndexScanI<I extends ID, T extends Tuple, K> extends Itera
 
         return null;
     }
+    public Pair<I,T> get_next_rid_tuple() throws IndexException {
+        I rid;
+        int unused;
+        IKeyDataEntry<I> nextentry = null;
 
+        try {
+            nextentry = indScan.get_next();
+        } catch (Exception e) {
+            throw new IndexException(e, "IndexScan.java: BTree error");
+        }
+
+        while (nextentry != null) {
+            // not index_only, need to return the whole tuple
+            rid = ((ILeafData<I>) nextentry.data).getData();
+            try {
+                tuple1 = f.getRecord(rid);
+            } catch (Exception e) {
+                throw new IndexException(e, "IndexScan.java: getRecord failed");
+            }
+
+            try {
+                tuple1.setHdr((short) _noInFlds, _types, _s_sizes);
+            } catch (Exception e) {
+                throw new IndexException(e, "IndexScan.java: Heapfile error");
+            }
+
+            boolean eval;
+            try {
+                eval = this.eval(_selects, tuple1, null, _types, null);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new IndexException(e, "IndexScan.java: Heapfile error");
+            }
+
+            if (eval) {
+                // need projection.java
+                try {
+                    Projection.Project(tuple1, _types, Jtuple, perm_mat, _noOutFlds);
+                } catch (Exception e) {
+                    throw new IndexException(e, "IndexScan.java: Heapfile error");
+                }
+
+                return new Pair<>(rid,Jtuple);
+            }
+
+            try {
+                nextentry = indScan.get_next();
+            } catch (Exception e) {
+                throw new IndexException(e, "IndexScan.java: BTree error");
+            }
+        }
+
+        return null;
+    }
     public I get_next_rid()
             throws IndexException,
             UnknownKeyTypeException,
