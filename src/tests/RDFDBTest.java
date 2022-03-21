@@ -38,14 +38,14 @@ public class RDFDBTest {
 //        SystemDefs.JavabaseDB.add_file_entry("quadrupleHeapFile", pgid);
         RDFDB rdfdb = new RDFDB(0);
         QuadrupleUtils.rdfdb = rdfdb;
-        EID subjectID = rdfdb.insertEntity("Dhruv");
-        EID objectID = rdfdb.insertEntity("Agja");
+        EID subjectID = rdfdb.insertEntity("Dhruv", true);
+        EID objectID = rdfdb.insertEntity("Agja", false);
         PID predicateID = rdfdb.insertPredicate("OP");
         Quadruple q1 = quadrupleInitTest(subjectID, objectID, predicateID, 1.0f);
         rdfdb.insertQuadruple(q1.getQuadrupleByteArray());
 
-        subjectID = rdfdb.insertEntity("Abhi");
-        objectID = rdfdb.insertEntity("Jindal");
+        subjectID = rdfdb.insertEntity("Abhi", true);
+        objectID = rdfdb.insertEntity("Jindal", false);
         predicateID = rdfdb.insertPredicate("Pro");
         Quadruple q2 = quadrupleInitTest(subjectID, objectID, predicateID, 2.0f);
         rdfdb.insertQuadruple(q2.getQuadrupleByteArray());

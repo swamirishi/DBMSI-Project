@@ -11,7 +11,7 @@ import java.util.stream.IntStream;
 
 public class Quadruple extends Tuple {
 
-    private static final short numberOfFields = 7;
+    public static final short numberOfFields = 7;
     private static final AttrType intType = new AttrType(AttrType.attrInteger);
     private static final AttrType floType = new AttrType(AttrType.attrReal);
     public static final AttrType[] headerTypes = new AttrType[]{intType,intType,intType,intType,intType,intType,floType};
@@ -197,6 +197,7 @@ public class Quadruple extends Tuple {
         }
     }
 
+    @Deprecated
     public byte[] returnQuadrupleByteArray() {
         return super.returnTupleByteArray();
     }

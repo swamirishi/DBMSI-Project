@@ -173,7 +173,8 @@ public class QuadrupleIndexTest {
         };
         IndexType indexType = new IndexType(IndexType.B_Index);
         QIDIndexScan<LID> qidScan = new QIDIndexScan<LID>(indexType, "test4.in", "QIDBTreeIndex",
-                Quadruple.headerTypes, Quadruple.strSizes, 7, 7, projlist2, null, 1, false) {
+                Quadruple.headerTypes, Quadruple.strSizes, 7, 7, projlist2, null, 1, false, null
+        ,0) {
             @Override
             public KeyClassManager<LID> getKeyClassManager() {
                 return LIDKeyClassManager.getSupplier();
@@ -254,6 +255,7 @@ public class QuadrupleIndexTest {
 
         t = new Label(size);
         t.setHdr((short) 1, attrType, attrSize);
+
         List<KeyClassManager> list = Arrays.asList(LIDKeyClassManager.getSupplier(),LIDKeyClassManager.getSupplier());
         IDListKeyClassManager idListKeyClassManager = new IDListKeyClassManager(list,20,10);
         QIDBTreeFile<List<?>> qtf = new QIDBTreeFile<List<?>>("QIDBTreeIndex", AttrType.attrString, REC_LEN2, 1/*delete*/) {
@@ -351,7 +353,7 @@ public class QuadrupleIndexTest {
         expr2[1]=null;
 
         QIDIndexScan<LID> qidScan = new QIDIndexScan<LID>(indexType, "test4.in", "QIDBTreeIndex",
-                Quadruple.headerTypes, Quadruple.strSizes, 7, 7, projlist2, expr2, 1, false) {
+                Quadruple.headerTypes, Quadruple.strSizes, 7, 7, projlist2, expr2, 1, false, null, 0) {
             @Override
             public KeyClassManager<LID> getKeyClassManager() {
                 return LIDKeyClassManager.getSupplier();

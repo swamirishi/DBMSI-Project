@@ -58,7 +58,7 @@ public class RDFDB extends DB{
             initializeLabelBTreeFiles();
             switch (indexType){
                 case 1:
-                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
                     break;
                 case 2:
                     keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
@@ -134,11 +134,16 @@ public class RDFDB extends DB{
     }
 
     //Need to return EID
-    public EID insertEntity(String entityLabel) {
+    public EID insertEntity(String entityLabel, boolean isSubject) {
         try {
             LID lid = getLIDFromHeapFileScan("entityLabelHeapFile", entityLabel);
             if (lid.getPageNo().pid == INVALID_PAGE) {
                 lid = entityLabelHeapFile.insertRecord(new Label(entityLabel).getLabelByteArray());
+                if(isSubject){
+                    subjectBtreeIndexFile.insert(new StringKey(entityLabel), lid);
+                }else{
+                    objectBtreeIndexFile.insert(new StringKey(entityLabel), lid);
+                }
             }
             return lid.returnEid();
         } catch (Exception e) {
@@ -162,6 +167,7 @@ public class RDFDB extends DB{
             LID lid = getLIDFromHeapFileScan("predicateLabelHeapFile", predicateLabel);
             if (lid.getPageNo().pid == INVALID_PAGE) {
                 lid = predicateLabelHeapFile.insertRecord(new Label(predicateLabel).getLabelByteArray());
+                predicateBtreeIndexFile.insert(new StringKey(predicateLabel), lid);
             }
             return lid.returnPid();
         } catch (Exception e) {
@@ -201,8 +207,11 @@ public class RDFDB extends DB{
             e.printStackTrace();
         }
 
-        if(!found)
-            return quadrupleHeapFile.insertRecord(quadruplePtr);
+        if(!found) {
+            qid = quadrupleHeapFile.insertRecord(quadruplePtr);
+            this.insertInQIDBTree(thisQuadruple, qid);
+            return qid;
+        }
 
         //No need to fetch again
 //        QID qidFoundQ = getQIDFromHeapFileScan(foundQ.getQuadrupleByteArray());
@@ -331,7 +340,7 @@ public class RDFDB extends DB{
 
         switch (indexType){
             case 1:
-                keyList = Arrays.asList(subjectId, objectId);
+                keyList = Arrays.asList(subjectId, predicateId, objectId);
                 qidBtreeFile.insert(keyList, qid);
                 break;
             case 2:
