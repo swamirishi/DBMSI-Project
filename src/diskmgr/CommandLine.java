@@ -35,12 +35,29 @@ public class CommandLine {
         //        query test_db 1 1 * * * * 50000
 
 //        report
+        System.out.println("By default, we are creating indexes on subject label, " +
+                "object label and predicate label. This helps us in duplicate records selection.");
+        System.out.println("Please choose Index Option from 1 to 5 for Batch Insert.");
+        System.out.println("1. Index on Subject, Predicate, Object");
+        System.out.println("2. Index on Predicate, Subject, Object");
+        System.out.println("3. Index on Subject");
+        System.out.println("4. Index on Predicate");
+        System.out.println("5. Index on Object");
+        System.out.println("----------------------------------------");
+        System.out.println("----------------------------------------");
+        System.out.println("Please choose Index Option from 1 to 6 for Query.");
+        System.out.println("1. Index on Subject, Predicate, Object");
+        System.out.println("2. Index on Predicate, Subject, Object");
+        System.out.println("3. Index on Subject");
+        System.out.println("4. Index on Predicate");
+        System.out.println("5. Index on Object");
+        System.out.println("6. This doesn't use an Index. It uses the Quadruple Sort, an extension to Sort Tuples");
+
         String inputString = " ";
         while (!inputString.equals("exit")) {
             System.out.println("\nNew command loop: ");
             System.out.println("Type exit to stop!");
-
-            Scanner sc = new Scanner(System.in);
+                        Scanner sc = new Scanner(System.in);
             inputString = sc.nextLine();
             String[] input = inputString.split(" ");
             String operationType = input[0];
@@ -54,8 +71,8 @@ public class CommandLine {
                 long startTime = System.currentTimeMillis();
                 runQuery(Arrays.copyOfRange(input, 1, input.length));
                 long endTime = System.currentTimeMillis();
-                long elapsedTime = endTime-startTime;
-                System.out.println("Time Elapsed in Query "+elapsedTime);
+                long elapsedTime = endTime - startTime;
+                System.out.println("Time Elapsed in Query " + elapsedTime);
 
             } else if ((input[0].equals(Utils.REPORT))) {
                 System.out.println("Running Report ......................");
@@ -70,7 +87,7 @@ public class CommandLine {
         long startTime = System.currentTimeMillis();
         String dbName = input[3];
         int index_option = Integer.parseInt(input[2]);
-        String dbPath= dbName + "_" + index_option;
+        String dbPath = dbName + "_" + index_option;
 
         SystemDefs sysdef1 = new SystemDefs(dbPath, 50000, 50000, "Clock");
         rdfdb = new RDFDB(index_option);
@@ -97,8 +114,8 @@ public class CommandLine {
         System.out.println("Disk page READ COUNT: " + PCounter.rcounter);
         System.out.println("Disk page WRITE COUNT: " + PCounter.wcounter);
         long endTime = System.currentTimeMillis();
-        long elapsedTime = endTime-startTime;
-        System.out.println("Time Elapsed in Insertion "+elapsedTime);
+        long elapsedTime = endTime - startTime;
+        System.out.println("Time Elapsed in Insertion " + elapsedTime);
     }
 
     private static void insertTestData(String[] tokens) throws
@@ -117,6 +134,7 @@ public class CommandLine {
         Quadruple q = new Quadruple(subjectId, predicateId, objectId, confidence);
         rdfdb.insertQuadruple(q.getQuadrupleByteArray());
     }
+
     private static void runReport(String[] input) throws HFDiskMgrException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException {
         int recordCountQuadruple = rdfdb.getQuadrupleCnt();
         int recordCountEntity = rdfdb.getEntityCnt();
@@ -124,11 +142,11 @@ public class CommandLine {
         int recordCountObject = rdfdb.getObjectCnt();
         int recordCountPredicate = rdfdb.getPredicateCnt();
 
-        System.out.println("Record Count of Quadruples in the database(" + rdfdb.db_name()+") = " + recordCountQuadruple);
-        System.out.println("Record Count of Total Entities in the database(" + rdfdb.db_name()+") = " + recordCountEntity);
-        System.out.println("Record Count of Subject in the database(" + rdfdb.db_name()+") = " + recordCountSubject);
-        System.out.println("Record Count of Objects in the database(" + rdfdb.db_name()+") = " + recordCountObject);
-        System.out.println("Record Count of Predicate in the database(" + rdfdb.db_name()+") = " + recordCountPredicate);
+        System.out.println("Record Count of Quadruples in the database(" + rdfdb.db_name() + ") = " + recordCountQuadruple);
+        System.out.println("Record Count of Total Entities in the database(" + rdfdb.db_name() + ") = " + recordCountEntity);
+        System.out.println("Record Count of Subject in the database(" + rdfdb.db_name() + ") = " + recordCountSubject);
+        System.out.println("Record Count of Objects in the database(" + rdfdb.db_name() + ") = " + recordCountObject);
+        System.out.println("Record Count of Predicate in the database(" + rdfdb.db_name() + ") = " + recordCountPredicate);
     }
 
     private static String applyToFilter(String filter) {

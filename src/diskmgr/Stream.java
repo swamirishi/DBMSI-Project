@@ -81,7 +81,7 @@ public class Stream {
 
     public Quadruple getNext() throws Exception {
         int option = rdfDB.getIndexType();
-        if (option == 7) {
+        if (option == 6) {
             return quadrupleSort.get_next();
         } else {
             orderSubjectPredicateObject();
