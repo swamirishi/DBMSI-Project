@@ -21,10 +21,9 @@ import java.util.List;
 
 import static global.GlobalConst.INVALID_PAGE;
 
-public class RDFDB{
+public class RDFDB extends DB{
 
     private static final short REC_LEN1 = 150;
-
 
     private QuadrupleHeapFile quadrupleHeapFile;
     private LabelHeapFile entityLabelHeapFile;

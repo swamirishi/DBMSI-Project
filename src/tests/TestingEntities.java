@@ -1,4 +1,4 @@
-package qiterator;
+package tests;
 
 import btree.AddFileEntryException;
 import btree.ConstructPageException;
@@ -6,13 +6,16 @@ import btree.GetFileEntryException;
 import diskmgr.RDFDB;
 import global.*;
 import heap.*;
+import qiterator.QuadrupleUtils;
+import qiterator.QuadrupleUtilsException;
+import qiterator.QuadrupleUtilsTest;
 import quadrupleheap.Quadruple;
 
 import java.io.IOException;
 
 import static tests.RDFDBTest.quadrupleInitTest;
 
-public class QuadrupleUtilsTest {
+public class TestingEntities {
     static Quadruple q1;
     static Quadruple q2;
 
@@ -20,13 +23,6 @@ public class QuadrupleUtilsTest {
     SystemDefs sysdef = new SystemDefs(dbpath, 8193, 100, "Clock");
     public static RDFDB rdfdb;
 
-    static {
-        try {
-            rdfdb = new RDFDB(0);
-        } catch (ConstructPageException | AddFileEntryException | GetFileEntryException | IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     public static boolean assertEquals(int reportedValue, int expectedValue){
         return (reportedValue == expectedValue);
@@ -36,22 +32,15 @@ public class QuadrupleUtilsTest {
     }
 
     private static void init() throws Exception {
+        rdfdb = new RDFDB(1);
         EID subjectID = rdfdb.insertEntity("Dhruv");
-        EID objectID = rdfdb.insertEntity("Agja");
-        PID predicateID = rdfdb.insertPredicate("OP");
-        Quadruple q1 = quadrupleInitTest(subjectID, objectID, predicateID, 1.0f);
-        rdfdb.insertQuadruple(q1.getQuadrupleByteArray());
+        EID subjectID2 = rdfdb.insertEntity("Dhruv");
 
-        subjectID = rdfdb.insertEntity("Abhi");
-        objectID = rdfdb.insertEntity("Jindal");
-        predicateID = rdfdb.insertPredicate("Pro");
-        Quadruple q2 = quadrupleInitTest(subjectID, objectID, predicateID, 2.0f);
-        rdfdb.insertQuadruple(q2.getQuadrupleByteArray());
     }
 
     public static void main(String[] args) throws Exception {
         init();
-        if(QuadrupleUtilsTest.checkQuadrupleCompare()) System.out.println("TEST 1 status: PASSED");
+//        if(QuadrupleUtilsTest.checkQuadrupleCompare()) System.out.println("TEST 1 status: PASSED");
     }
 
     private static boolean checkQuadrupleCompare() throws Exception, QuadrupleUtilsException {

@@ -62,7 +62,7 @@ public class CommandLine {
         int index_option = Integer.parseInt(input[2]);
         String dbPath= dbName + "_" + index_option;
 
-        SystemDefs sysdef1 = new SystemDefs(dbPath, 50000, 50000, "Clock");
+        SystemDefs sysdef1 = new SystemDefs("databases/dbPath", 50000, 50000, "Clock");
         rdfdb = new RDFDB(index_option);
 
         String fileName = input[1];
@@ -119,8 +119,18 @@ public class CommandLine {
         rdfdb.insertInLabelBTree(subjectLabel, subjectId, predicateLabel, predicateId, objectLabel, objectId);
         rdfdb.insertInQIDBTree(q, qid);
     }
-    private static void runReport(String[] input) {
+    private static void runReport(String[] input) throws HFDiskMgrException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException {
+        int recordCountQuadruple = rdfdb.getQuadrupleCnt();
+        int recordCountEntity = rdfdb.getEntityCnt();
+        int recordCountSubject = rdfdb.getSubjectCnt();
+        int recordCountObject = rdfdb.getObjectCnt();
+        int recordCountPredicate = rdfdb.getPredicateCnt();
 
+        System.out.println("Record Count of Quadruples in the database(" + rdfdb.db_name()+") = " + recordCountQuadruple);
+        System.out.println("Record Count of Total Entities in the database(" + rdfdb.db_name()+") = " + recordCountEntity);
+        System.out.println("Record Count of Subject in the database(" + rdfdb.db_name()+") = " + recordCountSubject);
+        System.out.println("Record Count of Objects in the database(" + rdfdb.db_name()+") = " + recordCountObject);
+        System.out.println("Record Count of Predicate in the database(" + rdfdb.db_name()+") = " + recordCountPredicate);
     }
 
     private static String applyToFilter(String filter) {
