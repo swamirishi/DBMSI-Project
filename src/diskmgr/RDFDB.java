@@ -435,4 +435,8 @@ public class RDFDB extends DB {
                 break;
         }
     }
+
+    public void setIndexType(int indexoption) {
+        this.indexType=indexoption;
+    }
 }

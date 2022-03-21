@@ -51,7 +51,11 @@ public class CommandLine {
             }
             if (input[0].equals(Utils.QUERY)) {
                 System.out.println("Running Query ......................");
+                long startTime = System.currentTimeMillis();
                 runQuery(Arrays.copyOfRange(input, 1, input.length));
+                long endTime = System.currentTimeMillis();
+                long elapsedTime = endTime-startTime;
+                System.out.println("Time Elapsed in Query "+elapsedTime);
 
             } else if ((input[0].equals(Utils.REPORT))) {
                 System.out.println("Running Report ......................");
@@ -136,12 +140,13 @@ public class CommandLine {
 
     private static void runQuery(String[] input) throws Exception {
         String RDFDBNAME = input[0];
-        String INDEXOPTION = input[1];
+        int INDEXOPTION = Integer.parseInt(input[1]);
         int ORDER = Integer.parseInt(input[2]);
         String SUBJECTFILTER = input[3];
         String PREDICATEFILTER = input[4];
         String OBJECTFILTER = input[5];
         String CONFIDENCEFILTER = input[6];
+        rdfdb.setIndexType(INDEXOPTION);
 //        int NUMBUF = input[7] != null? Integer.parseInt(input[7]) : 0;
 
         SUBJECTFILTER = applyToFilter(SUBJECTFILTER);
@@ -154,7 +159,7 @@ public class CommandLine {
         Stream stream = rdfdb.openStream(ORDER, SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
         Quadruple currQuadruple = stream.getNext();
         while (currQuadruple != null) {
-//            System.out.println(currQuadruple);
+            System.out.println(currQuadruple);
             currQuadruple = stream.getNext();
         }
     }
