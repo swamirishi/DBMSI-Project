@@ -6,24 +6,13 @@ import global.RID;
 import heap.Tuple;
 import utils.supplier.btheaderpage.RIDBTreeHeaderPageSupplier;
 
-public class RIDBTFileScanSupplier implements BTFileScanSupplier<RID, Tuple> {
+public class RIDBTFileScanSupplier<K> implements BTFileScanSupplier<RID, Tuple,K> {
     @Override
     public BTFileScan getBTFileScan() {
         return new BTFileScan();
     }
     
-    private RIDBTFileScanSupplier() {
+    public RIDBTFileScanSupplier() {
     }
     
-    private static RIDBTFileScanSupplier supplier;
-    public static RIDBTFileScanSupplier getSupplier(){
-        if(supplier == null){
-            synchronized (RIDBTFileScanSupplier.class){
-                if(supplier == null){
-                    supplier = new RIDBTFileScanSupplier();
-                }
-            }
-        }
-        return supplier;
-    }
 }

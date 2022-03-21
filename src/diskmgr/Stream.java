@@ -1,499 +1,302 @@
 package diskmgr;
 
+import btree.KeyClass;
+import btree.KeyNotMatchException;
+import btree.KeyTooLongException;
+import btree.StringKey;
+import btree.label.LIDBTreeFile;
+import btree.quadraple.QIDBTreeFile;
 import global.*;
 import heap.*;
+import index.IndexException;
+import index.IndexUtils;
+import index.UnknownIndexTypeException;
+import index.label.LIDIndexScan;
+import index.quadraple.QIDIndexScan;
+import iterator.*;
 import labelheap.LabelHeapFile;
+import qiterator.QuadrupleSort;
+import qiterator.QuadrupleUtils;
 import quadrupleheap.Quadruple;
 import quadrupleheap.QuadrupleHeapFile;
 import quadrupleheap.THFPage;
+import quadrupleheap.TScan;
+import utils.supplier.keyclass.FloatKeyClassManager;
+import utils.supplier.keyclass.IDListKeyClassManager;
+import utils.supplier.keyclass.KeyClassManager;
+import utils.supplier.keyclass.LIDKeyClassManager;
 
 import java.io.IOException;
 import java.util.*;
 
+import static global.AttrType.*;
 import static global.GlobalConst.INVALID_PAGE;
 
 public class Stream {
+    public static QuadrupleSort quadrupleSort;
+    public static RDFDB rdfDB;
+    public static String subjectFilter;
+    public static String predicateFilter;
+    public static String objectFilter;
+    public static Float confidenceFilter;
 
-    /**
-     * The heapfile we are using.
-     */
-    private QuadrupleHeapFile quadrupleHeapFile;
+//    LIDIndexScan<Void> subjectIndexScan;
+//    LIDIndexScan<Void> predicateIndexScan;
+//    LIDIndexScan<Void> objectIndexScan;
 
-    /**
-     * PageId of current directory page (which is itself an HFPage)
-     */
-    private PageId dirpageId = new PageId();
+    public static final int maxLabelLen = 50;
+    public int orderType;
 
-    /**
-     * pointer to in-core data of dirpageId (page is pinned)
-     */
-    private THFPage dirpage = new THFPage();
+    public Stream(RDFDB rdfdb, int orderType, String subjectFil, String predicateFil,
+                  String objectFil, Double confidenceFil) throws Exception {
+        rdfDB = rdfdb;
+        QuadrupleUtils.rdfdb = rdfdb;
+        this.orderType = orderType;
 
-    /**
-     * record ID of the DataPageInfo struct (in the directory page) which
-     * describes the data page where our current record lives.
-     */
-    private QID datapageQid = new QID();
+        TScan tScan = new TScan(rdfDB.getQuadrupleHeapFile());
+        TupleOrder tupleOrders = new TupleOrder(0);
 
-    /**
-     * the actual PageId of the data page with the current record
-     */
-    private PageId datapageId = new PageId();
+        AttrType[] attrTypes = Quadruple.headerTypes;
+        short len = (short) attrTypes.length;
+        short[] strSizes = Quadruple.strSizes;
 
-    /**
-     * in-core copy (pinned) of the same
-     */
-    private THFPage datapage = new THFPage();
+        QuadrupleSort.subjectFilter = subjectFil;
+        QuadrupleSort.predicateFilter = predicateFil;
+        QuadrupleSort.objectFilter = objectFil;
+        QuadrupleSort.confidenceFilter = confidenceFil == null ? 0 : confidenceFil.floatValue();
 
-    /**
-     * record ID of the current record (from the current data page)
-     */
-    private QID userqid = new QID();
+        subjectFilter = subjectFil;
+        predicateFilter = predicateFil;
+        objectFilter = objectFil;
+        confidenceFilter = confidenceFil == null ? 0 : confidenceFil.floatValue();
 
-    /**
-     * Status of next user status
-     */
-    private boolean nextUserStatus;
+        int indexType = rdfdb.getIndexType();
 
-    //using list instead of collection?
-    private final List<Quadruple> quadrupleList = new ArrayList<>();
+        quadrupleSort = new QuadrupleSort(rdfDB, orderType, attrTypes, len, strSizes,
+                tScan, 3, tupleOrders, 31, 1024);
 
-    private Iterator<Quadruple> iterator;
-
-    public Stream(RDFDB rdfDB, int orderType, String subjectFilter, String predicateFilter,
-                  String objectFilter, double confidenceFilter) throws Exception {
-        this.quadrupleHeapFile = rdfDB.getQuadrupleHeapFile();
-
-        //get to the first data page.
-        firstDataPage();
-
-        Quadruple currQuadruple = null;
-        LabelHeapFile entityLabelHeapFile = rdfDB.getEntityLabelHeapFile();
-        LabelHeapFile predicateLabelHeapFile = rdfDB.getPredicateLabelHeapFile();
-        EID currSubjectID;
-        EID currObjectID;
-        PID currPredicateID;
-
-        //assuming last record is null.
-        try {
-            currQuadruple = this.quadrupleHeapFile.getRecord(userqid);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-//        currQuadruple = getNextInternal(userqid);
-
-        do {
-
-            currSubjectID = currQuadruple.getSubject();
-            currObjectID = currQuadruple.getObject();
-            currPredicateID = currQuadruple.getPredicate();
-            String currSubject = entityLabelHeapFile.getRecord(currSubjectID.returnLid()).getLabel();
-
-
-            //filters
-            //ignoring ordertype
-
-            //subject filter
-            if (subjectFilter != null) {
-                if (!entityLabelHeapFile.getRecord(currSubjectID.returnLid()).getLabel().equals(subjectFilter)) {
-                    currQuadruple = getNextInternal(userqid);
-                    continue;
-                }
-            }
-            //predicate filter
-            if (predicateFilter != null) {
-                if (predicateLabelHeapFile.getRecord(currPredicateID.returnLid()).getLabel().compareTo(predicateFilter) != 0) {
-                    currQuadruple = getNextInternal(userqid);
-                    continue;
-                }
-            }
-            //object filter
-            if (objectFilter != null) {
-                if (entityLabelHeapFile.getRecord(currObjectID.returnLid()).getLabel().compareTo(objectFilter) != 0) {
-                    currQuadruple = getNextInternal(userqid);
-                    continue;
-                }
-            }
-
-            //confidence filter
-            if (confidenceFilter != 0) {
-                if (currQuadruple.getValue() < confidenceFilter) {
-                    currQuadruple = getNextInternal(userqid);
-                    continue;
-                }
-            }
-
-            //passed all filters => store this quadruple in collection
-            currQuadruple = getNextInternal(userqid);
-            if(currQuadruple!=null)
-                quadrupleList.add(currQuadruple);
-
-        } while (userqid != null);
-
-        //sort the collection according to the orderType
-        quadrupleList.sort(new SortOnOrder(orderType));
-        iterator = quadrupleList.iterator();
-    }
-
-    public Quadruple getNext() {
-        if (iterator.hasNext()) {
-            return iterator.next();
-        }
-        return null;
+//        subjectIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.subjectBTreeFileName, subjectFilter);
+//        predicateIndexScan = initializeLabelScan(RDFDB.predicateLabelFileName, RDFDB.predicateBTreeFileName, predicateFilter);
+//        objectIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.objectBTreeFileName, objectFilter);
     }
 
 
-    /**
-     * Retrieve the next record in a sequential scan
-     *
-     * @param qid Record ID of the record
-     * @return the aTuple of the retrieved record.
-     * @throws InvalidTupleSizeException Invalid tuple size
-     * @throws IOException               I/O errors
-     */
-    public Quadruple getNextInternal(QID qid)
-            throws InvalidTupleSizeException,
-            IOException, HFBufMgrException, InvalidSlotNumberException {
-        Quadruple quadruple = null;
+    public Quadruple getNext() throws Exception {
+//        int option = rdfDB.getIndexType();
+//        if (option == 6) {
+//            return quadrupleSort.get_next();
+//        } else {
+//            orderSubjectPredicateObject();
+//            return null;
+//        }
+        return quadrupleSort.get_next();
+    }
 
-        if (nextUserStatus != true) {
-            nextDataPage();
+    private LIDIndexScan<Void> initializeLabelScan(String heapFileName, String bTreeFileName, String filter) throws IndexException, InvalidTupleSizeException, IOException, UnknownIndexTypeException, InvalidTypeException {
+        AttrType[] attrType = new AttrType[1];
+        attrType[0] = new AttrType(AttrType.attrString);
+        short[] attrSize = new short[1];
+        attrSize[0] = maxLabelLen;
+
+        FldSpec[] projlist = new FldSpec[1];
+        RelSpec rel = new RelSpec(RelSpec.outer);
+        projlist[0] = new FldSpec(rel, 1);
+
+        CondExpr[] expr = new CondExpr[2];
+        expr[0] = new CondExpr();
+        expr[0].op = new AttrOperator(AttrOperator.aopEQ);
+        expr[0].type1 = new AttrType(AttrType.attrSymbol);
+        expr[0].type2 = new AttrType(AttrType.attrString);
+        expr[0].operand1.symbol = new FldSpec(new RelSpec(RelSpec.outer), 1);
+        expr[0].operand2.string = filter;
+        expr[0].next = null;
+        expr[1] = null;
+
+        LIDIndexScan<Void> iscan = new LIDIndexScan<Void>(new IndexType(IndexType.B_Index),
+                heapFileName,
+                bTreeFileName,
+                attrType,
+                attrSize,
+                1,
+                1,
+                projlist,
+                expr,
+                1,
+                false) {
+            @Override
+            public KeyClassManager<Void> getKeyClassManager() {
+                return null;
+            }
+        };
+        return iscan;
+    }
+
+    public void orderSubjectPredicateObject() throws Exception {
+        LIDIndexScan<Void> subjectIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.subjectBTreeFileName, subjectFilter);
+        LID subjectID = subjectIndexScan.get_next_rid();
+        while (subjectID != null) {
+            LIDIndexScan<Void> predicateIndexScan = initializeLabelScan(RDFDB.predicateLabelFileName, RDFDB.predicateBTreeFileName, predicateFilter);
+            LID predicateID = predicateIndexScan.get_next_rid();
+            while (predicateID != null) {
+                LIDIndexScan<Void> objectIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.objectBTreeFileName, objectFilter);
+                LID objectID = objectIndexScan.get_next_rid();
+                int objectC=0;
+                while (objectID != null) {
+                    objectC++;
+                    queryInQIDBTreeFile(subjectID, predicateID, objectID,Optional.empty());
+                    objectID = objectIndexScan.get_next_rid();
+                }
+                predicateID = predicateIndexScan.get_next_rid();
+            }
+            subjectID = subjectIndexScan.get_next_rid();
+        }
+    }
+
+    private void queryInQIDBTreeFile(LID subjectID, LID predicateID, LID objectID,Optional<Float> confidenceValue) throws Exception {
+        int indexOption = rdfDB.getIndexType();
+        KeyClass filter = null;
+        List<KeyClassManager> list;
+        IDListKeyClassManager idListKeyClassManager;
+        StringKey key;
+        switch (indexOption) {
+            case 1:
+                list = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+                idListKeyClassManager = new IDListKeyClassManager(list, 20, 10);
+                key = (StringKey) idListKeyClassManager.getKeyClass(Arrays.asList(subjectID, predicateID, objectID));
+                filter = key;
+                break;
+            case 2:
+                list = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(),LIDKeyClassManager.getSupplier());
+                idListKeyClassManager = new IDListKeyClassManager(list, 20, 10);
+                key = (StringKey) idListKeyClassManager.getKeyClass(Arrays.asList(objectID, subjectID));
+                filter = key;
+                break;
+            case 3:
+                list = Arrays.asList(LIDKeyClassManager.getSupplier());
+                idListKeyClassManager = new IDListKeyClassManager(list, 20, 10);
+                key = (StringKey) idListKeyClassManager.getKeyClass(Arrays.asList(confidenceValue.get(), subjectID));
+                filter = key;
+                break;
+            case 4:
+                list = Arrays.asList(LIDKeyClassManager.getSupplier());
+                idListKeyClassManager = new IDListKeyClassManager(list, 20, 10);
+                key = (StringKey) idListKeyClassManager.getKeyClass(Arrays.asList(confidenceValue.get(), objectID));
+                filter = key;
+                break;
+            case 5:
+                list = Arrays.asList(LIDKeyClassManager.getSupplier());
+                idListKeyClassManager = new IDListKeyClassManager(list, 20, 10);
+                key = (StringKey) idListKeyClassManager.getKeyClass(Arrays.asList(predicateID,objectID, subjectID));
+                filter = key;
+                break;
         }
 
-        if (datapage == null)
-            return null;
+        QIDIndexScan<List<?>> qidIndexScan = initializeQIDScan(filter);
+        getQuadruplesFromScanAndHeapFile(qidIndexScan);
+    }
 
-        qid.pageNo.pid = userqid.pageNo.pid;
-        qid.slotNo = userqid.slotNo;
+    private void getQuadruplesFromScanAndHeapFile(QIDIndexScan<List<?>> qidIndexScan) throws Exception {
+        Quadruple q = qidIndexScan.get_next();
+        while (q != null) {
+            String predicateLabel = rdfDB.getPredicateLabelHeapFile().getRecord(q.getPredicate().returnLid()).getLabel();
+            String objectLabel = rdfDB.getEntityLabelHeapFile().getRecord(q.getObject().returnLid()).getLabel();
+            String subjectLabel = rdfDB.getEntityLabelHeapFile().getRecord(q.getSubject().returnLid()).getLabel();
 
-        quadruple = datapage.getRecord(qid);
+            if (subjectFilter != null && subjectFilter.equals(subjectLabel) && objectFilter != null
+                    && objectFilter.equals(objectLabel) && predicateFilter != null && predicateFilter.equals(predicateLabel)) {
+                System.out.println(q);
+            }
+            q = qidIndexScan.get_next();
+        }
+    }
 
-        userqid = datapage.nextRecord(qid);
-        if (userqid == null) {
-            nextUserStatus = false;
-        } else {
-            nextUserStatus = true;
+    private QIDIndexScan<List<?>> initializeQIDScan(KeyClass filter) throws IndexException, InvalidTupleSizeException, IOException, UnknownIndexTypeException, InvalidTypeException {
+        RelSpec rel = new RelSpec(RelSpec.outer);
+        FldSpec[] projlist2 = new FldSpec[Quadruple.numberOfFields];
+
+        for (int i = 0; i < projlist2.length; i++)
+            projlist2[i] = new FldSpec(rel, i + 1);
+
+        CondExpr[] expr = new CondExpr[2];
+        expr[0] = new CondExpr();
+        expr[0].op = new AttrOperator(AttrOperator.aopEQ);
+        expr[0].type1 = new AttrType(AttrType.attrSymbol);
+        expr[0].type2 = new AttrType(AttrType.attrString);
+        expr[0].operand1.symbol = new FldSpec(new RelSpec(RelSpec.outer), 1);
+        expr[0].operand2.string = ((StringKey) filter).getKey();
+        expr[0].next = null;
+        expr[1] = null;
+
+        IndexType indexType = new IndexType(IndexType.B_Index);
+        QIDIndexScan<List<?>> qidScan = new QIDIndexScan<List<?>>(indexType, RDFDB.quadrupleHeapFileName, RDFDB.qidBTreeFileName,
+                Quadruple.headerTypes, Quadruple.strSizes, 7, 7, projlist2, null, 1, false, filter, rdfDB.getIndexType()) {
+            @Override
+            public KeyClassManager<List<?>> getKeyClassManager() {
+                List<KeyClassManager> keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(),
+                        LIDKeyClassManager.getSupplier());
+                return new IDListKeyClassManager(keyClassManagers, 20, 10);
+            }
+        };
+        return qidScan;
+    }
+
+    public void orderPredicateSubjectObject() throws Exception {
+        LIDIndexScan<Void> predicateIndexScan = initializeLabelScan(RDFDB.predicateLabelFileName, RDFDB.predicateBTreeFileName, predicateFilter);
+        LID predicateID = predicateIndexScan.get_next_rid();
+        while (predicateID != null) {
+            LIDIndexScan<Void> subjectIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.subjectBTreeFileName, subjectFilter);
+            LID subjectID = subjectIndexScan.get_next_rid();
+            while (subjectID != null) {
+                LIDIndexScan<Void> objectIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.objectBTreeFileName, objectFilter);
+                LID objectID = objectIndexScan.get_next_rid();
+                int objectC=0;
+                while (objectID != null) {
+                    objectC++;
+                    queryInQIDBTreeFile(subjectID, predicateID, objectID,Optional.empty());
+                    System.out.println("ObjectCounter: "+objectC);
+                    objectID = objectIndexScan.get_next_rid();
+                }
+                subjectID = subjectIndexScan.get_next_rid();
+            }
+            predicateID = predicateIndexScan.get_next_rid();
         }
 
-        return quadruple;
+//        while (subjectID != null) {
+//            subjectC++;
+//            subjectID = subjectIndexScan.get_next_rid();
+//        }
+    }
+
+    public void orderSubject() throws Exception {
+        LIDIndexScan<Void> subjectIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.subjectBTreeFileName, subjectFilter);
+        LID subjectID = subjectIndexScan.get_next_rid();
+        while (subjectID != null) {
+            queryInQIDBTreeFile(subjectID, null, null,Optional.empty());
+        }
+    }
+
+    public void orderPredicate() throws Exception {
+        LIDIndexScan<Void> predicateIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.objectBTreeFileName, predicateFilter);
+        LID predicateId = predicateIndexScan.get_next_rid();
+        while (predicateId != null) {
+            queryInQIDBTreeFile(null, predicateId, null,Optional.empty());
+        }
+    }
+
+    public void orderObject() throws Exception {
+        LIDIndexScan<Void> objectIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.objectBTreeFileName, objectFilter);
+        LID objectID = objectIndexScan.get_next_rid();
+        while (objectID != null) {
+            queryInQIDBTreeFile(null, null, objectID,Optional.empty());
+        }
+
     }
 
     /**
      * Closes the Scan object
      */
-    public void closeStream() throws HFBufMgrException {
-        if (datapage != null) {
-            unpinPage(datapageId, false);
-        }
-        datapageId.pid = 0;
-        datapage = null;
-
-        if (dirpage != null) {
-            unpinPage(dirpageId, false);
-        }
-        dirpage = null;
-
-        nextUserStatus = true;
+    public void closeStream() throws HFBufMgrException, SortException, IOException {
+        quadrupleSort.close();
     }
-
-    /**
-     * Move to the first data page in the file.
-     *
-     * @return true if successful
-     * false otherwise
-     * @throws InvalidTupleSizeException Invalid tuple size
-     * @throws IOException               I/O errors
-     */
-    private boolean firstDataPage()
-            throws InvalidTupleSizeException,
-            IOException {
-        DataPageInfo dpinfo;
-        Quadruple quadruple = null;
-        Boolean bst;
-
-        /** copy data about first directory page */
-
-        dirpageId.pid = quadrupleHeapFile.getFirstDirPageId().pid;
-        nextUserStatus = true;
-
-        /** get first directory page and pin it */
-        try {
-            dirpage = new THFPage();
-            pinPage(dirpageId, (Page) dirpage, false);
-        } catch (Exception e) {
-            //    System.err.println("SCAN Error, try pinpage: " + e);
-            e.printStackTrace();
-        }
-
-        /** now try to get a pointer to the first datapage */
-        datapageQid = dirpage.firstRecord();
-
-        if (datapageQid != null) {
-            /** there is a datapage record on the first directory page: */
-
-            try {
-                quadruple = dirpage.getRecord(datapageQid);
-            } catch (Exception e) {
-                //	System.err.println("SCAN: Chain Error in Scan: " + e);
-                e.printStackTrace();
-            }
-
-            dpinfo = new DataPageInfo(quadruple);
-            datapageId.pid = dpinfo.pageId.pid;
-
-        } else {
-
-            /** the first directory page is the only one which can possibly remain
-             * empty: therefore try to get the next directory page and
-             * check it. The next one has to contain a datapage record, unless
-             * the heapfile is empty:
-             */
-            PageId nextDirPageId = new PageId();
-
-            nextDirPageId = dirpage.getNextPage();
-
-            if (nextDirPageId.pid != INVALID_PAGE) {
-
-                try {
-                    unpinPage(dirpageId, false);
-                    dirpage = null;
-                } catch (Exception e) {
-                    //	System.err.println("SCAN: Error in 1stdatapage 1 " + e);
-                    e.printStackTrace();
-                }
-
-                try {
-
-                    dirpage = new THFPage();
-                    pinPage(nextDirPageId, (Page) dirpage, false);
-
-                } catch (Exception e) {
-                    //  System.err.println("SCAN: Error in 1stdatapage 2 " + e);
-                    e.printStackTrace();
-                }
-
-                /** now try again to read a data record: */
-
-                try {
-                    datapageQid = dirpage.firstRecord();
-                } catch (Exception e) {
-                    //  System.err.println("SCAN: Error in 1stdatapg 3 " + e);
-                    e.printStackTrace();
-                    datapageId.pid = INVALID_PAGE;
-                }
-
-                if (datapageQid != null) {
-
-                    try {
-
-                        quadruple = dirpage.getRecord(datapageQid);
-                    } catch (Exception e) {
-                        //    System.err.println("SCAN: Error getRecord 4: " + e);
-                        e.printStackTrace();
-                    }
-
-                    if (quadruple.getLength() != DataPageInfo.size)
-                        return false;
-
-                    dpinfo = new DataPageInfo(quadruple);
-                    datapageId.pid = dpinfo.pageId.pid;
-
-                } else {
-                    // heapfile empty
-                    datapageId.pid = INVALID_PAGE;
-                }
-            }//end if01
-            else {// heapfile empty
-                datapageId.pid = INVALID_PAGE;
-            }
-        }
-
-        datapage = null;
-
-        try {
-            nextDataPage();
-        } catch (Exception e) {
-            //  System.err.println("SCAN Error: 1st_next 0: " + e);
-            e.printStackTrace();
-        }
-
-        return true;
-
-        /** ASSERTIONS:
-         * - first directory page pinned
-         * - this->dirpageId has Id of first directory page
-         * - this->dirpage valid
-         * - if heapfile empty:
-         *    - this->datapage == NULL, this->datapageId==INVALID_PAGE
-         * - if heapfile nonempty:
-         *    - this->datapage == NULL, this->datapageId, this->datapageQid valid
-         *    - first datapage is not yet pinned
-         */
-
-    }
-
-
-    /**
-     * Move to the next data page in the file and
-     * retrieve the next data page.
-     *
-     * @return true if successful
-     * false if unsuccessful
-     */
-    private boolean nextDataPage()
-            throws InvalidTupleSizeException,
-            IOException, HFBufMgrException {
-        DataPageInfo dpinfo;
-        Quadruple quadruple = null;
-        PageId nextDirPageId;
-        // ASSERTIONS:
-        // - this->dirpageId has Id of current directory page
-        // - this->dirpage is valid and pinned
-        // (1) if heapfile empty:
-        //    - this->datapage==NULL; this->datapageId == INVALID_PAGE
-        // (2) if overall first record in heapfile:
-        //    - this->datapage==NULL, but this->datapageId valid
-        //    - this->datapageQid valid
-        //    - current data page unpinned !!!
-        // (3) if somewhere in heapfile
-        //    - this->datapageId, this->datapage, this->datapageQid valid
-        //    - current data page pinned
-        // (4)- if the scan had already been done,
-        //        dirpage = NULL;  datapageId = INVALID_PAGE
-
-        if (dirpage == null && datapageId.pid == INVALID_PAGE)
-            return false;
-
-        if (datapage == null) {
-            datapage = new THFPage();
-            pinPage(datapageId, (Page) datapage, false);
-            userqid = datapage.firstRecord();
-            return true;
-        }
-
-        // ASSERTIONS:
-        // - this->datapage, this->datapageId, this->datapageQid valid
-        // - current datapage pinned
-
-        // unpin the current datapage
-        unpinPage(datapageId, false /* no dirty */);
-        datapage = null;
-
-        // read next datapagerecord from current directory page
-        // dirpage is set to NULL at the end of scan. Hence
-
-        if (dirpage == null) {
-            return false;
-        }
-
-        datapageQid = dirpage.nextRecord(datapageQid);
-
-        if (datapageQid == null) {
-            // we have read all datapage records on the current directory page
-            // get next directory page
-            nextDirPageId = dirpage.getNextPage();
-
-            // unpin the current directory page
-            unpinPage(dirpageId, false /* not dirty */);
-            dirpage = null;
-            datapageId.pid = INVALID_PAGE;
-
-            if (nextDirPageId.pid == INVALID_PAGE)
-                return false;
-            else {
-                // ASSERTION:
-                // - nextDirPageId has correct id of the page which is to get
-
-                dirpageId = nextDirPageId;
-                dirpage = new THFPage();
-                pinPage(dirpageId, (Page) dirpage, false);
-
-                if (dirpage == null)
-                    return false;
-
-                try {
-                    datapageQid = dirpage.firstRecord();
-                } catch (Exception e) {
-                    return false;
-                }
-            }
-        }
-
-        // ASSERTION:
-        // - this->dirpageId, this->dirpage valid
-        // - this->dirpage pinned
-        // - the new datapage to be read is on dirpage
-        // - this->datapageQid has the Qid of the next datapage to be read
-        // - this->datapage, this->datapageId invalid
-
-        // data page is not yet loaded: read its record from the directory page
-        try {
-            quadruple = dirpage.getRecord(datapageQid);
-        } catch (Exception e) {
-            System.err.println("HeapFile: Error in Scan" + e);
-        }
-
-        if (quadruple.getLength() != DataPageInfo.size)
-            return false;
-
-        dpinfo = new DataPageInfo(quadruple);
-        datapageId.pid = dpinfo.pageId.pid;
-
-        try {
-            datapage = new THFPage();
-            pinPage(dpinfo.pageId, (Page) datapage, false);
-        } catch (Exception e) {
-            System.err.println("HeapFile: Error in Scan" + e);
-        }
-
-
-        // - directory page is pinned
-        // - datapage is pinned
-        // - this->dirpageId, this->dirpage correct
-        // - this->datapageId, this->datapage, this->datapageQid correct
-
-        userqid = datapage.firstRecord();
-
-        if (userqid == null) {
-            nextUserStatus = false;
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * short cut to access the pinPage function in bufmgr package.
-     *
-     * @see bufmgr.BufMgr.pinPage
-     */
-    private void pinPage(PageId pageno, Page page, boolean emptyPage)
-            throws HFBufMgrException {
-
-        try {
-            SystemDefs.JavabaseBM.pinPage(pageno, page, emptyPage);
-        } catch (Exception e) {
-            throw new HFBufMgrException(e, "Scan.java: pinPage() failed");
-        }
-
-    } // end of pinPage
-
-    /**
-     * short cut to access the unpinPage function in bufmgr package.
-     *
-     * @see bufmgr.unpinPage
-     */
-    private void unpinPage(PageId pageno, boolean dirty)
-            throws HFBufMgrException {
-
-        try {
-            SystemDefs.JavabaseBM.unpinPage(pageno, dirty);
-        } catch (Exception e) {
-            throw new HFBufMgrException(e, "Scan.java: unpinPage() failed");
-        }
-
-    } // end of unpinPage
-
 }
 

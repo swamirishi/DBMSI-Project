@@ -49,7 +49,7 @@ import java.io.IOException;
  * abstract base class IndexFile.
  * It provides an insert/delete interface.
  */
-public class QIDBTreeFile extends BTreeFileI<QID, Quadruple> {
+public abstract class QIDBTreeFile<K> extends BTreeFileI<QID, Quadruple,K> {
 	@Override
 	public BTreeHeaderPageSupplier<QID, Quadruple> getBTreeHeaderPageSupplier() {
 		return QIDBTreeHeaderPageSupplier.getSupplier();
@@ -86,8 +86,8 @@ public class QIDBTreeFile extends BTreeFileI<QID, Quadruple> {
 	}
 	
 	@Override
-	public BTFileScanSupplier<QID, Quadruple> getBTFileScanSupplier() {
-		return QIDBTFileScanSupplier.getSupplier();
+	public BTFileScanSupplier<QID, Quadruple,K> getBTFileScanSupplier() {
+		return new QIDBTFileScanSupplier();
 	}
 	
 	/**

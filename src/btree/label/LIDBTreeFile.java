@@ -49,7 +49,7 @@ import java.io.IOException;
  * abstract base class IndexFile.
  * It provides an insert/delete interface.
  */
-public class LIDBTreeFile extends BTreeFileI<LID, Label> {
+public abstract class LIDBTreeFile<K> extends BTreeFileI<LID, Label,K> {
 	@Override
 	public BTreeHeaderPageSupplier<LID, Label> getBTreeHeaderPageSupplier() {
 		return LIDBTreeHeaderPageSupplier.getSupplier();
@@ -86,8 +86,8 @@ public class LIDBTreeFile extends BTreeFileI<LID, Label> {
 	}
 	
 	@Override
-	public BTFileScanSupplier<LID, Label> getBTFileScanSupplier() {
-		return LIDBTFileScanSupplier.getSupplier();
+	public BTFileScanSupplier<LID, Label,K> getBTFileScanSupplier() {
+		return new LIDBTFileScanSupplier<K>();
 	}
 	
 	/**
@@ -160,10 +160,7 @@ public class LIDBTreeFile extends BTreeFileI<LID, Label> {
    *@exception PinPageException  failed when pin a page
    *@exception ConstructPageException   BT page constructor failed
    */
-  public LIDBTreeFile(String filename)
-    throws GetFileEntryException,
-	   PinPageException,
-	   ConstructPageException
+  public LIDBTreeFile(String filename) throws GetFileEntryException,PinPageException,ConstructPageException
     {
       super(filename);
     }

@@ -8,6 +8,7 @@ import bufmgr.*;
 import diskmgr.*;
 import global.*;
 import btree.*;
+import utils.supplier.keyclass.KeyClassManager;
 
 /** Note that in JAVA, methods can't be overridden to be more private.
     Therefore, the declaration of all private functions are now declared
@@ -140,7 +141,12 @@ class BTDriver  implements GlobalConst
     deleteFashion=1; //full delete
     try{
       System.out.println(" ***************** The file name is: "+ "AAA"+postfix +"  **********"); 
-      file=new BTreeFile("AAA"+postfix, keyType, 4, 1);//full delete
+      file= new BTreeFile<Void>("AAA" + postfix, keyType, 4, 1) {
+          @Override
+          public KeyClassManager<Void> getKeyClassManager() {
+              return null;
+          }
+      };//full delete
     }
     catch(Exception e) {
       e.printStackTrace();
@@ -158,13 +164,23 @@ class BTDriver  implements GlobalConst
 	  postfix++;
 	  deleteFashion=0; //naive delete
 	  System.out.println(" ***************** The file name is: "+ "AAA"+postfix +"  **********"); 
-	  file=new BTreeFile("AAA"+postfix, keyType, 100, 0);//naive delete
+	  file= new BTreeFile<Void>("AAA" + postfix, keyType, 100, 0) {
+        @Override
+        public KeyClassManager<Void> getKeyClassManager() {
+            return null;
+        }
+    };//naive delete
 	  break;            
 	case 1:
 	  postfix++; 
 	  deleteFashion=1; //full delete
 	  System.out.println(" ***************** The file name is: "+ "AAA"+postfix +"  **********"); 
-	  file=new BTreeFile("AAA"+postfix, keyType, 100, 1);//full delete
+	  file= new BTreeFile<Void>("AAA" + postfix, keyType, 100, 1) {
+        @Override
+        public KeyClassManager<Void> getKeyClassManager() {
+            return null;
+        }
+    };//full delete
 	  break;
 	case 2:
 	  BT.printBTree(file.getHeaderPage()); 
@@ -297,13 +313,23 @@ class BTDriver  implements GlobalConst
 	  file.close();
 	  n=GetStuff.getChoice();
 	  System.out.println(" ***************** You open the file: "+ "AAA"+n +"  **********"); 
-	  file = new BTreeFile("AAA"+n);
+	  file = new BTreeFile<Void>("AAA" + n) {
+        @Override
+        public KeyClassManager<Void> getKeyClassManager() {
+            return null;
+        }
+    };
 	  break;         
 	case 18:
 	  file.close();
 	  n=GetStuff.getChoice();
 	  System.out.println(" ***************** You destroy the file: "+ "AAA"+n +"  **********"); 
-	  file = new BTreeFile("AAA"+n);
+	  file = new BTreeFile<Void>("AAA" + n) {
+        @Override
+        public KeyClassManager<Void> getKeyClassManager() {
+            return null;
+        }
+    };
 	  file.destroyFile();    
 	  break;         
 	case 19:
@@ -330,7 +356,12 @@ class BTDriver  implements GlobalConst
     {
       try {
 	System.out.println(" ***************** The file name is: "+ "AAA"+postfix +"  **********");  
-	file=new BTreeFile("AAA"+postfix, keyType, 4, deleteFashion); 
+	file= new BTreeFile<Void>("AAA" + postfix, keyType, 4, deleteFashion) {
+      @Override
+      public KeyClassManager<Void> getKeyClassManager() {
+          return null;
+      }
+  };
 	file.traceFilename("TRACE");
 	
 	KeyClass key;
@@ -361,7 +392,12 @@ class BTDriver  implements GlobalConst
     try {
 
        System.out.println(" ***************** The file name is: "+ "AAA"+postfix +"  **********");  
-       file=new BTreeFile("AAA"+postfix, keyType, 4, deleteFashion); 
+       file= new BTreeFile<Void>("AAA" + postfix, keyType, 4, deleteFashion) {
+           @Override
+           public KeyClassManager<Void> getKeyClassManager() {
+               return null;
+           }
+       };
        file.traceFilename("TRACE");
 
        KeyClass key;
@@ -389,7 +425,12 @@ class BTDriver  implements GlobalConst
   {
     try {
        System.out.println(" ***************** The file name is: "+ "AAA"+postfix +"  **********"); 
-       file=new BTreeFile("AAA"+postfix, keyType, 4, deleteFashion); 
+       file= new BTreeFile<Void>("AAA" + postfix, keyType, 4, deleteFashion) {
+           @Override
+           public KeyClassManager<Void> getKeyClassManager() {
+               return null;
+           }
+       };
        file.traceFilename("TRACE");
 
        int[] k=new int[n];
@@ -441,7 +482,12 @@ class BTDriver  implements GlobalConst
  {
     try {
        System.out.println(" ***************** The file name is: "+ "AAA"+postfix +"  **********"); 
-       file=new BTreeFile("AAA"+postfix, keyType, 4, deleteFashion); 
+       file= new BTreeFile<Void>("AAA" + postfix, keyType, 4, deleteFashion) {
+           @Override
+           public KeyClassManager<Void> getKeyClassManager() {
+               return null;
+           }
+       };
        file.traceFilename("TRACE");
 
        int[] k=new int[n];
@@ -523,7 +569,12 @@ class BTDriver  implements GlobalConst
     try {
 
        System.out.println(" ***************** The file name is: "+ "AAA"+postfix +"  **********"); 
-       file=new BTreeFile("AAA"+postfix, keyType, 20, deleteFashion); 
+       file= new BTreeFile<Void>("AAA" + postfix, keyType, 20, deleteFashion) {
+           @Override
+           public KeyClassManager<Void> getKeyClassManager() {
+               return null;
+           }
+       };
        file.traceFilename("TRACE");
 
        int[] k=new int[n];
