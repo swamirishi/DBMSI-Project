@@ -22,7 +22,9 @@ public class Label extends Tuple {
     private static final short numberOfFields = 1;
     private static final AttrType stringType = new AttrType(AttrType.attrString);
     private static final AttrType[] headerTypes = new AttrType[]{stringType};
-    private static final short[] strLengths = new short[]{200};
+
+    public static final int MAX_LENGTH = 200;
+    private static final short[] strLengths = new short[]{MAX_LENGTH};
     private static int LABEL_FLD = 1;
     private boolean hdrSet = false;
     public Label(String label) throws InvalidTupleSizeException, IOException, InvalidTypeException {
