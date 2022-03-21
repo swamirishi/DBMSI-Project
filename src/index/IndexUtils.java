@@ -1,13 +1,23 @@
 package index;
 import btree.interfaces.BTreeFileI;
+import diskmgr.RDFDB;
 import global.*;
 import btree.*;
+import heap.InvalidTupleSizeException;
+import heap.InvalidTypeException;
 import heap.Tuple;
+import index.label.LIDIndexScan;
+import index.quadraple.QIDIndexScan;
 import iterator.*;
-import utils.supplier.btfile.BTreeFileSupplier;
+import labelheap.Label;
+import quadrupleheap.Quadruple;
+import utils.supplier.keyclass.IDListKeyClassManager;
+import utils.supplier.keyclass.KeyClassManager;
+import utils.supplier.keyclass.LIDKeyClassManager;
 
 import java.io.*;
-
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * IndexUtils class opens an index scan based on selection conditions.
@@ -197,6 +207,136 @@ public class IndexUtils {
 	throw new UnknownKeyTypeException("IndexUtils.java: Only Integer and String keys are supported so far");
     }
     
+  }
+//  public static <K> QIDIndexScan<K> getQIDIndexScan(String heapFileName, String bTreeFileName, KeyClassManager<K> keyClassManager, K filter, int indexOption) throws KeyTooLongException, KeyNotMatchException {
+//	  KeyClass k = keyClassManager.getKeyClass(filter);
+//  	AttrType[] attrType = new AttrType[1];
+//	  attrType[0] = new AttrType(AttrType.attrString);
+//	  short[] attrSize = new short[1];
+//	  attrSize[0] = Label.;
+//
+//	  FldSpec[] projlist = new FldSpec[1];
+//	  RelSpec rel = new RelSpec(RelSpec.outer);
+//	  projlist[0] = new FldSpec(rel, 1);
+//
+//	  CondExpr[] expr = new CondExpr[2];
+//	  expr[0] = new CondExpr();
+//	  expr[0].op = new AttrOperator(AttrOperator.aopEQ);
+//	  expr[0].type1 = new AttrType(AttrType.attrSymbol);
+//	  expr[0].type2 = new AttrType(AttrType.attrString);
+//	  expr[0].operand1.symbol = new FldSpec(new RelSpec(RelSpec.outer), 1);
+//	  if(k instanceof StringKey){
+//		  expr[0].operand2.string = ((StringKey) k).getKey();
+//	  }else if(k instanceof IntegerKey){
+//		  expr[0].operand1.integer =  ((IntegerKey) k).getKey();
+//	  }
+//
+//
+//	  expr[0].next = null;
+//	  expr[1] = null;
+//	  QIDIndexScan<K> iscan = new QIDIndexScan<K>(new IndexType(IndexType.B_Index),
+//	                                                    heapFileName,
+//	                                                    bTreeFileName,
+//	                                                    attrType,
+//	                                                    attrSize,
+//	                                                    1,
+//	                                                    1,
+//	                                                    projlist,
+//	                                                    expr,
+//	                                                    1,
+//	                                                    false,k,) {
+//		  @Override
+//		  public KeyClassManager<K> getKeyClassManager() {
+//			  return keyClassManager;
+//		  }
+//	  };
+//	  return iscan;
+//  }
+	
+	public static <K> QIDIndexScan<K> initializeQIDScan(KeyClass filter, KeyClassManager<K> keyClassManager, int index) throws IndexException, InvalidTupleSizeException, IOException, UnknownIndexTypeException, InvalidTypeException {
+		RelSpec rel = new RelSpec(RelSpec.outer);
+		FldSpec[] projlist2 = new FldSpec[Quadruple.numberOfFields];
+		
+		for (int i = 0; i < projlist2.length; i++)
+			projlist2[i] = new FldSpec(rel, i + 1);
+		
+		CondExpr[] expr = new CondExpr[2];
+		expr[0] = new CondExpr();
+		expr[0].op = new AttrOperator(AttrOperator.aopEQ);
+		expr[0].type1 = new AttrType(AttrType.attrSymbol);
+		expr[0].type2 = new AttrType(AttrType.attrString);
+		expr[0].operand1.symbol = new FldSpec(new RelSpec(RelSpec.outer), 1);
+		if(filter instanceof StringKey){
+			expr[0].operand2.string = ((StringKey) filter).getKey();
+		}else if(filter instanceof IntegerKey){
+			expr[0].operand2.integer = ((IntegerKey) filter).getKey();
+		}
+		
+		expr[0].next = null;
+		expr[1] = null;
+		
+		IndexType indexType = new IndexType(IndexType.B_Index);
+		QIDIndexScan<K> qidScan = new QIDIndexScan<K>(indexType, RDFDB.quadrupleHeapFileName, RDFDB.qidBTreeFileName,
+		                                                          Quadruple.headerTypes, Quadruple.strSizes, Quadruple.numberOfFields, Quadruple.numberOfFields, projlist2, null, 1, false, filter, index) {
+			@Override
+			public KeyClassManager<K> getKeyClassManager() {
+				return keyClassManager;
+			}
+		};
+		return qidScan;
+	}
+	
+  public static LIDIndexScan<Void> getLabelBTreeScan(String heapFileName, String bTreeFileName, String filter) throws UnknownIndexTypeException, InvalidTypeException, IndexException, IOException, InvalidTupleSizeException {
+	  AttrType[] attrType = new AttrType[1];
+	  attrType[0] = new AttrType(AttrType.attrString);
+	  short[] attrSize = new short[1];
+	  attrSize[0] = Label.MAX_LENGTH;
+	
+	  FldSpec[] projlist = new FldSpec[1];
+	  RelSpec rel = new RelSpec(RelSpec.outer);
+	  projlist[0] = new FldSpec(rel, 1);
+	
+	  CondExpr[] expr = new CondExpr[2];
+	  expr[0] = new CondExpr();
+	  expr[0].op = new AttrOperator(AttrOperator.aopEQ);
+	  expr[0].type1 = new AttrType(AttrType.attrSymbol);
+	  expr[0].type2 = new AttrType(AttrType.attrString);
+	  expr[0].operand1.symbol = new FldSpec(new RelSpec(RelSpec.outer), 1);
+	  expr[0].operand2.string = filter;
+	  expr[0].next = null;
+	  expr[1] = null;
+	  LIDIndexScan<Void> iscan = new LIDIndexScan<Void>(new IndexType(IndexType.B_Index),
+	                                                    heapFileName,
+	                                                    bTreeFileName,
+	                                                    attrType,
+	                                                    attrSize,
+	                                                    1,
+	                                                    1,
+	                                                    projlist,
+	                                                    expr,
+	                                                    1,
+	                                                    false) {
+		  @Override
+		  public KeyClassManager<Void> getKeyClassManager() {
+			  return null;
+		  }
+	  };
+	  return iscan;
+  	
+  }
+  
+  public static boolean isLabelRecordInBtreeFound(String heapFileName, String bTreeFileName, String record) throws UnknownIndexTypeException, InvalidTypeException, IndexException, InvalidTupleSizeException, IOException, UnknownKeyTypeException {
+	  LIDIndexScan<Void> iscan = getLabelBTreeScan(heapFileName, bTreeFileName, record);
+	  boolean isFound = iscan.get_next()!=null;
+	  iscan.close();
+	  return isFound;
+  }
+  
+  public static <K> boolean isKeyFoundInQIDBtree(String heapFileName, String bTreeFileName, KeyClassManager<K> keyClassManager, K key, int index) throws KeyTooLongException, KeyNotMatchException, UnknownKeyTypeException, IndexException, IOException, InvalidTypeException, InvalidTupleSizeException, UnknownIndexTypeException {
+	  QIDIndexScan<K> iscan = initializeQIDScan(keyClassManager.getKeyClass(key),keyClassManager,index);
+	  boolean isFound = iscan.get_next()!=null;
+	  iscan.close();
+	  return isFound;
   }
   
 }
