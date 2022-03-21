@@ -140,16 +140,16 @@ public abstract class QIDIndexScan<K> extends IndexScanI<QID, Quadruple,K> {
                   keyList = Arrays.asList(subjectId, predicateId, objectId);
                   break;
               case 2:
-                  keyList = Arrays.asList(objectId, subjectId);
+                  keyList = Arrays.asList(predicateId, subjectId, objectId);
                   break;
               case 3:
-                  keyList = Arrays.asList(confidence, subjectId);
+                  keyList = Arrays.asList(subjectId);
                   break;
               case 4:
-                  keyList = Arrays.asList(confidence, objectId);
+                  keyList = Arrays.asList(predicateId);
                   break;
               case 5:
-                  keyList = Arrays.asList(predicateId, subjectId, objectId);
+                  keyList = Arrays.asList(objectId);
                   break;
           }
           key = ((IDListKeyClassManager)getKeyClassManager()).getKeyClass(keyList);

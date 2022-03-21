@@ -9,10 +9,12 @@ import btree.quadraple.QIDBTreeFile;
 import global.*;
 import heap.*;
 import index.IndexException;
+import index.IndexUtils;
 import index.UnknownIndexTypeException;
 import index.label.LIDIndexScan;
 import index.quadraple.QIDIndexScan;
 import iterator.*;
+import labelheap.Label;
 import labelheap.LabelHeapFile;
 import qiterator.QuadrupleSort;
 import qiterator.QuadrupleUtils;
@@ -20,6 +22,7 @@ import quadrupleheap.Quadruple;
 import quadrupleheap.QuadrupleHeapFile;
 import quadrupleheap.THFPage;
 import quadrupleheap.TScan;
+import utils.supplier.keyclass.FloatKeyClassManager;
 import utils.supplier.keyclass.IDListKeyClassManager;
 import utils.supplier.keyclass.KeyClassManager;
 import utils.supplier.keyclass.LIDKeyClassManager;
@@ -81,10 +84,26 @@ public class Stream {
 
     public Quadruple getNext() throws Exception {
         int option = rdfDB.getIndexType();
-        if (option == 6) {
+        if (option == 6 || option != orderType) {
             return quadrupleSort.get_next();
         } else {
-            orderSubjectPredicateObject();
+            switch (option) {
+                case 1:
+                    orderSubjectPredicateObject();
+                    break;
+                case 2:
+                    orderPredicateSubjectObject();
+                    break;
+                case 3:
+                    orderSubject();
+                    break;
+                case 4:
+                    orderPredicate();
+                    break;
+                case 5:
+                    orderObject();
+                    break;
+            }
             return null;
         }
     }
@@ -109,7 +128,7 @@ public class Stream {
         expr[0].next = null;
         expr[1] = null;
 
-        if(filter==null){
+        if (filter == null) {
             expr = null;
         }
         LIDIndexScan<Void> iscan = new LIDIndexScan<Void>(new IndexType(IndexType.B_Index),
@@ -134,42 +153,28 @@ public class Stream {
     public void orderSubjectPredicateObject() throws Exception {
         LIDIndexScan<Void> subjectIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.subjectBTreeFileName, subjectFilter);
         LID subjectID = subjectIndexScan.get_next_rid();
-//        int subjectC= 0;
         while (subjectID != null) {
-//            subjectC++;
             LIDIndexScan<Void> predicateIndexScan = initializeLabelScan(RDFDB.predicateLabelFileName, RDFDB.predicateBTreeFileName, predicateFilter);
             LID predicateID = predicateIndexScan.get_next_rid();
-//            int predicateC=0;
             while (predicateID != null) {
-//                predicateC++;
                 LIDIndexScan<Void> objectIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.objectBTreeFileName, objectFilter);
                 LID objectID = objectIndexScan.get_next_rid();
-                int objectC=0;
+                int objectC = 0;
                 while (objectID != null) {
-//                    objectC++;
-                    queryInQIDBTreeFile(subjectID, predicateID, objectID);
-//                    System.out.println("ObjectCounter: "+objectC);
+                    objectC++;
+                    queryInQIDBTreeFile(subjectID, predicateID, objectID, Optional.empty());
                     objectID = objectIndexScan.get_next_rid();
                 }
-//                System.out.println("PredicateCounter: "+predicateC);
                 predicateID = predicateIndexScan.get_next_rid();
             }
-//            System.out.println("SubjectCounter: "+subjectC);
             subjectID = subjectIndexScan.get_next_rid();
         }
-
-//        while (subjectID != null) {
-//            subjectC++;
-//            subjectID = subjectIndexScan.get_next_rid();
-//        }
-//        System.out.println(subjectC);
-
     }
 
-    private void queryInQIDBTreeFile(LID subjectID, LID predicateID, LID objectID) throws Exception {
+    private void queryInQIDBTreeFile(LID subjectID, LID predicateID, LID objectID, Optional<Float> confidenceValue) throws Exception {
         int indexOption = rdfDB.getIndexType();
         KeyClass filter = null;
-        List<KeyClassManager> list;
+        List<KeyClassManager> list = null;
         IDListKeyClassManager idListKeyClassManager;
         StringKey key;
         switch (indexOption) {
@@ -180,14 +185,32 @@ public class Stream {
                 filter = key;
                 break;
             case 2:
-                list = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+                list = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
                 idListKeyClassManager = new IDListKeyClassManager(list, 20, 10);
-                key = (StringKey) idListKeyClassManager.getKeyClass(Arrays.asList(objectID, subjectID));
+                key = (StringKey) idListKeyClassManager.getKeyClass(Arrays.asList(predicateID, subjectID, objectID));
+                filter = key;
+                break;
+            case 3:
+                list = Arrays.asList(LIDKeyClassManager.getSupplier());
+                idListKeyClassManager = new IDListKeyClassManager(list, 20, 10);
+                key = (StringKey) idListKeyClassManager.getKeyClass(Arrays.asList(subjectID));
+                filter = key;
+                break;
+            case 4:
+                list = Arrays.asList(LIDKeyClassManager.getSupplier());
+                idListKeyClassManager = new IDListKeyClassManager(list, 20, 10);
+                key = (StringKey) idListKeyClassManager.getKeyClass(Arrays.asList(predicateID));
+                filter = key;
+                break;
+            case 5:
+                list = Arrays.asList(LIDKeyClassManager.getSupplier());
+                idListKeyClassManager = new IDListKeyClassManager(list, 20, 10);
+                key = (StringKey) idListKeyClassManager.getKeyClass(Arrays.asList(objectID));
                 filter = key;
                 break;
         }
 
-        QIDIndexScan<List<?>> qidIndexScan = initializeQIDScan(filter);
+        QIDIndexScan<List<?>> qidIndexScan = initializeQIDScan(filter, list);
         getQuadruplesFromScanAndHeapFile(qidIndexScan);
     }
 
@@ -201,14 +224,26 @@ public class Stream {
             if ((subjectFilter == null || subjectFilter.equals(subjectLabel))
                     && (objectFilter == null || objectFilter.equals(objectLabel))
                     && (predicateFilter == null || predicateFilter.equals(predicateLabel))
-                    && (confidenceFilter ==null || confidenceValue >= confidenceFilter)) {
-                System.out.println(q);
+                    && (confidenceFilter == null || confidenceValue >= confidenceFilter)) {
+
+                getLabelFromHeapFile(q);
             }
             q = qidIndexScan.get_next();
         }
     }
 
-    private QIDIndexScan<List<?>> initializeQIDScan(KeyClass filter) throws IndexException, InvalidTupleSizeException, IOException, UnknownIndexTypeException, InvalidTypeException {
+    private void getLabelFromHeapFile(Quadruple q) throws Exception {
+        LID subjectID = q.getSubject().returnLid();
+        LID predicateID = q.getPredicate().returnLid();
+        LID objectID = q.getObject().returnLid();
+
+        Label subjectLabel = rdfDB.getEntityLabelHeapFile().getRecord(subjectID);
+        Label predicateLabel = rdfDB.getPredicateLabelHeapFile().getRecord(predicateID);
+        Label objectLabel = rdfDB.getEntityLabelHeapFile().getRecord(objectID);
+        System.out.println("Record: " + subjectLabel.getLabel() + " " + predicateLabel.getLabel() + " " + objectLabel.getLabel() + " " + q.getValue());
+    }
+
+    private QIDIndexScan<List<?>> initializeQIDScan(KeyClass filter, List<KeyClassManager> list) throws IndexException, InvalidTupleSizeException, IOException, UnknownIndexTypeException, InvalidTypeException {
         RelSpec rel = new RelSpec(RelSpec.outer);
         FldSpec[] projlist2 = new FldSpec[Quadruple.numberOfFields];
 
@@ -230,26 +265,64 @@ public class Stream {
                 Quadruple.headerTypes, Quadruple.strSizes, 7, 7, projlist2, null, 1, false, filter, rdfDB.getIndexType()) {
             @Override
             public KeyClassManager<List<?>> getKeyClassManager() {
-                List<KeyClassManager> keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(),
-                        LIDKeyClassManager.getSupplier());
-                return new IDListKeyClassManager(keyClassManagers, 20, 10);
+                return new IDListKeyClassManager(list, 20, 10);
             }
         };
         return qidScan;
     }
 
-    public void orderPredicateSubjectObject() {
+    public void orderPredicateSubjectObject() throws Exception {
+        LIDIndexScan<Void> predicateIndexScan = initializeLabelScan(RDFDB.predicateLabelFileName, RDFDB.predicateBTreeFileName, predicateFilter);
+        LID predicateID = predicateIndexScan.get_next_rid();
+        while (predicateID != null) {
+            LIDIndexScan<Void> subjectIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.subjectBTreeFileName, subjectFilter);
+            LID subjectID = subjectIndexScan.get_next_rid();
+            while (subjectID != null) {
+                LIDIndexScan<Void> objectIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.objectBTreeFileName, objectFilter);
+                LID objectID = objectIndexScan.get_next_rid();
+                int objectC = 0;
+                while (objectID != null) {
+                    objectC++;
+                    queryInQIDBTreeFile(subjectID, predicateID, objectID, Optional.empty());
+                    System.out.println("ObjectCounter: " + objectC);
+                    objectID = objectIndexScan.get_next_rid();
+                }
+                subjectID = subjectIndexScan.get_next_rid();
+            }
+            predicateID = predicateIndexScan.get_next_rid();
+        }
 
+//        while (subjectID != null) {
+//            subjectC++;
+//            subjectID = subjectIndexScan.get_next_rid();
+//        }
     }
 
-    public void orderSubject() {
+    public void orderSubject() throws Exception {
+        LIDIndexScan<Void> subjectIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.subjectBTreeFileName, subjectFilter);
+        LID subjectID = subjectIndexScan.get_next_rid();
+        while (subjectID != null) {
+            queryInQIDBTreeFile(subjectID, null, null, Optional.empty());
+            subjectID = subjectIndexScan.get_next_rid();
+        }
     }
 
-    public void orderPredicate() {
-
+    public void orderPredicate() throws Exception {
+        LIDIndexScan<Void> predicateIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.objectBTreeFileName, predicateFilter);
+        LID predicateId = predicateIndexScan.get_next_rid();
+        while (predicateId != null) {
+            queryInQIDBTreeFile(null, predicateId, null, Optional.empty());
+            predicateId = predicateIndexScan.get_next_rid();
+        }
     }
 
-    public void orderObject() {
+    public void orderObject() throws Exception {
+        LIDIndexScan<Void> objectIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.objectBTreeFileName, objectFilter);
+        LID objectID = objectIndexScan.get_next_rid();
+        while (objectID != null) {
+            queryInQIDBTreeFile(null, null, objectID, Optional.empty());
+            objectID = objectIndexScan.get_next_rid();
+        }
 
     }
 

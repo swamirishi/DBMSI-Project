@@ -28,10 +28,10 @@ public class CommandLine {
 
 //        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
 //        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
-//        batchinsert D:\DBMSI-Project\phase1.txt 1 test_db
+//        batchinsert D:\DBMSI-Project\phase1.txt 3 test_db
 
 //        batchinsert Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
-//        query test_db 1 1 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
+//        query test_db 3 3 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
         //        query test_db 1 1 * * * * 50000
 
 //        report
@@ -164,7 +164,7 @@ public class CommandLine {
         String PREDICATEFILTER = input[4];
         String OBJECTFILTER = input[5];
         String CONFIDENCEFILTER = input[6];
-        rdfdb.setIndexType(INDEXOPTION);
+//        rdfdb.setIndexType(INDEXOPTION);
 //        int NUMBUF = input[7] != null? Integer.parseInt(input[7]) : 0;
 
         SUBJECTFILTER = applyToFilter(SUBJECTFILTER);
