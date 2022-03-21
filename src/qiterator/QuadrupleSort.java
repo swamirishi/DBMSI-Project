@@ -7,6 +7,7 @@ import diskmgr.RDFDB;
 import global.*;
 import heap.*;
 import iterator.*;
+import labelheap.Label;
 import labelheap.LabelHeapFile;
 import quadrupleheap.Quadruple;
 import quadrupleheap.QuadrupleHeapFile;
@@ -411,24 +412,35 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
         LID currObjectID = currQuadruple.getObject().returnLid();
         LID currPredicateID = currQuadruple.getPredicate().returnLid();
 
+        String currSubjectLabel = null;
+        String currObjectLabel = null;
+        String currPredicateLabel = null;
+
+        currSubjectLabel = entityLabelHeapFile.getRecord(currSubjectID).getLabel();
+        currPredicateLabel = predicateLabelHeapFile.getRecord(currPredicateID).getLabel();
+        currObjectLabel = entityLabelHeapFile.getRecord(currObjectID).getLabel();
+
         //filters
         //ignoring ordertype
 
         //subject filter
         if (subjectFilter != null) {
-            if (!entityLabelHeapFile.getRecord(currSubjectID).getLabel().equals(subjectFilter)) {
+
+            if (!currSubjectLabel.equals(subjectFilter)) {
                 return false;
             }
         }
         //predicate filter
         if (predicateFilter != null) {
-            if (!predicateLabelHeapFile.getRecord(currPredicateID).getLabel().equals(predicateFilter)) {
+
+            if (!currPredicateLabel.equals(predicateFilter)) {
                 return false;
             }
         }
         //object filter
         if (objectFilter != null) {
-            if (!entityLabelHeapFile.getRecord(currObjectID).getLabel().equals(objectFilter)) {
+
+            if (!currObjectLabel.equals(objectFilter)) {
                 return false;
             }
         }
@@ -440,6 +452,16 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             }
         }
 
+        if(currSubjectLabel!=null){
+            System.out.print("SubjectID(LID) " + currSubjectID.toString() + " = " + currSubjectLabel + "  || ");
+        }
+        if(currPredicateLabel!=null){
+            System.out.print("PredicateID(LID) " + currPredicateID.toString() + " = " + currPredicateLabel + "  || ");
+        }
+        if(currObjectLabel!=null){
+            System.out.print("ObjectID(LID) " + currObjectID.toString() + " = " + currObjectLabel + "  || ");
+        }
+        System.out.print("Confidence(float) " + currQuadruple.getValue() + "\n");
         return true;
     }
 
