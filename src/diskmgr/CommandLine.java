@@ -27,16 +27,17 @@ public class CommandLine {
 //        SystemDefs sysdef2 = new SystemDefs("shaitan", 50000, 50000, "Clock");
 
 //        batchinsert D:\DBMSI-Project\phase2_test_data.txt
-//        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 ras
-//        query pop 1 1 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
+//        batchinsert D:\DBMSI-Project\phase2_test_data.txt 1 bablu
+//        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth 0.5232176791516268 50000
 //        report
-        String inputString = " ";
-        while (!inputString.equals("exit")) {
+        String[] inputStrings = {"batchinsert D:\\DBMSI-Project\\phase2_test_data.txt 1 bablu","query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth 0.5232176791516268 50000"};
+//        while (!inputString.equals("exit")) {
+        for(String inputString:inputStrings){
             System.out.println("\nNew command loop: ");
             System.out.println("Type exit to stop!");
 
-            Scanner sc = new Scanner(System.in);
-            inputString = sc.nextLine();
+//            Scanner sc = new Scanner(System.in);
+//            inputString = sc.nextLine();
             String[] input = inputString.split(" ");
             String operationType = input[0];
 
@@ -111,13 +112,11 @@ public class CommandLine {
 
         System.out.println(subjectLabel + " " + predicateLabel + " " + objectLabel + " " + confidence);
 
-        EID subjectId = rdfdb.insertEntity(subjectLabel);
+        EID subjectId = rdfdb.insertEntity(subjectLabel, true);
         PID predicateId = rdfdb.insertPredicate(predicateLabel);
-        EID objectId = rdfdb.insertEntity(objectLabel);
+        EID objectId = rdfdb.insertEntity(objectLabel, false);
         Quadruple q = new Quadruple(subjectId, predicateId, objectId, confidence);
-        QID qid = rdfdb.insertQuadruple(q.getQuadrupleByteArray());
-        rdfdb.insertInLabelBTree(subjectLabel, subjectId, predicateLabel, predicateId, objectLabel, objectId);
-        rdfdb.insertInQIDBTree(q, qid);
+        rdfdb.insertQuadruple(q.getQuadrupleByteArray());
     }
     private static void runReport(String[] input) {
 
@@ -147,61 +146,13 @@ public class CommandLine {
 
         Double confidenceFilter = CONFIDENCEFILTER == null ? null : Double.valueOf(CONFIDENCEFILTER);
 
-//        // start index scan
-//
-//        AttrType[] attrType = new AttrType[1];
-//        attrType[0] = new AttrType(AttrType.attrString);
-//        short[] attrSize = new short[1];
-//        attrSize[0] = 150;
-//
-//        FldSpec[] projlist = new FldSpec[1];
-//        RelSpec rel = new RelSpec(RelSpec.outer);
-//        projlist[0] = new FldSpec(rel, 1);
-//
-//        CondExpr[] expr = new CondExpr[2];
-//        expr[0] = new CondExpr();
-//        expr[0].op = new AttrOperator(AttrOperator.aopEQ);
-//        expr[0].type1 = new AttrType(AttrType.attrSymbol);
-//        expr[0].type2 = new AttrType(AttrType.attrString);
-//        expr[0].operand1.symbol = new FldSpec(new RelSpec(RelSpec.outer), 1);
-//        expr[0].operand2.string = SUBJECTFILTER;
-//        expr[0].next = null;
-//        expr[1]=null;
-//
-//        LIDIndexScan<Void> iscan = new LIDIndexScan<Void>(new IndexType(IndexType.B_Index),
-//                "entityLabelHeapFile",
-//                "BTreeIndex1",
-//                attrType,
-//                attrSize,
-//                1,
-//                1,
-//                projlist,
-//                expr,
-//                1,
-//                false) {
-//            @Override
-//            public KeyClassManager<Void> getKeyClassManager() {
-//                return null;
-//            }
-//        };
-//
-//        System.out.println("Printing index query output");
-//        Label l = iscan.get_next();;
-//        while(l != null){
-//            l = iscan.get_next();
-//            System.out.println(l.getLabel());
-//            l = iscan.get_next();
-//        }
-//
-//        iscan.close();
-
         Stream stream = rdfdb.openStream(ORDER, SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
         Quadruple currQuadruple = stream.getNext();
 
-        while (currQuadruple != null) {
-            System.out.println(currQuadruple.toString());
-            currQuadruple = stream.getNext();
-        }
+//        while (currQuadruple != null) {
+//            System.out.println(currQuadruple.toString());
+//            currQuadruple = stream.getNext();
+//        }
     }
 }
 

@@ -8,6 +8,7 @@ import global.AttrType;
 import global.ID;
 import global.IndexType;
 import global.RID;
+import heap.FieldNumberOutOfBoundException;
 import heap.InvalidTupleSizeException;
 import heap.InvalidTypeException;
 import heap.Tuple;
@@ -147,7 +148,10 @@ public abstract class IndexScanI<I extends ID, T extends Tuple, K> extends Itera
         }
 
     }
-
+    public boolean eval(CondExpr p[], Tuple t1, Tuple t2, AttrType in1[],
+                        AttrType in2[]) throws UnknowAttrType, FieldNumberOutOfBoundException, PredEvalException, InvalidTupleSizeException, IOException, InvalidTypeException {
+        return PredEval.Eval(_selects, tuple1, null, _types, null);
+    }
     /**
      * returns the next tuple.
      * if <code>index_only</code>, only returns the key value
@@ -238,8 +242,9 @@ public abstract class IndexScanI<I extends ID, T extends Tuple, K> extends Itera
 
             boolean eval;
             try {
-                eval = PredEval.Eval(_selects, tuple1, null, _types, null);
+                eval = this.eval(_selects, tuple1, null, _types, null);
             } catch (Exception e) {
+                e.printStackTrace();
                 throw new IndexException(e, "IndexScan.java: Heapfile error");
             }
 
@@ -290,6 +295,7 @@ public abstract class IndexScanI<I extends ID, T extends Tuple, K> extends Itera
             try {
                 tuple1.setHdr((short) _noInFlds, _types, _s_sizes);
             } catch (Exception e) {
+                e.printStackTrace();
                 throw new IndexException(e, "IndexScan.java: Heapfile error");
             }
 
