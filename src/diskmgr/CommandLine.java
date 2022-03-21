@@ -27,8 +27,8 @@ public class CommandLine {
 //        SystemDefs sysdef2 = new SystemDefs("shaitan", 50000, 50000, "Clock");
 
 //        batchinsert D:\DBMSI-Project\phase2_test_data.txt
-//        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/phase2_test_data.txt 1 bablu
-//        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth 0.5232176791516268 50000
+//        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 ras
+//        query pop 1 1 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
 //        report
         String inputString = " ";
         while (!inputString.equals("exit")) {
@@ -100,7 +100,7 @@ public class CommandLine {
 
 
     private static void insertTestData(String[] tokens, String[] input) throws
-            SpaceNotAvailableException, HFDiskMgrException, HFException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException, FieldNumberOutOfBoundException, InvalidTypeException, IteratorException, ConstructPageException, ConvertException, InsertException, IndexInsertRecException, LeafDeleteException, NodeNotMatchException, LeafInsertRecException, PinPageException, UnpinPageException, DeleteRecException, KeyTooLongException, KeyNotMatchException, IndexSearchException {
+            Exception {
         String subjectLabel = tokens[0];
         String predicateLabel = tokens[1];
         String objectLabel = tokens[2];
@@ -154,61 +154,61 @@ public class CommandLine {
 
         Double confidenceFilter = CONFIDENCEFILTER == null ? null : Double.valueOf(CONFIDENCEFILTER);
 
-        // start index scan
-
-        AttrType[] attrType = new AttrType[1];
-        attrType[0] = new AttrType(AttrType.attrString);
-        short[] attrSize = new short[1];
-        attrSize[0] = 150;
-
-        FldSpec[] projlist = new FldSpec[1];
-        RelSpec rel = new RelSpec(RelSpec.outer);
-        projlist[0] = new FldSpec(rel, 1);
-
-        CondExpr[] expr = new CondExpr[2];
-        expr[0] = new CondExpr();
-        expr[0].op = new AttrOperator(AttrOperator.aopEQ);
-        expr[0].type1 = new AttrType(AttrType.attrSymbol);
-        expr[0].type2 = new AttrType(AttrType.attrString);
-        expr[0].operand1.symbol = new FldSpec(new RelSpec(RelSpec.outer), 1);
-        expr[0].operand2.string = SUBJECTFILTER;
-        expr[0].next = null;
-        expr[1]=null;
-
-        LIDIndexScan<Void> iscan = new LIDIndexScan<Void>(new IndexType(IndexType.B_Index),
-                "entityLabelHeapFile",
-                "BTreeIndex1",
-                attrType,
-                attrSize,
-                1,
-                1,
-                projlist,
-                expr,
-                1,
-                false) {
-            @Override
-            public KeyClassManager<Void> getKeyClassManager() {
-                return null;
-            }
-        };
-
-        System.out.println("Printing index query output");
-        Label l = iscan.get_next();;
-        while(l != null){
-            l = iscan.get_next();
-            System.out.println(l.getLabel());
-            l = iscan.get_next();
-        }
-
-        iscan.close();
-
-//        Stream stream = rdfdb.openStream(Integer.parseInt(ORDER), SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
-//        Quadruple currQuadruple = stream.getNext();
+//        // start index scan
 //
-//        while (currQuadruple != null) {
-//            System.out.println(currQuadruple.toString());
-//            currQuadruple = stream.getNext();
+//        AttrType[] attrType = new AttrType[1];
+//        attrType[0] = new AttrType(AttrType.attrString);
+//        short[] attrSize = new short[1];
+//        attrSize[0] = 150;
+//
+//        FldSpec[] projlist = new FldSpec[1];
+//        RelSpec rel = new RelSpec(RelSpec.outer);
+//        projlist[0] = new FldSpec(rel, 1);
+//
+//        CondExpr[] expr = new CondExpr[2];
+//        expr[0] = new CondExpr();
+//        expr[0].op = new AttrOperator(AttrOperator.aopEQ);
+//        expr[0].type1 = new AttrType(AttrType.attrSymbol);
+//        expr[0].type2 = new AttrType(AttrType.attrString);
+//        expr[0].operand1.symbol = new FldSpec(new RelSpec(RelSpec.outer), 1);
+//        expr[0].operand2.string = SUBJECTFILTER;
+//        expr[0].next = null;
+//        expr[1]=null;
+//
+//        LIDIndexScan<Void> iscan = new LIDIndexScan<Void>(new IndexType(IndexType.B_Index),
+//                "entityLabelHeapFile",
+//                "BTreeIndex1",
+//                attrType,
+//                attrSize,
+//                1,
+//                1,
+//                projlist,
+//                expr,
+//                1,
+//                false) {
+//            @Override
+//            public KeyClassManager<Void> getKeyClassManager() {
+//                return null;
+//            }
+//        };
+//
+//        System.out.println("Printing index query output");
+//        Label l = iscan.get_next();;
+//        while(l != null){
+//            l = iscan.get_next();
+//            System.out.println(l.getLabel());
+//            l = iscan.get_next();
 //        }
+//
+//        iscan.close();
+
+        Stream stream = rdfdb.openStream(Integer.parseInt(ORDER), SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
+        Quadruple currQuadruple = stream.getNext();
+
+        while (currQuadruple != null) {
+            System.out.println(currQuadruple.toString());
+            currQuadruple = stream.getNext();
+        }
     }
 }
 

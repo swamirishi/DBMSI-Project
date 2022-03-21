@@ -7,9 +7,11 @@ import btree.GetFileEntryException;
 import btree.label.LIDBTreeFile;
 import global.*;
 import heap.*;
+import heap.interfaces.HFile;
 import labelheap.LScan;
 import labelheap.Label;
 import labelheap.LabelHeapFile;
+import qiterator.QuadrupleUtils;
 import quadrupleheap.Quadruple;
 import quadrupleheap.QuadrupleHeapFile;
 import quadrupleheap.TScan;
@@ -17,6 +19,8 @@ import utils.supplier.keyclass.KeyClassManager;
 
 import java.io.IOException;
 import java.util.Arrays;
+
+import static global.GlobalConst.INVALID_PAGE;
 
 public class RDFDB{
 
@@ -30,7 +34,7 @@ public class RDFDB{
     private LIDBTreeFile<Void> btreeIndexFile2;
     private LIDBTreeFile<Void> btreeIndexFile3;
 
-    private int subjectCount = 0;
+    private int subjectCount = 0; //TODO Sure these values are updated correctly?
     private int objectCount = 0;
 
     public RDFDB(int type) throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
@@ -90,10 +94,10 @@ public class RDFDB{
     //Need to return EID
     public EID insertEntity(String entityLabel) {
         try {
-//            LID lid = getLIDFromHeapFileScan(entityLabel);
-//            if (lid.getPageNo().pid == INVALID_PAGE) {
-            LID lid = entityLabelHeapFile.insertRecord(new Label(entityLabel).getLabelByteArray());
-//            }
+            LID lid = getLIDFromHeapFileScan("entityLabelHeapFile", entityLabel);
+            if (lid.getPageNo().pid == INVALID_PAGE) {
+                lid = entityLabelHeapFile.insertRecord(new Label(entityLabel).getLabelByteArray());
+            }
             return lid.returnEid();
         } catch (Exception e) {
             e.printStackTrace();
@@ -103,7 +107,7 @@ public class RDFDB{
 
     public boolean deleteEntity(String entityLabel) {
         try {
-            LID lid = getLIDFromHeapFileScan(entityLabel);
+            LID lid = getLIDFromHeapFileScan("entityLabelHeapFile", entityLabel);
             return entityLabelHeapFile.deleteRecord(lid);
         } catch (Exception e) {
             e.printStackTrace();
@@ -112,18 +116,68 @@ public class RDFDB{
     }
 
     public PID insertPredicate(String predicateLabel) throws SpaceNotAvailableException, HFDiskMgrException, HFException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException, FieldNumberOutOfBoundException, InvalidTypeException {
-        LID lid = predicateLabelHeapFile.insertRecord(new Label(predicateLabel).getLabelByteArray());
-        return lid.returnPid();
+        try {
+            LID lid = getLIDFromHeapFileScan("predicateLabelHeapFile", predicateLabel);
+            if (lid.getPageNo().pid == INVALID_PAGE) {
+                lid = predicateLabelHeapFile.insertRecord(new Label(predicateLabel).getLabelByteArray());
+            }
+            return lid.returnPid();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public boolean deletePredicate(String predicateLabel) throws Exception {
-        LID lid = getLIDFromHeapFileScan(predicateLabel);
+        LID lid = getLIDFromHeapFileScan("predicateLabelHeapFile", predicateLabel);
         return predicateLabelHeapFile.deleteRecord(lid);
     }
 
     //Need to return QID. Change type void to QID
-    public QID insertQuadruple(byte[] quadruplePtr) throws SpaceNotAvailableException, HFDiskMgrException, HFException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException {
-        return quadrupleHeapFile.insertRecord(quadruplePtr);
+    public QID insertQuadruple(byte[] quadruplePtr) throws Exception {
+        Quadruple thisQuadruple = new Quadruple(quadruplePtr, 0, quadruplePtr.length);
+        QID qid = new QID();
+        Quadruple foundQ = null;
+        boolean found = false;
+        QuadrupleUtils.rdfdb = this;
+        try {
+            TScan tScan = new TScan(getQuadrupleHeapFile());
+            foundQ = tScan.getNext(qid);
+            while (foundQ != null) {
+                foundQ.setHdr();
+                AttrType attrType = new AttrType(AttrType.attrLID);
+                if(QuadrupleUtils.CompareQuadrupleWithValue(attrType, foundQ, 1, thisQuadruple)==0){
+                    if(QuadrupleUtils.CompareQuadrupleWithValue(attrType, foundQ, 2, thisQuadruple)==0)
+                        if(QuadrupleUtils.CompareQuadrupleWithValue(attrType, foundQ, 3, thisQuadruple)==0) {
+                            found = true;
+                            break;
+                        }
+                }
+                foundQ = tScan.getNext(qid);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if(!found)
+            return quadrupleHeapFile.insertRecord(quadruplePtr);
+
+        //No need to fetch again
+//        QID qidFoundQ = getQIDFromHeapFileScan(foundQ.getQuadrupleByteArray());
+
+        if(thisQuadruple.getValue() > foundQ.getValue()) {
+
+            //if record exist, store only the quadruple with higher confidence!
+            boolean updated = quadrupleHeapFile.updateRecord(qid, thisQuadruple);
+            QID qidThisQuadruple = new QID();
+            if(updated) {
+                qidThisQuadruple = getQIDFromHeapFileScan(thisQuadruple.getQuadrupleByteArray());
+            }
+
+            return qidThisQuadruple;
+        }
+
+        return qid;
     }
 
     public boolean deleteQuadruple(byte[] quadruplePtr) throws Exception {
@@ -143,17 +197,18 @@ public class RDFDB{
         return stream;
     }
 
-    private LID getLIDFromHeapFileScan(String inputLabel) throws InvalidTupleSizeException, IOException {
+    private LID getLIDFromHeapFileScan(String heapFileName, String inputLabel) throws InvalidTupleSizeException, IOException, HFDiskMgrException, HFException, HFBufMgrException {
         LID lid = new LID();
-        LScan scan = (LScan) entityLabelHeapFile.openScan();
+        LScan scan = (LScan) getCorresponsingHeapFile(heapFileName).openScan();
         boolean isFound = false;
-        while (true) {
-            Label label = scan.getNext(lid);
-            if (label != null && Arrays.equals(inputLabel.getBytes(), label.getLabelByteArray())) {
-                System.out.println(inputLabel);
+        Label label = scan.getNext(lid);
+        while (label!=null) {
+            if (inputLabel.equals(label.getLabel())) {
+                System.out.println("Found " + inputLabel + " wont create new");
                 isFound = true;
                 break;
             }
+            label = scan.getNext(lid);
         }
         if (!isFound) {
             lid.getPageNo().pid = -1;
@@ -161,16 +216,25 @@ public class RDFDB{
         return lid;
     }
 
+    LabelHeapFile getCorresponsingHeapFile(String inputLabel) throws HFDiskMgrException, HFException, HFBufMgrException, IOException {
+        switch (inputLabel){
+            case "entityLabelHeapFile": return this.entityLabelHeapFile;
+            case "predicateLabelHeapFile": return this.predicateLabelHeapFile;
+        }
+        return new LabelHeapFile("tempHeapFile");
+    }
+
     private QID getQIDFromHeapFileScan(byte[] inputData) throws InvalidTupleSizeException, IOException {
         QID qid = new QID();
         TScan scan = (TScan) quadrupleHeapFile.openScan();
         boolean isFound = false;
-        while (true) {
-            Quadruple quadruple = scan.getNext(qid);
-            if (quadruple != null && Arrays.equals(inputData, quadruple.getQuadrupleByteArray())) {
+        Quadruple quadruple = scan.getNext(qid);
+        while (quadruple != null) {
+            if (Arrays.equals(inputData, quadruple.getQuadrupleByteArray())) {
                 isFound = true;
                 break;
             }
+            quadruple = scan.getNext(qid);
         }
         if (!isFound) {
             qid.pageNo.pid = -1;
