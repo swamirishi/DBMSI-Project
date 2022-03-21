@@ -280,11 +280,8 @@ public class Stream {
             while (subjectID != null) {
                 LIDIndexScan<Void> objectIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.objectBTreeFileName, objectFilter);
                 LID objectID = objectIndexScan.get_next_rid();
-                int objectC = 0;
                 while (objectID != null) {
-                    objectC++;
                     queryInQIDBTreeFile(subjectID, predicateID, objectID, Optional.empty());
-                    System.out.println("ObjectCounter: " + objectC);
                     objectID = objectIndexScan.get_next_rid();
                 }
                 subjectID = subjectIndexScan.get_next_rid();
@@ -308,7 +305,7 @@ public class Stream {
     }
 
     public void orderPredicate() throws Exception {
-        LIDIndexScan<Void> predicateIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.objectBTreeFileName, predicateFilter);
+        LIDIndexScan<Void> predicateIndexScan = initializeLabelScan(RDFDB.predicateLabelFileName, RDFDB.predicateBTreeFileName, predicateFilter);
         LID predicateId = predicateIndexScan.get_next_rid();
         while (predicateId != null) {
             queryInQIDBTreeFile(null, predicateId, null, Optional.empty());

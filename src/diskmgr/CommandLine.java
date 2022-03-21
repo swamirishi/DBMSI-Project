@@ -31,7 +31,10 @@ public class CommandLine {
 //        batchinsert D:\DBMSI-Project\phase1.txt 3 test_db
 
 //        batchinsert Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
+//        query test_db 2 2 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
 //        query test_db 3 3 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
+//        query test_db 4 4 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
+//        query test_db 5 5 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
         //        query test_db 1 1 * * * * 50000
 
 //        report
