@@ -1,10 +1,8 @@
 package diskmgr;
 
-import btree.AddFileEntryException;
-import btree.BTIndexPage;
-import btree.ConstructPageException;
-import btree.GetFileEntryException;
+import btree.*;
 import btree.label.LIDBTreeFile;
+import btree.quadraple.QIDBTreeFile;
 import global.*;
 import heap.*;
 import heap.interfaces.HFile;
@@ -15,10 +13,11 @@ import qiterator.QuadrupleUtils;
 import quadrupleheap.Quadruple;
 import quadrupleheap.QuadrupleHeapFile;
 import quadrupleheap.TScan;
-import utils.supplier.keyclass.KeyClassManager;
+import utils.supplier.keyclass.*;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 import static global.GlobalConst.INVALID_PAGE;
 
@@ -26,49 +25,93 @@ public class RDFDB{
 
     private static final short REC_LEN1 = 150;
 
+
     private QuadrupleHeapFile quadrupleHeapFile;
     private LabelHeapFile entityLabelHeapFile;
     private LabelHeapFile predicateLabelHeapFile;
 
-    private LIDBTreeFile<Void> btreeIndexFile1;
-    private LIDBTreeFile<Void> btreeIndexFile2;
-    private LIDBTreeFile<Void> btreeIndexFile3;
+    public static String quadrupleHeapFileName = "quadrupleHeapFile";
+    public static String entityLabelFileName = "entityLabelHeapFile";
+    public static String predicateLabelFileName = "predicateLabelHeapFile";
+
+    public static String subjectBTreeFileName = "SubjectLabelBTreeIndexFile";
+    public static String predicateBTreeFileName = "PredicateLabelBTreeIndexFile";
+    public static String objectBTreeFileName = "ObjectLabelBTreeIndexFile";
+    public static String qidBTreeFileName = "QIDBTreeIndex";
+
+    private int indexType = 0;
+
+    private LIDBTreeFile<Void> subjectBtreeIndexFile;
+    private LIDBTreeFile<Void> predicateBtreeIndexFile;
+    private LIDBTreeFile<Void> objectBtreeIndexFile;
+    private QIDBTreeFile<List<?>> qidBtreeFile;
 
     private int subjectCount = 0; //TODO Sure these values are updated correctly?
     private int objectCount = 0;
 
     public RDFDB(int type) throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
-//        BTIndexPage btIndexPage = new BTIndexPage();
         try {
-            SystemDefs.MINIBASE_RESTART_FLAG = true;
-            quadrupleHeapFile = new QuadrupleHeapFile("quadrupleHeapFile");
-            entityLabelHeapFile = new LabelHeapFile("entityLabelHeapFile");
-            predicateLabelHeapFile = new LabelHeapFile("predicateLabelHeapFile");
-
-            btreeIndexFile1 = new LIDBTreeFile<Void>("BTreeIndexFile1", AttrType.attrString, REC_LEN1, 1/*delete*/) {
-                @Override
-                public KeyClassManager<Void> getKeyClassManager() {
-                    return null;
-                }
-            };
-
-            btreeIndexFile2 = new LIDBTreeFile<Void>("BTreeIndexFile2", AttrType.attrString, REC_LEN1, 1/*delete*/) {
-                @Override
-                public KeyClassManager<Void> getKeyClassManager() {
-                    return null;
-                }
-            };
-
-            btreeIndexFile3 = new LIDBTreeFile<Void>("BTreeIndexFile3", AttrType.attrString, REC_LEN1, 1/*delete*/) {
-                @Override
-                public KeyClassManager<Void> getKeyClassManager() {
-                    return null;
-                }
-            };
-
+            indexType = type;
+            quadrupleHeapFile = new QuadrupleHeapFile(quadrupleHeapFileName);
+            entityLabelHeapFile = new LabelHeapFile(entityLabelFileName);
+            predicateLabelHeapFile = new LabelHeapFile(predicateLabelFileName);
+            List<KeyClassManager> keyClassManagers = null;
+            initializeLabelBTreeFiles();
+            switch (indexType){
+                case 1:
+                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+                    break;
+                case 2:
+                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+                    break;
+                case 3:
+                    keyClassManagers = Arrays.asList(FloatKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+                    break;
+                case 4:
+                    keyClassManagers = Arrays.asList(FloatKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+                    break;
+                case 5:
+                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+                    break;
+            }
+            initializeIndexesAsPerType(keyClassManagers);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void initializeIndexesAsPerType(List<KeyClassManager> keyClassManagers) throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
+        IDListKeyClassManager idListKeyClassManager = new IDListKeyClassManager(keyClassManagers,20,10);
+        QIDBTreeFile<List<?>> qtf = new QIDBTreeFile<List<?>>(qidBTreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
+            @Override
+            public KeyClassManager<List<?>> getKeyClassManager() {
+                return idListKeyClassManager;
+            }
+        };
+        this.qidBtreeFile = qtf;
+    }
+
+    private void initializeLabelBTreeFiles() throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
+        subjectBtreeIndexFile = new LIDBTreeFile<Void>(subjectBTreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
+            @Override
+            public KeyClassManager<Void> getKeyClassManager() {
+                return null;
+            }
+        };
+
+        predicateBtreeIndexFile = new LIDBTreeFile<Void>(predicateBTreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
+            @Override
+            public KeyClassManager<Void> getKeyClassManager() {
+                return null;
+            }
+        };
+
+        objectBtreeIndexFile = new LIDBTreeFile<Void>(objectBTreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
+            @Override
+            public KeyClassManager<Void> getKeyClassManager() {
+                return null;
+            }
+        };
     }
 
     public int getQuadrupleCnt() throws HFDiskMgrException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException {
@@ -254,15 +297,60 @@ public class RDFDB{
         return predicateLabelHeapFile;
     }
 
-    public LIDBTreeFile<Void> getBtreeIndexFile1() {
-        return btreeIndexFile1;
+    public LIDBTreeFile<Void> getSubjectBtreeIndexFile() {
+        return subjectBtreeIndexFile;
     }
 
-    public LIDBTreeFile<Void> getBtreeIndexFile2() {
-        return btreeIndexFile2;
+    public LIDBTreeFile<Void> getPredicateBtreeIndexFile() {
+        return predicateBtreeIndexFile;
     }
 
-    public LIDBTreeFile<Void> getBtreeIndexFile3() {
-        return btreeIndexFile3;
+    public LIDBTreeFile<Void> getObjectBtreeIndexFile() {
+        return objectBtreeIndexFile;
+    }
+
+    public QIDBTreeFile<List<?>> getQidBtreeFile() {
+        return qidBtreeFile;
+    }
+
+    public void insertInLabelBTree(String subjectLabel, EID subjectId, String predicateLabel, PID predicateId, String objectLabel, EID objectId) throws IteratorException, ConstructPageException, ConvertException, InsertException, IndexInsertRecException, LeafDeleteException, NodeNotMatchException, LeafInsertRecException, PinPageException, IOException, UnpinPageException, DeleteRecException, KeyTooLongException, KeyNotMatchException, IndexSearchException {
+        subjectBtreeIndexFile.insert(new StringKey(subjectLabel), subjectId.returnLid());
+        predicateBtreeIndexFile.insert(new StringKey(predicateLabel), predicateId.returnLid());
+        objectBtreeIndexFile.insert(new StringKey(objectLabel), objectId.returnLid());
+    }
+
+    public int getIndexType() {
+        return indexType;
+    }
+
+    public void insertInQIDBTree(Quadruple q, QID qid) throws IteratorException, ConstructPageException, ConvertException, InsertException, LeafDeleteException, IndexInsertRecException, NodeNotMatchException, LeafInsertRecException, PinPageException, IOException, UnpinPageException, DeleteRecException, KeyTooLongException, KeyNotMatchException, IndexSearchException {
+        LID subjectId = q.getSubject().returnLid();
+        LID predicateId = q.getPredicate().returnLid();
+        LID objectId = q.getObject().returnLid();
+        float confidence = q.getValue();
+        List keyList;
+
+        switch (indexType){
+            case 1:
+                keyList = Arrays.asList(subjectId, objectId);
+                qidBtreeFile.insert(keyList, qid);
+                break;
+            case 2:
+                keyList = Arrays.asList(objectId, subjectId);
+                qidBtreeFile.insert(keyList, qid);
+                break;
+            case 3:
+                keyList = Arrays.asList(confidence, subjectId);
+                qidBtreeFile.insert(keyList, qid);
+                break;
+            case 4:
+                keyList = Arrays.asList(confidence, objectId);
+                qidBtreeFile.insert(keyList, qid);
+                break;
+            case 5:
+                keyList = Arrays.asList(predicateId, subjectId, objectId);
+                qidBtreeFile.insert(keyList, qid);
+                break;
+        }
     }
 }
