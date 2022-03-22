@@ -43,4 +43,8 @@ public class StringKey extends KeyClass {
   
     return key != null ? key.equals(stringKey.key) : stringKey.key == null;
   }
+  
+  public boolean check(StringKey key){
+    return this.key.startsWith(key.getKey());
+  }
 }

@@ -191,19 +191,19 @@ public class Stream {
                 filter = key;
                 break;
             case 3:
-                list = Arrays.asList(LIDKeyClassManager.getSupplier());
+                list = Arrays.asList(LIDKeyClassManager.getSupplier(),FloatKeyClassManager.getSupplier());
                 idListKeyClassManager = new IDListKeyClassManager(list, 20, 10);
                 key = (StringKey) idListKeyClassManager.getKeyClass(Arrays.asList(subjectID));
                 filter = key;
                 break;
             case 4:
-                list = Arrays.asList(LIDKeyClassManager.getSupplier());
+                list = Arrays.asList(LIDKeyClassManager.getSupplier(),FloatKeyClassManager.getSupplier());
                 idListKeyClassManager = new IDListKeyClassManager(list, 20, 10);
                 key = (StringKey) idListKeyClassManager.getKeyClass(Arrays.asList(predicateID));
                 filter = key;
                 break;
             case 5:
-                list = Arrays.asList(LIDKeyClassManager.getSupplier());
+                list = Arrays.asList(LIDKeyClassManager.getSupplier(),FloatKeyClassManager.getSupplier());
                 idListKeyClassManager = new IDListKeyClassManager(list, 20, 10);
                 key = (StringKey) idListKeyClassManager.getKeyClass(Arrays.asList(objectID));
                 filter = key;

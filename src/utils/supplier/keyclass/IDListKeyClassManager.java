@@ -35,11 +35,11 @@ public class IDListKeyClassManager implements KeyClassManager<List<?>> {
     
     @Override
     public KeyClass getKeyClass(List<?> obj) throws KeyTooLongException, KeyNotMatchException {
-        if(obj.size()!=keyClassManagers.size()){
+        if(obj.size()>keyClassManagers.size()){
             throw new KeyNotMatchException();
         }
         StringBuilder idxString = new StringBuilder();
-        for(int i=0;i<keyClassManagers.size();i++){
+        for(int i=0;i<obj.size();i++){
             idxString.append(getString(keyClassManagers.get(i).getKeyClass(obj.get(i))));
         }
         return StringKeyClassManager.getSupplier().getKeyClass(idxString.toString());

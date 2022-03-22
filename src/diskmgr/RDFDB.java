@@ -69,13 +69,13 @@ public class RDFDB extends DB {
                     keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
                     break;
                 case 3:
-                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier());
+                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(),FloatKeyClassManager.getSupplier());
                     break;
                 case 4:
-                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier());
+                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(),FloatKeyClassManager.getSupplier());
                     break;
                 case 5:
-                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier());
+                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(),FloatKeyClassManager.getSupplier());
                     break;
             }
             initializeIndexesAsPerType(keyClassManagers);
@@ -422,15 +422,15 @@ public class RDFDB extends DB {
                 qidBtreeFile.insert(keyList, qid);
                 break;
             case 3:
-                keyList = Arrays.asList(subjectId);
+                keyList = Arrays.asList(subjectId,confidence);
                 qidBtreeFile.insert(keyList, qid);
                 break;
             case 4:
-                keyList = Arrays.asList(predicateId);
+                keyList = Arrays.asList(predicateId,confidence);
                 qidBtreeFile.insert(keyList, qid);
                 break;
             case 5:
-                keyList = Arrays.asList(objectId);
+                keyList = Arrays.asList(objectId,confidence);
                 qidBtreeFile.insert(keyList, qid);
                 break;
             

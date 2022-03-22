@@ -3,6 +3,7 @@ package index.quadraple;
 import btree.KeyClass;
 import btree.KeyNotMatchException;
 import btree.KeyTooLongException;
+import btree.StringKey;
 import global.*;
 import heap.InvalidTupleSizeException;
 import heap.InvalidTypeException;
@@ -143,17 +144,17 @@ public abstract class QIDIndexScan<K> extends IndexScanI<QID, Quadruple,K> {
                   keyList = Arrays.asList(predicateId, subjectId, objectId);
                   break;
               case 3:
-                  keyList = Arrays.asList(subjectId);
+                  keyList = Arrays.asList(subjectId,confidence);
                   break;
               case 4:
-                  keyList = Arrays.asList(predicateId);
+                  keyList = Arrays.asList(predicateId,confidence);
                   break;
               case 5:
-                  keyList = Arrays.asList(objectId);
+                  keyList = Arrays.asList(objectId,confidence);
                   break;
           }
           key = ((IDListKeyClassManager)getKeyClassManager()).getKeyClass(keyList);
-          return filter.equals(key);
+          return ((StringKey)key).check((StringKey) filter);
       } catch (KeyTooLongException e) {
           e.printStackTrace();
       } catch (KeyNotMatchException e) {
