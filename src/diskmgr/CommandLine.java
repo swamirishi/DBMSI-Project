@@ -1,33 +1,31 @@
 package diskmgr;
 
-import btree.*;
-import btree.label.LIDBTreeFile;
-import global.*;
-import heap.*;
-import index.label.LIDIndexScan;
-import iterator.CondExpr;
-import iterator.FldSpec;
-import iterator.RelSpec;
-import labelheap.Label;
-import labelheap.LabelHeapFile;
+import global.EID;
+import global.PID;
+import global.SystemDefs;
+import heap.HFBufMgrException;
+import heap.HFDiskMgrException;
+import heap.InvalidSlotNumberException;
+import heap.InvalidTupleSizeException;
 import quadrupleheap.Quadruple;
-import quadrupleheap.TScan;
-import utils.supplier.keyclass.KeyClassManager;
 
 import java.io.*;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Scanner;
 
 public class CommandLine {
     public static RDFDB rdfdb;
     public static int numbuf;
+    public static SystemDefs systemDefs;
 
     public static void main(String[] args) throws Exception {
 //        SystemDefs.MINIBASE_RESTART_FLAG = true;
 
 //        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
+//        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test1.txt 6 popi
 //        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
+//        query bablu 1 1 :Bernhard_A_M_Seefeld :name :Bernhard_A_M_Seefeld * 50000
 //        batchinsert D:\DBMSI-Project\phase1.txt 3 test_db
 
 //        batchinsert Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
@@ -92,8 +90,18 @@ public class CommandLine {
         int index_option = Integer.parseInt(input[2]);
         String dbPath = dbName + "_" + index_option;
 
-        SystemDefs sysdef1 = new SystemDefs(dbPath, 50000, 50000, "Clock");
-        rdfdb = new RDFDB(index_option);
+        File file = new File(dbPath);
+        if(file.exists())
+        {
+            //open existing database
+            systemDefs = new SystemDefs(dbPath, 0, 50000, "Clock", index_option);
+        }
+        else{
+            //create a new db
+            systemDefs = new SystemDefs(dbPath, 50000, 50000, "Clock", index_option);
+        }
+
+        rdfdb = SystemDefs.JavabaseDB;
         rdfdb.name = dbPath;
 
         String fileName = input[1];
@@ -168,8 +176,27 @@ public class CommandLine {
         String OBJECTFILTER = input[5];
         String CONFIDENCEFILTER = input[6];
 //        rdfdb.setIndexType(INDEXOPTION);
-//        int NUMBUF = input[7] != null? Integer.parseInt(input[7]) : 0;
+        numbuf = input[7] != null? Integer.parseInt(input[7]) : 0;
+//        if(SystemDefs.JavabaseBM == null)
+//            systemDefs = new SystemDefs()
+//        SystemDefs.JavabaseBM.setNumBuffers(numbuf);
+        String dbPath = RDFDBNAME + "_" + INDEXOPTION;
+        File file = new File(dbPath);
 
+        if(file.exists())
+        {
+            //open existing database
+            systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
+        }
+        else{
+            //create a new db
+            systemDefs = new SystemDefs(dbPath, 50000, numbuf, "Clock", INDEXOPTION);
+        }
+
+        rdfdb = SystemDefs.JavabaseDB;
+        rdfdb.name = dbPath;
+
+        System.out.println("Warning!: Number of Buffers changed to: " + SystemDefs.JavabaseBM.getNumBuffers());
         SUBJECTFILTER = applyToFilter(SUBJECTFILTER);
         PREDICATEFILTER = applyToFilter(PREDICATEFILTER);
         OBJECTFILTER = applyToFilter(OBJECTFILTER);
@@ -183,6 +210,9 @@ public class CommandLine {
             System.out.println(currQuadruple);
             currQuadruple = stream.getNext();
         }
+
+        System.out.println("Disk page READ COUNT: " + PCounter.rcounter);
+        System.out.println("Disk page WRITE COUNT: " + PCounter.wcounter);
     }
 }
 
