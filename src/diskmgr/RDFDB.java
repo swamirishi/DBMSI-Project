@@ -473,8 +473,6 @@ public class RDFDB extends DB {
                 qidBtreeFile.close();
                 //dup_tree.destroyFile();
             }
-            this.getEntityLabelHeapFile()
-            this.closeDB();
         }catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

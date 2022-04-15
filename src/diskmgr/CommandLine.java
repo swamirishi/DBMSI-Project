@@ -140,7 +140,7 @@ public class CommandLine {
             l = lScan.getNext(itr);
         }
 
-        rdfdb.rdfcloseDB();
+        SystemDefs.close();
     }
 
     private static void insertTestData(String[] tokens) throws
