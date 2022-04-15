@@ -54,9 +54,13 @@ public class RDFDB extends DB {
     private int subjectCount = 0; //TODO Sure these values are updated correctly?
     private int objectCount = 0;
 
-    public RDFDB(){}
+    public RDFDB() throws HFDiskMgrException, HFException, HFBufMgrException, IOException {
+//        quadrupleHeapFile = new QuadrupleHeapFile(quadrupleHeapFileName);
+//        entityLabelHeapFile = new LabelHeapFile(entityLabelFileName);
+//        predicateLabelHeapFile = new LabelHeapFile(predicateLabelFileName);
+    }
 
-    public RDFDB(int type) throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
+    public void setRDFDBProperties(int type) throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
         try {
             indexType = type;
             quadrupleHeapFile = new QuadrupleHeapFile(quadrupleHeapFileName);
@@ -188,7 +192,7 @@ public class RDFDB extends DB {
             LID lid = getLIDPredicateFromHeapFileScan("predicateLabelHeapFile", predicateLabel);
             if (lid == null) {
                 lid = predicateLabelHeapFile.insertRecord(new Label(predicateLabel).getLabelByteArray());
-                predicateBtreeIndexFile.insert(new StringKey(predicateLabel), lid);
+//                predicateBtreeIndexFile.insert(new StringKey(predicateLabel), lid);
             }
             return lid.returnPid();
         } catch (Exception e) {
@@ -469,6 +473,8 @@ public class RDFDB extends DB {
                 qidBtreeFile.close();
                 //dup_tree.destroyFile();
             }
+            this.getEntityLabelHeapFile()
+            this.closeDB();
         }catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -481,7 +487,7 @@ public class RDFDB extends DB {
         try
         {
             openDB(dbname);
-            new RDFDB(type);
+            this.setRDFDBProperties(type);
         }
         catch (Exception e)
         {
@@ -503,7 +509,7 @@ public class RDFDB extends DB {
         try
         {
             openDB(dbname,num_pages);
-            new RDFDB(type);
+            this.setRDFDBProperties(type);
         }
         catch(Exception e)
         {

@@ -22,8 +22,15 @@ public class QuadrupleUtilsTest {
 
     static {
         try {
-            rdfdb = new RDFDB(0);
+            rdfdb = new RDFDB();
+            rdfdb.setRDFDBProperties(0);
         } catch (ConstructPageException | AddFileEntryException | GetFileEntryException | IOException e) {
+            e.printStackTrace();
+        } catch (HFDiskMgrException e) {
+            e.printStackTrace();
+        } catch (HFException e) {
+            e.printStackTrace();
+        } catch (HFBufMgrException e) {
             e.printStackTrace();
         }
     }

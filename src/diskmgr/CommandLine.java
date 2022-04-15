@@ -1,12 +1,15 @@
 package diskmgr;
 
 import global.EID;
+import global.LID;
 import global.PID;
 import global.SystemDefs;
 import heap.HFBufMgrException;
 import heap.HFDiskMgrException;
 import heap.InvalidSlotNumberException;
 import heap.InvalidTupleSizeException;
+import labelheap.LScan;
+import labelheap.Label;
 import quadrupleheap.Quadruple;
 
 import java.io.*;
@@ -24,16 +27,17 @@ public class CommandLine {
 
 //        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
 //        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test1.txt 6 popi
-//        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
-//        query bablu 1 1 :Bernhard_A_M_Seefeld :name :Bernhard_A_M_Seefeld * 50000
-//        batchinsert D:\DBMSI-Project\phase1.txt 3 test_db
-
+//        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
+//        query bablu 1 1 :Bernhard_A_M_Seefeld :name :Bernhard_A_M_Seefeld * 5000
+//        batchinsert D:\DBMSI-Project\phase1.txt 1 test_db
+//        query test_db_200 1 1 :Jorunn_Danielsen * * * 10
+//        query test_db 6 6 :Jorunn_Danielsen * * * 10000
 //        batchinsert Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
-//        query test_db 2 2 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
-//        query test_db 3 3 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
-//        query test_db 4 4 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
-//        query test_db 5 5 :Jorunn_Danielsen :knows :Eirik_Newth * 50000
-        //        query test_db 1 1 * * * * 50000
+//        query test_db 2 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
+//        query test_db 3 3 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
+//        query test_db 4 4 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
+//        query test_db 5 5 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
+        //        query test_db 1 1 * * * * 5000
 
 //        report
         System.out.println("By default, we are creating indexes on subject label, " +
@@ -94,11 +98,11 @@ public class CommandLine {
         if(file.exists())
         {
             //open existing database
-            systemDefs = new SystemDefs(dbPath, 0, 50000, "Clock", index_option);
+            systemDefs = new SystemDefs(dbPath, 0, 5000, "Clock", index_option);
         }
         else{
             //create a new db
-            systemDefs = new SystemDefs(dbPath, 50000, 50000, "Clock", index_option);
+            systemDefs = new SystemDefs(dbPath, 5000, 5000, "Clock", index_option);
         }
 
         rdfdb = SystemDefs.JavabaseDB;
@@ -127,6 +131,16 @@ public class CommandLine {
         long endTime = System.currentTimeMillis();
         long elapsedTime = endTime - startTime;
         System.out.println("Time Elapsed in Insertion " + elapsedTime);
+
+        LScan lScan = (LScan) rdfdb.getEntityLabelHeapFile().openScan();
+        LID itr = new LID();
+        Label l = lScan.getNext(itr);
+        while(l!=null){
+            System.out.println("Label: "+l.getLabel());
+            l = lScan.getNext(itr);
+        }
+
+        rdfdb.rdfcloseDB();
     }
 
     private static void insertTestData(String[] tokens) throws
@@ -190,12 +204,18 @@ public class CommandLine {
         }
         else{
             //create a new db
-            systemDefs = new SystemDefs(dbPath, 50000, numbuf, "Clock", INDEXOPTION);
+            systemDefs = new SystemDefs(dbPath, 5000, numbuf, "Clock", INDEXOPTION);
         }
 
         rdfdb = SystemDefs.JavabaseDB;
         rdfdb.name = dbPath;
-
+        LScan lScan = (LScan) rdfdb.getEntityLabelHeapFile().openScan();
+        LID itr = new LID();
+        Label l = lScan.getNext(itr);
+        while(l!=null){
+            System.out.println("Label: "+l);
+            l = lScan.getNext(itr);
+        }
         System.out.println("Warning!: Number of Buffers changed to: " + SystemDefs.JavabaseBM.getNumBuffers());
         SUBJECTFILTER = applyToFilter(SUBJECTFILTER);
         PREDICATEFILTER = applyToFilter(PREDICATEFILTER);

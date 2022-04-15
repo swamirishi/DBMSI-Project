@@ -84,6 +84,10 @@ public class LID implements ID<LID> {
     public PID returnPid() {
         return new PID(this.pageNo, this.slotNo);
     }
+
+//    public NID returnNid() {
+//        return new NID(this.pageNo, this.slotNo);
+//    }
     
     @Override
     public boolean equals(Object o) {
