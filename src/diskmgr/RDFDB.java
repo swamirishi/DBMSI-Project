@@ -3,31 +3,32 @@ package diskmgr;
 import btree.*;
 import btree.label.LIDBTreeFile;
 import btree.quadraple.QIDBTreeFile;
+import bufmgr.HashEntryNotFoundException;
+import bufmgr.InvalidFrameNumberException;
+import bufmgr.PageUnpinnedException;
+import bufmgr.ReplacerException;
 import global.*;
 import heap.*;
-import heap.interfaces.HFile;
 import index.IndexException;
 import index.IndexUtils;
 import index.UnknownIndexTypeException;
 import iterator.UnknownKeyTypeException;
 import javafx.util.Pair;
-import labelheap.LScan;
 import labelheap.Label;
 import labelheap.LabelHeapFile;
-import qiterator.QuadrupleUtils;
 import quadrupleheap.Quadruple;
 import quadrupleheap.QuadrupleHeapFile;
-import quadrupleheap.TScan;
-import utils.supplier.keyclass.*;
+import utils.supplier.keyclass.IDListKeyClassManager;
+import utils.supplier.keyclass.KeyClassManager;
+import utils.supplier.keyclass.LIDKeyClassManager;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static global.GlobalConst.INVALID_PAGE;
-
 public class RDFDB extends DB {
 
+    private String curr_dbname; 				//RDF Database name
     private static final short REC_LEN1 = 150;
 
     private QuadrupleHeapFile quadrupleHeapFile;
@@ -53,7 +54,13 @@ public class RDFDB extends DB {
     private int subjectCount = 0; //TODO Sure these values are updated correctly?
     private int objectCount = 0;
 
-    public RDFDB(int type) throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
+    public RDFDB() throws HFDiskMgrException, HFException, HFBufMgrException, IOException {
+//        quadrupleHeapFile = new QuadrupleHeapFile(quadrupleHeapFileName);
+//        entityLabelHeapFile = new LabelHeapFile(entityLabelFileName);
+//        predicateLabelHeapFile = new LabelHeapFile(predicateLabelFileName);
+    }
+
+    public void setRDFDBProperties(int type) throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
         try {
             indexType = type;
             quadrupleHeapFile = new QuadrupleHeapFile(quadrupleHeapFileName);
@@ -185,7 +192,7 @@ public class RDFDB extends DB {
             LID lid = getLIDPredicateFromHeapFileScan("predicateLabelHeapFile", predicateLabel);
             if (lid == null) {
                 lid = predicateLabelHeapFile.insertRecord(new Label(predicateLabel).getLabelByteArray());
-                predicateBtreeIndexFile.insert(new StringKey(predicateLabel), lid);
+//                predicateBtreeIndexFile.insert(new StringKey(predicateLabel), lid);
             }
             return lid.returnPid();
         } catch (Exception e) {
@@ -439,5 +446,75 @@ public class RDFDB extends DB {
 
     public void setIndexType(int indexoption) {
         this.indexType=indexoption;
+    }
+
+    /**
+     * Open an existing rdf database
+     * @param name Database name
+     */
+    public void rdfcloseDB()
+            throws PageUnpinnedException, InvalidFrameNumberException, HashEntryNotFoundException, ReplacerException
+    {
+        try {
+
+            if(this.subjectBtreeIndexFile != null)
+            {
+                this.subjectBtreeIndexFile.close();
+            }
+            if(predicateBtreeIndexFile != null)
+            {
+                predicateBtreeIndexFile.close();
+            }
+            if(objectBtreeIndexFile != null)
+            {
+                objectBtreeIndexFile.close();
+            }
+            if(this.qidBtreeFile != null) {
+                qidBtreeFile.close();
+                //dup_tree.destroyFile();
+            }
+        }catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    public void openrdfDB(String dbname,int type)
+    {
+        curr_dbname = new String(dbname);
+        try
+        {
+            openDB(dbname);
+            this.setRDFDBProperties(type);
+        }
+        catch (Exception e)
+        {
+            System.err.println (""+e);
+            e.printStackTrace();
+            Runtime.getRuntime().exit(1);
+        }
+    }
+
+    /**
+     * Create a new RDF database
+     * @param dbname Database name
+     * @param num_pages Num of pages to allocate for the database
+     * @param type different indexing types to use for the database
+     */
+    public void openrdfDB(String dbname,int num_pages,int type)
+    {
+        curr_dbname = new String(dbname);
+        try
+        {
+            openDB(dbname,num_pages);
+            this.setRDFDBProperties(type);
+        }
+        catch(Exception e)
+        {
+
+            System.err.println (""+e);
+            e.printStackTrace();
+            Runtime.getRuntime().exit(1);
+        }
     }
 }

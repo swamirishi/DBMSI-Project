@@ -227,9 +227,9 @@ public abstract class BTreeFileI<I extends ID, T extends Tuple,K> extends IndexF
    */
   public BTreeFileI(String filename, int keytype,
                     int keysize, int delete_fashion)
-    throws GetFileEntryException, 
+    throws GetFileEntryException,
 	   ConstructPageException,
-	   IOException, 
+	   IOException,
 	   AddFileEntryException
     {
       
@@ -252,8 +252,12 @@ public abstract class BTreeFileI<I extends ID, T extends Tuple,K> extends IndexF
       }
       
       dbname=new String(filename);
-      
-    }
+		try {
+			unpinPage(headerPageId, true /*dirty*/ );
+		} catch (UnpinPageException e) {
+			e.printStackTrace();
+		}
+	}
   
   /** Close the B+ tree file.  Unpin header page.
    *@exception PageUnpinnedException  error from the lower layer

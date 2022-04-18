@@ -36,7 +36,8 @@ public class RDFDBTest {
         pgid.pid = 0;
         SystemDefs sysdef = new SystemDefs(dbpath, 8193, 100, "Clock");
 //        SystemDefs.JavabaseDB.add_file_entry("quadrupleHeapFile", pgid);
-        RDFDB rdfdb = new RDFDB(0);
+        RDFDB rdfdb = new RDFDB();
+        rdfdb.setRDFDBProperties(0);
         QuadrupleUtils.rdfdb = rdfdb;
         EID subjectID = rdfdb.insertEntity("Dhruv", true);
         EID objectID = rdfdb.insertEntity("Agja", false);
