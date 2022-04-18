@@ -10,7 +10,6 @@ import heap.InvalidTupleSizeException;
 import heap.Tuple;
 import iterator.UnknowAttrType;
 import labelheap.Label;
-import labelheap.LabelHeapFile;
 import quadrupleheap.Quadruple;
 
 import java.io.IOException;
@@ -77,9 +76,6 @@ public class BasicPatternUtils {
             Following maps store attribute no with its LID object. Ex : (1, subjectLid) (2, predicateLid)
         * */
 
-		LabelHeapFile labelHeapFileQ1 = rdfdb.getEntityLabelHeapFile();
-		LabelHeapFile labelHeapFileQ2 = rdfdb.getEntityLabelHeapFile();
-
 		Label labelQ1 = new Label();
 		Label labelQ2 = new Label();
 
@@ -89,13 +85,13 @@ public class BasicPatternUtils {
 
 
 					try {
-						labelQ1 = labelHeapFileQ1.getRecord(lid_bp1);
+						labelQ1 = rdfdb.getBpEntityLabelHeapFile().getRecord(lid_bp1);
 					}
 					catch (Exception e){
 						e.printStackTrace();
 					}
 					try {
-						labelQ2 = labelHeapFileQ2.getRecord(lid_bp2);
+						labelQ2 = rdfdb.getBpEntityLabelHeapFile().getRecord(lid_bp2);
 					}
 					catch (Exception e){
 						e.printStackTrace();

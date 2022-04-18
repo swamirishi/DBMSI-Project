@@ -1,5 +1,4 @@
 package global;
-import java.io.*;
 
 public class LID implements ID<LID> {
     public int slotNo;
@@ -27,6 +26,7 @@ public class LID implements ID<LID> {
     public LID(EID eid){
         this(eid.getPageNo(),eid.getSlotNo());
     }
+    public LID(NID nid) { this(nid.getPageNo(), nid.getSlotNo()); }
     public LID () {
         this(new PageId(0),0);
     }
@@ -88,6 +88,9 @@ public class LID implements ID<LID> {
 //    public NID returnNid() {
 //        return new NID(this.pageNo, this.slotNo);
 //    }
+public NID returnNid() {
+    return new NID(this.pageNo, this.slotNo);
+}
     
     @Override
     public boolean equals(Object o) {

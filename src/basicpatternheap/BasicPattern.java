@@ -19,7 +19,8 @@ public class BasicPattern extends Tuple {
     private static final AttrType floType = new AttrType(AttrType.attrReal);
     public static final AttrType[] headerTypes = IntStream.range(0, numberOfFields).mapToObj(i->i==2?floType:intType).collect(
             Collectors.toList()).toArray(new AttrType[numberOfFields]);
-    public static final short[] strSizes = null;
+    public static final short[] strSizes = new short[numberOfFields];
+
     private static final int NUMBER_OF_NODES_FLD = 1;
     private static final int VALUE_FLD = 2;
     private boolean hdrSet = false;

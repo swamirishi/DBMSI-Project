@@ -593,7 +593,8 @@ public class BPSort extends BPIterator implements GlobalConst {
      * @throws IOException   from lower layers
      * @throws SortException something went wrong in the lower layer.
      */
-    public BPSort(RDFDB rdfdb, int orderType, AttrType[] in,
+    public BPSort(RDFDB rdfdb,
+                  AttrType[] in,
                   short len_in,
                   short[] str_sizes,
                   Iterator am,

@@ -1,5 +1,6 @@
 package diskmgr;
 
+import basicpatternheap.BasicPatternHeapFile;
 import btree.*;
 import btree.label.LIDBTreeFile;
 import btree.quadraple.QIDBTreeFile;
@@ -35,6 +36,9 @@ public class RDFDB extends DB {
     private LabelHeapFile entityLabelHeapFile;
     private LabelHeapFile predicateLabelHeapFile;
 
+    private LabelHeapFile bpEntityLabelHeapFile;
+    private BasicPatternHeapFile bpHeafFile;
+
     public static String quadrupleHeapFileName = "quadrupleHeapFile";
     public static String entityLabelFileName = "entityLabelHeapFile";
     public static String predicateLabelFileName = "predicateLabelHeapFile";
@@ -43,6 +47,9 @@ public class RDFDB extends DB {
     public static String predicateBTreeFileName = "PredicateLabelBTreeIndexFile";
     public static String objectBTreeFileName = "ObjectLabelBTreeIndexFile";
     public static String qidBTreeFileName = "QIDBTreeIndex";
+
+    public static String bpEntityLabelHeapFileName = "bpEntityLabelHeapFileName";
+    public static String bpHeafFileName = "bpHeafFileName";
 
     private int indexType = 0;
 
@@ -54,10 +61,28 @@ public class RDFDB extends DB {
     private int subjectCount = 0; //TODO Sure these values are updated correctly?
     private int objectCount = 0;
 
+
+
     public RDFDB() throws HFDiskMgrException, HFException, HFBufMgrException, IOException {
 //        quadrupleHeapFile = new QuadrupleHeapFile(quadrupleHeapFileName);
 //        entityLabelHeapFile = new LabelHeapFile(entityLabelFileName);
 //        predicateLabelHeapFile = new LabelHeapFile(predicateLabelFileName);
+    }
+
+    public LabelHeapFile getBpEntityLabelHeapFile() {
+        return bpEntityLabelHeapFile;
+    }
+
+    public BasicPatternHeapFile getBpHeafFile() {
+        return bpHeafFile;
+    }
+
+    public void setBpEntityLabelHeapFile(LabelHeapFile bpEntityLabelHeapFile) {
+        this.bpEntityLabelHeapFile = bpEntityLabelHeapFile;
+    }
+
+    public void setBpHeafFile(BasicPatternHeapFile bpHeafFile) {
+        this.bpHeafFile = bpHeafFile;
     }
 
     public void setRDFDBProperties(int type) throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
@@ -66,6 +91,10 @@ public class RDFDB extends DB {
             quadrupleHeapFile = new QuadrupleHeapFile(quadrupleHeapFileName);
             entityLabelHeapFile = new LabelHeapFile(entityLabelFileName);
             predicateLabelHeapFile = new LabelHeapFile(predicateLabelFileName);
+
+            bpEntityLabelHeapFile = new LabelHeapFile(bpEntityLabelHeapFileName);
+            bpHeafFile = new BasicPatternHeapFile(bpHeafFileName);
+
             List<KeyClassManager> keyClassManagers = null;
             initializeLabelBTreeFiles();
             switch (indexType) {
@@ -170,6 +199,7 @@ public class RDFDB extends DB {
             return null;
         }
     }
+
 
     public boolean deleteEntity(String entityLabel, boolean isSubject) {
         try {
