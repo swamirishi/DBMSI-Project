@@ -34,7 +34,7 @@ public class pnodeSplayPQ extends pnodePQ
     root = null;
     count = 0;
     fld_no = 0;
-    fld_type = new AttrType(AttrType.attrInteger);
+    fld_type = new AttrType(AttrType.attrInteger); //TODO Fixing fld_type to interger? WHat if float(confidence)?
     sort_order = new TupleOrder(TupleOrder.Ascending);
   }
 

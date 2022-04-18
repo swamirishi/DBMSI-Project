@@ -14,13 +14,14 @@ import java.util.stream.IntStream;
 
 public class BasicPattern extends Tuple {
     public static final short numberOfNodes = 50;
-    public static final short numberOfFields =2*numberOfNodes+1;
+    public static final short numberOfFields =2*numberOfNodes+2;
     private static final AttrType intType = new AttrType(AttrType.attrInteger);
     private static final AttrType floType = new AttrType(AttrType.attrReal);
-    public static final AttrType[] headerTypes = IntStream.range(0, numberOfFields).mapToObj(i->intType).collect(
+    public static final AttrType[] headerTypes = IntStream.range(0, numberOfFields).mapToObj(i->i==2?floType:intType).collect(
             Collectors.toList()).toArray(new AttrType[numberOfFields]);
     public static final short[] strSizes = null;
     private static final int NUMBER_OF_NODES_FLD = 1;
+    private static final int VALUE_FLD = 2;
     private boolean hdrSet = false;
     
     public BasicPattern() {
@@ -72,10 +73,41 @@ public class BasicPattern extends Tuple {
             throw new RuntimeException(e);
         }
     }
-    
+
+    public void setValue(float value){
+        try {
+            setHdrIfNotSet();
+            super.setFloFld(VALUE_FLD,value);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (FieldNumberOutOfBoundException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidTupleSizeException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidTypeException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public float getValue(){
+        try {
+            setHdrIfNotSet();
+            return super.getFloFld(VALUE_FLD);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (FieldNumberOutOfBoundException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidTupleSizeException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidTypeException e) {
+            throw new RuntimeException(e);
+        }
+    }
     private int getOffset(int nodeIndex){
         return 2*nodeIndex+1;
     }
+
+    //TODO in getNode on nodeIndex=-1 I want to return float
     public NID getNode(int nodeIndex){
         try {
             setHdrIfNotSet();
@@ -110,7 +142,7 @@ public class BasicPattern extends Tuple {
         }
         try {
             this.setNumberOfNodes(numberOfNodes);
-            this.setNode(numberOfNodes-1,node);
+            this.setNode(numberOfNodes,node);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (FieldNumberOutOfBoundException e) {
@@ -119,7 +151,6 @@ public class BasicPattern extends Tuple {
     }
     
     public void setNode(int nodeIndex, NID node){
-        int numberOfNodes = this.getNumberOfNodes();
         int offset = getOffset(nodeIndex);
         try {
             super.setIntFld(offset,node.getPageNo().pid);

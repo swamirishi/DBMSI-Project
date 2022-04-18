@@ -1,9 +1,9 @@
 package bpiterator;
 
+import basicpatternheap.BasicPattern;
+import basicpatternheap.BasicPatternHeapFile;
+import global.BPID;
 import global.GlobalConst;
-import global.QID;
-import quadrupleheap.Quadruple;
-import quadrupleheap.QuadrupleHeapFile;
 
 import java.io.IOException;
 
@@ -32,7 +32,7 @@ public class OBuf implements GlobalConst{
    *                      a nasty message. it is false by default.
   */
   public void init(byte[][] bufs, int n_pages, int tSize,
-		   QuadrupleHeapFile temp_fd, boolean buffer )
+                   BasicPatternHeapFile temp_fd, boolean buffer )
     {
       _bufs    = bufs;
       _n_pages = n_pages;
@@ -56,15 +56,15 @@ public class OBuf implements GlobalConst{
    *@exception IOException  some I/O fault
    *@exception Exception other exceptions
    */
-  public Quadruple Put(Quadruple buf)
+  public BasicPattern Put(BasicPattern buf)
     throws IOException,
 	   Exception
     {
       
       byte[] copybuf;
-      copybuf = buf.getQuadrupleByteArray();
+      copybuf = buf.getBasicPatternByteArray();
       System.arraycopy(copybuf,0,_bufs[curr_page],t_wr_to_pg*t_size,t_size); 
-      Quadruple Quadruple_ptr = new Quadruple(_bufs[curr_page] , t_wr_to_pg * t_size,t_size);
+      BasicPattern Quadruple_ptr = new BasicPattern(_bufs[curr_page] , t_wr_to_pg * t_size,t_size);
       
       t_written++; t_wr_to_pg++; t_wr_to_buf++; dirty = true;
       
@@ -102,7 +102,7 @@ public class OBuf implements GlobalConst{
 	{
 	  for (count = 0; count <= curr_page; count++)
 	    {
-	      QID rid;
+	      BPID rid;
 	      // Will have to go thru entire buffer writing Quadruples to disk
 	      
 	      if (count == curr_page)
@@ -146,7 +146,7 @@ public class OBuf implements GlobalConst{
   private  int  t_size;                                // Size of a Quadruple
   private  long t_written;                        // # of Quadruples written so far.
   private  int  TEST_temp_fd;                        // fd of a temporary file
-  private QuadrupleHeapFile _temp_fd;
+  private BasicPatternHeapFile _temp_fd;
   private  boolean buffer_only;
 }
 

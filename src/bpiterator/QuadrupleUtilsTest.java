@@ -57,11 +57,11 @@ public class QuadrupleUtilsTest {
     }
 
     private static boolean checkQuadrupleCompare() throws Exception, QuadrupleUtilsException {
-        QuadrupleUtils.rdfdb = rdfdb;
+        BasicPatternUtils.rdfdb = rdfdb;
         rdfdb.insertQuadruple(q1.getQuadrupleByteArray());
         rdfdb.insertQuadruple(q2.getQuadrupleByteArray());
 
-        int reportedValue = QuadrupleUtils.CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 1, q2, 1);
+        int reportedValue = BasicPatternUtils.CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 1, q2, 1);
 
         System.out.println(reportedValue);
 

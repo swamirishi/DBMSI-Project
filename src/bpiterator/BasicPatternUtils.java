@@ -1,8 +1,10 @@
 package bpiterator;
 
+import basicpatternheap.BasicPattern;
 import diskmgr.RDFDB;
 import global.AttrType;
 import global.LID;
+import global.NID;
 import heap.FieldNumberOutOfBoundException;
 import heap.InvalidTupleSizeException;
 import iterator.UnknowAttrType;
@@ -13,10 +15,12 @@ import quadrupleheap.Quadruple;
 import java.io.IOException;
 import java.util.HashMap;
 
+import static qiterator.QuadrupleUtils.CompareQuadrupleWithQuadruple;
+
 /**
  * some useful method when processing Quadruple
  */
-public class QuadrupleUtils {
+public class BasicPatternUtils {
 	private final static boolean OK = true;
 	private final static boolean FAIL = false;
 
@@ -56,30 +60,25 @@ public class QuadrupleUtils {
 	 * @throws QuadrupleUtilsException exception from this class
 	 */
 
-	public static int CompareQuadrupleWithQuadruple(AttrType fldType,
-													Quadruple t1, int t1_fld_no,
-													Quadruple t2, int t2_fld_no) throws Exception {
+	public static int CompareBPWithBP(AttrType fldType,
+									  BasicPattern t1, int t1_fld_no,
+									  BasicPattern t2, int t2_fld_no) throws Exception {
 		double t1_r, t2_r;
 		boolean status = OK;
 
-		LID lid_subject1 = t1.getSubject().returnLid();
-		LID lid_predicate1 = t1.getPredicate().returnLid();
-		LID lid_object1 = t1.getObject().returnLid();
+		NID nid_bp1 = t1.getNode(t1_fld_no);
+		NID nid_bp2 = t2.getNode(t2_fld_no);
 
-		LID lid_subject2 = t2.getSubject().returnLid();
-		LID lid_predicate2 = t2.getPredicate().returnLid();
-		LID lid_object2 = t2.getObject().returnLid();
+		LID lid_bp1 = nid_bp1.returnLid();
+		LID lid_bp2 = nid_bp2.returnLid();
 
         /*
             Following maps store attribute no with its LID object. Ex : (1, subjectLid) (2, predicateLid)
         * */
-		HashMap<Integer, LID> t1_map = new HashMap<>();
-		HashMap<Integer, LID> t2_map = new HashMap<>();
-		populateHashmap(t1_map, lid_subject1, lid_predicate1, lid_object1);
-		populateHashmap(t2_map, lid_subject2, lid_predicate2, lid_object2);
 
-		LabelHeapFile labelHeapFileQ1 = getHeapFileUsingField(t1_fld_no);
-		LabelHeapFile labelHeapFileQ2 = getHeapFileUsingField(t2_fld_no);
+		LabelHeapFile labelHeapFileQ1 = rdfdb.getEntityLabelHeapFile();
+		LabelHeapFile labelHeapFileQ2 = rdfdb.getEntityLabelHeapFile();
+
 		Label labelQ1 = new Label();
 		Label labelQ2 = new Label();
 
@@ -89,13 +88,13 @@ public class QuadrupleUtils {
 
 
 					try {
-						labelQ1 = labelHeapFileQ1.getRecord(t1_map.get(t1_fld_no));
+						labelQ1 = labelHeapFileQ1.getRecord(lid_bp1);
 					}
 					catch (Exception e){
 						e.printStackTrace();
 					}
 					try {
-						labelQ2 = labelHeapFileQ2.getRecord(t2_map.get(t2_fld_no));
+						labelQ2 = labelHeapFileQ2.getRecord(lid_bp2);
 					}
 					catch (Exception e){
 						e.printStackTrace();
@@ -126,19 +125,6 @@ public class QuadrupleUtils {
 		return Integer.MIN_VALUE;
 	}
 
-	private static LabelHeapFile getHeapFileUsingField(int fld_no) {
-		if(fld_no == 1){
-			return rdfdb.getEntityLabelHeapFile();
-		}
-		else if(fld_no == 2){
-			return rdfdb.getPredicateLabelHeapFile();
-		}
-		else if(fld_no == 3){
-			return rdfdb.getEntityLabelHeapFile();
-		}
-		return null;
-	}
-
 
 	/**
 	 * This function  compares  Quadruple1 with another Quadruple2 whose
@@ -155,77 +141,77 @@ public class QuadrupleUtils {
 	 * @throws IOException             some I/O fault
 	 * @throws QuadrupleUtilsException exception from this class
 	 */
-	public static int CompareQuadrupleWithValue(AttrType fldType,
-												Quadruple t1, int t1_fld_no,
-												Quadruple value)
+	public static int CompareBPWithValue(AttrType fldType,
+												BasicPattern t1, int t1_fld_no,
+												BasicPattern value)
 			throws Exception {
-		return CompareQuadrupleWithQuadruple(fldType, t1, t1_fld_no, value, t1_fld_no);
+		return CompareBPWithBP(fldType, t1, t1_fld_no, value, t1_fld_no);
 	}
 
-	public static int compareQuadrupleWithQuadrupleAsPerOrderType(Quadruple q1, Quadruple q2, int orderType) throws Exception {
-		int res;
-		switch (orderType){
-
-			case 1:
-				res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 1, q2, 1);
-				if(res == 0){
-					res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 2, q2, 2);
-					if(res == 0){
-						res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 3, q2, 3);
-						if(res == 0){
-							res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrReal), q1, 4, q2, 4);
-						}
-					}
-				}
-				return res;
-
-
-			case 2:
-				res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 2, q2, 2);
-				if(res == 0){
-					res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 1, q2, 1);
-					if(res == 0){
-						res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 3, q2, 3);
-						if(res == 0){
-							res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrReal), q1, 4, q2, 4);
-						}
-					}
-				}
-				return res;
-
-
-			case 3:
-				res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 1, q2, 1);
-				if(res == 0){
-					res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrReal), q1, 4, q2, 4);
-				}
-				return res;
-
-
-			case 4:
-				res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 2, q2, 2);
-				if(res == 0){
-					res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrReal), q1, 4, q2, 4);
-				}
-				return res;
-
-
-
-			case 5:
-				res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 3, q2, 3);
-				if(res == 0){
-					res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrReal), q1, 4, q2, 4);
-				}
-				return res;
-
-
-			case 6:
-				res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrReal), q1, 4, q2, 4);
-				return res;
-
-		}
-		return Integer.MIN_VALUE;
-	}
+//	public static int compareQuadrupleWithQuadrupleAsPerOrderType(Quadruple q1, Quadruple q2, int orderType) throws Exception {
+//		int res;
+//		switch (orderType){
+//
+//			case 1:
+//				res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 1, q2, 1);
+//				if(res == 0){
+//					res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 2, q2, 2);
+//					if(res == 0){
+//						res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 3, q2, 3);
+//						if(res == 0){
+//							res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrReal), q1, 4, q2, 4);
+//						}
+//					}
+//				}
+//				return res;
+//
+//
+//			case 2:
+//				res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 2, q2, 2);
+//				if(res == 0){
+//					res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 1, q2, 1);
+//					if(res == 0){
+//						res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 3, q2, 3);
+//						if(res == 0){
+//							res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrReal), q1, 4, q2, 4);
+//						}
+//					}
+//				}
+//				return res;
+//
+//
+//			case 3:
+//				res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 1, q2, 1);
+//				if(res == 0){
+//					res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrReal), q1, 4, q2, 4);
+//				}
+//				return res;
+//
+//
+//			case 4:
+//				res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 2, q2, 2);
+//				if(res == 0){
+//					res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrReal), q1, 4, q2, 4);
+//				}
+//				return res;
+//
+//
+//
+//			case 5:
+//				res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 3, q2, 3);
+//				if(res == 0){
+//					res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrReal), q1, 4, q2, 4);
+//				}
+//				return res;
+//
+//
+//			case 6:
+//				res = CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrReal), q1, 4, q2, 4);
+//				return res;
+//
+//		}
+//		return Integer.MIN_VALUE;
+//	}
 
 	/**
 	 * This function Compares two Quadruple in all fields
@@ -260,23 +246,14 @@ public class QuadrupleUtils {
 	 * @throws IOException             some I/O fault
 	 * @throws QuadrupleUtilsException exception from this class
 	 */
-	public static String getLabelStringFromQuadrupleUsingId(Quadruple quadruple, int fldno)
+	public static String getLabelStringFromBPUsingId(BasicPattern basicPattern, int fldno)
 			throws IOException,
             QuadrupleUtilsException, FieldNumberOutOfBoundException {
-		LID lid_subject = quadruple.getSubject().returnLid();
-		LID lid_predicate = quadruple.getPredicate().returnLid();
-		LID lid_object = quadruple.getObject().returnLid();
-        /*
-            Following maps store attribute no with its LID object. Ex : (1, subjectLid) (2, predicateLid)
-        * */
-		LabelHeapFile labelHeapFileQ1 = getHeapFileUsingField(fldno);
-		HashMap<Integer, LID> t_map = new HashMap<>();
-		populateHashmap(t_map, lid_subject, lid_predicate, lid_object);
-
+		LID lid_nid1 = basicPattern.getNode(fldno).returnLid();
 		String result = "null";
 
 		try{
-			result = labelHeapFileQ1.getRecord(t_map.get(fldno)).getLabel();
+			result = rdfdb.getEntityLabelHeapFile().getRecord(lid_nid1).getLabel();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

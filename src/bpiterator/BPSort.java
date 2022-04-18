@@ -9,7 +9,6 @@ import heap.FieldNumberOutOfBoundException;
 import heap.InvalidTupleSizeException;
 import heap.InvalidTypeException;
 import iterator.*;
-import labelheap.LabelHeapFile;
 
 import java.io.IOException;
 
@@ -34,7 +33,7 @@ public class BPSort extends BPIterator implements GlobalConst {
     private short[] str_lens;
     private TScan _am;
     private int _sort_fld;
-    private TupleOrder order;
+    private BPOrder order;
     private int _n_pages;
     private byte[][] bufs;
     private boolean first_time;
@@ -190,9 +189,9 @@ public class BPSort extends BPIterator implements GlobalConst {
         // maintain a fixed maximum number of elements in the heap
         while ((p_elems_curr_Q + p_elems_other_Q) < max_elems) {
             try {
-                QID qid = new QID();
+                BPID qid = new BPID();
                 tuple = _am.getNext(qid);
-                while(tuple!=null && !isFullfillingCriteria(tuple)) {
+                while(tuple!=null) {
                     tuple = _am.getNext(qid);
                 }// according to java
             } catch (Exception e) {
@@ -204,7 +203,7 @@ public class BPSort extends BPIterator implements GlobalConst {
                 break;
             }
             cur_node = new pnode();
-            cur_node.tuple = new Quadruple(tuple); // tuple copy needed --  Bingjie 4/29/98
+            cur_node.tuple = new BasicPattern(tuple); // tuple copy needed --  Bingjie 4/29/98
 
             pcurr_Q.enq(cur_node);
             p_elems_curr_Q++;
@@ -218,7 +217,7 @@ public class BPSort extends BPIterator implements GlobalConst {
             if (cur_node == null) break;
             p_elems_curr_Q--;
 
-            comp_res = QuadrupleUtils.compareQuadrupleWithQuadrupleAsPerOrderType(cur_node.tuple, lastElem, orderType);  // need tuple_utils.java
+            comp_res = BasicPatternUtils.CompareBPWithValue(new AttrType(AttrType.attrLID), cur_node.tuple, _sort_fld, lastElem);  // need tuple_utils.java
 
             if ((comp_res < 0 && order.tupleOrder == TupleOrder.Ascending) || (comp_res > 0 && order.tupleOrder == TupleOrder.Descending)) {
                 // doesn't fit in current run, put into the other queue
@@ -231,7 +230,7 @@ public class BPSort extends BPIterator implements GlobalConst {
             } else {
                 // set lastElem to have the value of the current tuple,
                 // need tuple_utils.java
-                lastElem.quadrupleCopy(cur_node.tuple);
+                lastElem.basicPatternCopy(cur_node.tuple);
 //                QuadrupleUtils.SetValue(lastElem, cur_node.tuple, _sort_fld, sortFldType);
                 // write tuple to output file, need io_bufs.java, type cast???
                 //	System.out.println("Putting tuple into run " + (run_num + 1));
@@ -248,7 +247,7 @@ public class BPSort extends BPIterator implements GlobalConst {
 
                 // check to see whether need to expand the array
                 if (run_num == n_tempfiles) {
-                    QuadrupleHeapFile[] temp1 = new QuadrupleHeapFile[2 * n_tempfiles];
+                    BasicPatternHeapFile[] temp1 = new BasicPatternHeapFile[2 * n_tempfiles];
                     for (int i = 0; i < n_tempfiles; i++) {
                         temp1[i] = temp_files[i];
                     }
@@ -264,7 +263,7 @@ public class BPSort extends BPIterator implements GlobalConst {
                 }
 
                 try {
-                    temp_files[run_num] = new BPHeapFile(null);
+                    temp_files[run_num] = new BasicPatternHeapFile(null);
                 } catch (Exception e) {
                     throw new SortException(e, "Sort.java: create Heapfile failed");
                 }
@@ -304,9 +303,9 @@ public class BPSort extends BPIterator implements GlobalConst {
             else if (p_elems_curr_Q == 0) {
                 while ((p_elems_curr_Q + p_elems_other_Q) < max_elems) {
                     try {
-                        QID qid = new QID();
+                        BPID qid = new BPID();
                         tuple = _am.getNext(qid);  // according to java
-                        while(tuple!=null && !isFullfillingCriteria(tuple)) {
+                        while(tuple!=null) {
                             tuple = _am.getNext(qid);
                         }
                     } catch (Exception e) {
@@ -317,7 +316,7 @@ public class BPSort extends BPIterator implements GlobalConst {
                         break;
                     }
                     cur_node = new pnode();
-                    cur_node.tuple = new Quadruple(tuple); // tuple copy needed --  Bingjie 4/29/98
+                    cur_node.tuple = new BasicPattern(tuple); // tuple copy needed --  Bingjie 4/29/98
 
                     try {
                         pcurr_Q.enq(cur_node);
@@ -343,7 +342,7 @@ public class BPSort extends BPIterator implements GlobalConst {
 
                     // check to see whether need to expand the array
                     if (run_num == n_tempfiles) {
-                        QuadrupleHeapFile[] temp1 = new QuadrupleHeapFile[2 * n_tempfiles];
+                        BasicPatternHeapFile[] temp1 = new BasicPatternHeapFile[2 * n_tempfiles];
                         for (int i = 0; i < n_tempfiles; i++) {
                             temp1[i] = temp_files[i];
                         }
@@ -359,7 +358,7 @@ public class BPSort extends BPIterator implements GlobalConst {
                     }
 
                     try {
-                        temp_files[run_num] = new QuadrupleHeapFile(null);
+                        temp_files[run_num] = new BasicPatternHeapFile(null);
                     } catch (Exception e) {
                         throw new SortException(e, "Sort.java: create Heapfile failed");
                     }
@@ -404,66 +403,66 @@ public class BPSort extends BPIterator implements GlobalConst {
         return run_num;
     }
 
-    private boolean isFullfillingCriteria(Quadruple currQuadruple) throws Exception {
-        LabelHeapFile entityLabelHeapFile = this.rdfdb.getEntityLabelHeapFile();
-        LabelHeapFile predicateLabelHeapFile = this.rdfdb.getPredicateLabelHeapFile();
-
-        LID currSubjectID = currQuadruple.getSubject().returnLid();
-        LID currObjectID = currQuadruple.getObject().returnLid();
-        LID currPredicateID = currQuadruple.getPredicate().returnLid();
-
-        String currSubjectLabel = null;
-        String currObjectLabel = null;
-        String currPredicateLabel = null;
-
-        currSubjectLabel = entityLabelHeapFile.getRecord(currSubjectID).getLabel();
-        currPredicateLabel = predicateLabelHeapFile.getRecord(currPredicateID).getLabel();
-        currObjectLabel = entityLabelHeapFile.getRecord(currObjectID).getLabel();
-
-        //filters
-        //ignoring ordertype
-
-        //subject filter
-        if (subjectFilter != null) {
-
-            if (!currSubjectLabel.equals(subjectFilter)) {
-                return false;
-            }
-        }
-        //predicate filter
-        if (predicateFilter != null) {
-
-            if (!currPredicateLabel.equals(predicateFilter)) {
-                return false;
-            }
-        }
-        //object filter
-        if (objectFilter != null) {
-
-            if (!currObjectLabel.equals(objectFilter)) {
-                return false;
-            }
-        }
-
-        //confidence filter
-        if (confidenceFilter != 0) {
-            if (currQuadruple.getValue() < confidenceFilter) {
-                return false;
-            }
-        }
-
-        if(currSubjectLabel!=null){
-            System.out.print("SubjectID(LID) " + currSubjectID.toString() + " = " + currSubjectLabel + "  || ");
-        }
-        if(currPredicateLabel!=null){
-            System.out.print("PredicateID(LID) " + currPredicateID.toString() + " = " + currPredicateLabel + "  || ");
-        }
-        if(currObjectLabel!=null){
-            System.out.print("ObjectID(LID) " + currObjectID.toString() + " = " + currObjectLabel + "  || ");
-        }
-        System.out.print("Confidence(float) " + currQuadruple.getValue() + "\n");
-        return true;
-    }
+//    private boolean isFullfillingCriteria(BasicPattern currBasicPattern) throws Exception {
+//        LabelHeapFile entityLabelHeapFile = this.rdfdb.getEntityLabelHeapFile();
+//        LabelHeapFile predicateLabelHeapFile = this.rdfdb.getPredicateLabelHeapFile();
+//
+//        LID currSubjectID = currBasicPattern.getSubject().returnLid();
+//        LID currObjectID = currBasicPattern.getObject().returnLid();
+//        LID currPredicateID = currBasicPattern.getPredicate().returnLid();
+//
+//        String currSubjectLabel = null;
+//        String currObjectLabel = null;
+//        String currPredicateLabel = null;
+//
+//        currSubjectLabel = entityLabelHeapFile.getRecord(currSubjectID).getLabel();
+//        currPredicateLabel = predicateLabelHeapFile.getRecord(currPredicateID).getLabel();
+//        currObjectLabel = entityLabelHeapFile.getRecord(currObjectID).getLabel();
+//
+//        //filters
+//        //ignoring ordertype
+//
+//        //subject filter
+//        if (subjectFilter != null) {
+//
+//            if (!currSubjectLabel.equals(subjectFilter)) {
+//                return false;
+//            }
+//        }
+//        //predicate filter
+//        if (predicateFilter != null) {
+//
+//            if (!currPredicateLabel.equals(predicateFilter)) {
+//                return false;
+//            }
+//        }
+//        //object filter
+//        if (objectFilter != null) {
+//
+//            if (!currObjectLabel.equals(objectFilter)) {
+//                return false;
+//            }
+//        }
+//
+//        //confidence filter
+//        if (confidenceFilter != 0) {
+//            if (currQuadruple.getValue() < confidenceFilter) {
+//                return false;
+//            }
+//        }
+//
+//        if(currSubjectLabel!=null){
+//            System.out.print("SubjectID(LID) " + currSubjectID.toString() + " = " + currSubjectLabel + "  || ");
+//        }
+//        if(currPredicateLabel!=null){
+//            System.out.print("PredicateID(LID) " + currPredicateID.toString() + " = " + currPredicateLabel + "  || ");
+//        }
+//        if(currObjectLabel!=null){
+//            System.out.print("ObjectID(LID) " + currObjectID.toString() + " = " + currObjectLabel + "  || ");
+//        }
+//        System.out.print("Confidence(float) " + currQuadruple.getValue() + "\n");
+//        return true;
+//    }
 
     /**
      * Remove the minimum value among all the runs.
@@ -598,7 +597,7 @@ public class BPSort extends BPIterator implements GlobalConst {
                   short[] str_sizes,
                   TScan am,
                   int sort_fld,
-                  TupleOrder sort_order,
+                  BPOrder sort_order,
                   int sort_fld_len,
                   int n_pages
     ) throws IOException, SortException {
@@ -726,7 +725,7 @@ public class BPSort extends BPIterator implements GlobalConst {
 
         output_tuple = delete_min();
         if (output_tuple != null) {
-            op_buf.quadrupleCopy(output_tuple);
+            op_buf.basicPatternCopy(output_tuple);
             return op_buf;
         } else
             return null;
