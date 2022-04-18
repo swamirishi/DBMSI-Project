@@ -357,6 +357,10 @@ public class BufMgr implements GlobalConst {
      */
     private BufHashTbl hashTable = new BufHashTbl();
 
+    public void setNumBuffers(int numBuffers) {
+        this.numBuffers = numBuffers;
+    }
+
     /**
      * Total number of buffer frames in the buffer pool.
      */
