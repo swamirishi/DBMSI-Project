@@ -20,8 +20,8 @@ public class BasicPatternPredEval{
         NID nid1 = t1.getNode(field1);
         NID nid2 = t2.getNode(field2);
 
-        Tuple labelTuple1 = SystemDefs.JavabaseDB.getEntityLabelHeapFile().getRecord(nid1.returnLid());
-        Tuple labelTuple2 = h2.getRecord(nid2.returnLid());
+        Tuple labelTuple1 = SystemDefs.JavabaseDB.getQueryEntityLabelHeapFile().getRecord(nid1.returnLid());
+        Tuple labelTuple2 = SystemDefs.JavabaseDB.getEntityLabelHeapFile().getRecord(nid2.returnLid());
 
         CondExpr[] expr = new CondExpr[0];
         expr[0].next  = null;

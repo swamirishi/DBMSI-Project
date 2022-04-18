@@ -15,7 +15,22 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 public class QueryUtils {
-    public LabelHeapFile queryEntityLabelHeapFile = new LabelHeapFile("queryEntityLabelHeapFile");
+    public static LabelHeapFile queryEntityLabelHeapFile;
+
+    static {
+        try {
+            queryEntityLabelHeapFile = new LabelHeapFile("queryEntityLabelHeapFile");
+        } catch (HFException e) {
+            e.printStackTrace();
+        } catch (HFBufMgrException e) {
+            e.printStackTrace();
+        } catch (HFDiskMgrException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public Heapfile queryBasicPatternHeapFile = new Heapfile("queryBasicPatternHeapFile");
 //    public LabelHeapFile queryPredicateLabelHeapFile = new LabelHeapFile("queryPredicateLabelHeapFile");
 //    public BasicPatternClass basicPatternClass = new BasicPatternClass();
@@ -59,5 +74,9 @@ public class QueryUtils {
 //        NID objectId = queryEntityLabelHeapFile.insertRecord(object.getLabelByteArray()).returnNid();
 //        BasicPatternClass basicPatternClass = new BasicPatternClass(subjectId, objectId);
 //        queryBasicPatternHeapFile.insertRecord(basicPatternClass.getBasicPatternByteArray());
+    }
+
+    public static LabelHeapFile getQueryEntityLabelHeapFile(){
+        return queryEntityLabelHeapFile;
     }
 }

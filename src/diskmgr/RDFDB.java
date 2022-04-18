@@ -1,5 +1,6 @@
 package diskmgr;
 
+import Phase3.QueryUtils;
 import btree.*;
 import btree.label.LIDBTreeFile;
 import btree.quadraple.QIDBTreeFile;
@@ -66,32 +67,30 @@ public class RDFDB extends DB {
             quadrupleHeapFile = new QuadrupleHeapFile(quadrupleHeapFileName);
             entityLabelHeapFile = new LabelHeapFile(entityLabelFileName);
             predicateLabelHeapFile = new LabelHeapFile(predicateLabelFileName);
-            List<KeyClassManager> keyClassManagers = null;
-            initializeLabelBTreeFiles();
-            switch (indexType) {
-                case 1:
-                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
-                    break;
-                case 2:
-                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
-                    break;
-                case 3:
-                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier());
-                    break;
-                case 4:
-                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier());
-                    break;
-                case 5:
-                    keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier());
-                    break;
-            }
-            initializeIndexesAsPerType(keyClassManagers);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void initializeIndexesAsPerType(List<KeyClassManager> keyClassManagers) throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
+    public void initializeIndexesAsPerType() throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
+        List<KeyClassManager> keyClassManagers = null;
+        switch (indexType) {
+            case 1:
+                keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+                break;
+            case 2:
+                keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+                break;
+            case 3:
+                keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier());
+                break;
+            case 4:
+                keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier());
+                break;
+            case 5:
+                keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier());
+                break;
+        }
         IDListKeyClassManager idListKeyClassManager = new IDListKeyClassManager(keyClassManagers, 20, 10);
         QIDBTreeFile<List<?>> qtf = new QIDBTreeFile<List<?>>(qidBTreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
             @Override
@@ -102,7 +101,7 @@ public class RDFDB extends DB {
         this.qidBtreeFile = qtf;
     }
 
-    private void initializeLabelBTreeFiles() throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
+    public void initializeLabelBTreeFiles() throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
         subjectBtreeIndexFile = new LIDBTreeFile<Void>(subjectBTreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
             @Override
             public KeyClassManager<Void> getKeyClassManager() {
@@ -164,6 +163,11 @@ public class RDFDB extends DB {
                     objectBtreeIndexFile.insert(new StringKey(entityLabel), lid);
                 }
             }
+            if(isSubject) {
+                subjectBtreeIndexFile.close();
+            }else {
+                objectBtreeIndexFile.close();
+            }
             return lid.returnEid();
         } catch (Exception e) {
             e.printStackTrace();
@@ -192,8 +196,9 @@ public class RDFDB extends DB {
             LID lid = getLIDPredicateFromHeapFileScan("predicateLabelHeapFile", predicateLabel);
             if (lid == null) {
                 lid = predicateLabelHeapFile.insertRecord(new Label(predicateLabel).getLabelByteArray());
-//                predicateBtreeIndexFile.insert(new StringKey(predicateLabel), lid);
+                predicateBtreeIndexFile.insert(new StringKey(predicateLabel), lid);
             }
+            predicateBtreeIndexFile.close();
             return lid.returnPid();
         } catch (Exception e) {
             e.printStackTrace();
@@ -244,6 +249,7 @@ public class RDFDB extends DB {
                 quadrupleHeapFile.updateRecord(qid, givenQuadruple);
             }
         }
+        qidBtreeFile.close();
         return qid;
 
         //No need to fetch again
@@ -516,5 +522,9 @@ public class RDFDB extends DB {
             e.printStackTrace();
             Runtime.getRuntime().exit(1);
         }
+    }
+
+    public LabelHeapFile getQueryEntityLabelHeapFile(){
+        return QueryUtils.getQueryEntityLabelHeapFile();
     }
 }
