@@ -1,15 +1,15 @@
-package bpIterator;
+package bpiterator;
 
+import basicpatternheap.BasicPattern;
+import basicpatternheap.BasicPatternHeapFile;
+import basicpatternheap.TScan;
+import global.BPID;
 import global.GlobalConst;
-import global.QID;
 import heap.InvalidTupleSizeException;
-import quadrupleheap.Quadruple;
-import quadrupleheap.QuadrupleHeapFile;
-import quadrupleheap.TScan;
 
 import java.io.IOException;
 
-public class BPSpoofIbuf implements GlobalConst  {
+public class BasicPatternSpoofIbuf implements GlobalConst  {
 
     /**
      *constructor, use the init to initialize
@@ -32,7 +32,7 @@ public class BPSpoofIbuf implements GlobalConst  {
      *@exception IOException some I/O fault
      *@exception Exception other exceptions
      */
-    public  void init(QuadrupleHeapFile fd, byte bufs[][], int n_pages,
+    public  void init(BasicPatternHeapFile fd, byte bufs[][], int n_pages,
                       int tSize, int Ntuples)
             throws IOException,
             Exception
@@ -69,7 +69,7 @@ public class BPSpoofIbuf implements GlobalConst  {
      *@exception IOException some I/O fault
      *@exception Exception other exceptions
      */
-    public Quadruple Get(Quadruple  buf)throws IOException, Exception
+    public BasicPattern Get(BasicPattern  buf)throws IOException, Exception
     {
         if (tot_t_proc == n_tuples) done = true;
 
@@ -90,7 +90,7 @@ public class BPSpoofIbuf implements GlobalConst  {
             done = true; buf = null;return null;
         }
 
-        buf.quadrupleSet(_bufs[curr_page],t_rd_from_pg*t_size,t_size);
+        buf.basicPatternSet(_bufs[curr_page],t_rd_from_pg*t_size,t_size);
         tot_t_proc++;
 
         // Setup for next read
@@ -121,7 +121,7 @@ public class BPSpoofIbuf implements GlobalConst  {
     private int readin()throws IOException,InvalidTupleSizeException
     {
         int   t_read = 0, tot_read = 0;
-        Quadruple t      = new Quadruple ();
+        BasicPattern t      = new BasicPattern ();
         byte[] t_copy;
 
         curr_page = 0;
@@ -129,10 +129,10 @@ public class BPSpoofIbuf implements GlobalConst  {
         {
             while (t_read < t_per_pg)
             {
-                QID rid =new QID();
+                BPID rid =new BPID();
                 try {
                     if ( (t = hf_scan.getNext(rid)) == null) return tot_read;
-                    t_copy = t.getQuadrupleByteArray();
+                    t_copy = t.getBasicPatternByteArray();
                     System.arraycopy(t_copy,0,_bufs[curr_page],t_read*t_size,t_size);
                 }
                 catch (Exception e) {
@@ -151,7 +151,7 @@ public class BPSpoofIbuf implements GlobalConst  {
 
     private  int   TEST_fd;
 
-    private  QuadrupleHeapFile _fd;
+    private  BasicPatternHeapFile _fd;
     private TScan hf_scan;
     private  int    _n_pages;
     private  int    t_size;

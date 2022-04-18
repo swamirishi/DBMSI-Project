@@ -1,4 +1,4 @@
-package bpIterator;
+package bpiterator;
 
 import basicpatternheap.BasicPattern;
 import bufmgr.PageNotReadException;

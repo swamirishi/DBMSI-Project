@@ -1,6 +1,6 @@
-package bpIterator;
+package bpiterator;
 
-import quadrupleheap.Quadruple;
+import basicpatternheap.BasicPattern;
 
 /**
  * A structure describing a tuple.
@@ -11,7 +11,7 @@ public class pnode {
   public int     run_num;
 
   /** the tuple reference */
-  public Quadruple tuple;
+  public BasicPattern tuple;
 
   /**
    * class constructor, sets <code>run_num</code> to 0 and <code>tuple</code>
@@ -28,7 +28,7 @@ public class pnode {
    * @param runNum the run number
    * @param t      the tuple
    */
-  public pnode(int runNum, Quadruple t)
+  public pnode(int runNum, BasicPattern t)
   {
     run_num = runNum;
     tuple = t;

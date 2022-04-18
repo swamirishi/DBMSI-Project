@@ -1,6 +1,8 @@
-package bpIterator;
+package bpiterator;
 
 import basicpatternheap.BasicPattern;
+import basicpatternheap.BasicPatternHeapFile;
+import basicpatternheap.TScan;
 import diskmgr.RDFDB;
 import global.*;
 import heap.FieldNumberOutOfBoundException;
@@ -8,10 +10,6 @@ import heap.InvalidTupleSizeException;
 import heap.InvalidTypeException;
 import iterator.*;
 import labelheap.LabelHeapFile;
-import qiterator.QuadrupleIterator;
-import quadrupleheap.Quadruple;
-import quadrupleheap.QuadrupleHeapFile;
-import quadrupleheap.TScan;
 
 import java.io.IOException;
 
@@ -46,7 +44,7 @@ public class BPSort extends BPIterator implements GlobalConst {
     private int tuple_size;
 
     private pnodeSplayPQ Q;
-//    private BPHeapFile[] temp_files;
+    private BasicPatternHeapFile[] temp_files;
     private int n_tempfiles;
     private BasicPattern output_tuple;
     private int[] n_tuples;
@@ -85,8 +83,8 @@ public class BPSort extends BPIterator implements GlobalConst {
         int i;
         pnode cur_node;  // need pq_defs.java
 
-        i_buf = new QuadrupleSpoofIbuf[n_R_runs];   // need io_bufs.java
-        for (int j = 0; j < n_R_runs; j++) i_buf[j] = new QuadrupleSpoofIbuf();
+        i_buf = new BasicPatternSpoofIbuf[n_R_runs];   // need io_bufs.java
+        for (int j = 0; j < n_R_runs; j++) i_buf[j] = new BasicPatternSpoofIbuf();
 
         // construct the lists, ignore TEST for now
         // this is a patch, I am not sure whether it works well -- bingjie 4/20/98
@@ -103,7 +101,7 @@ public class BPSort extends BPIterator implements GlobalConst {
 
             // may need change depending on whether Get() returns the original
             // or make a copy of the tuple, need io_bufs.java ???
-            Quadruple temp_tuple = new Quadruple(tuple_size);
+            BasicPattern temp_tuple = new BasicPattern(tuple_size);
 
             try {
                 temp_tuple.setHdr(n_cols, _in, str_lens);
@@ -151,13 +149,13 @@ public class BPSort extends BPIterator implements GlobalConst {
             TupleUtilsException,
             JoinsException,
             Exception {
-        Quadruple tuple;
+        BasicPattern tuple;
         pnode cur_node;
         pnodeSplayPQ Q1 = new pnodeSplayPQ(_sort_fld, sortFldType, order);
         pnodeSplayPQ Q2 = new pnodeSplayPQ(_sort_fld, sortFldType, order);
         pnodeSplayPQ pcurr_Q = Q1;
         pnodeSplayPQ pother_Q = Q2;
-        Quadruple lastElem = null;  // need tuple.java
+        BasicPattern lastElem = null;  // need tuple.java
 
 
         int run_num = 0;  // keeps track of the number of runs
@@ -474,12 +472,12 @@ public class BPSort extends BPIterator implements GlobalConst {
      * @throws IOException   from lower layers
      * @throws SortException something went wrong in the lower layer.
      */
-    private Quadruple delete_min()
+    private BasicPattern delete_min()
             throws IOException,
             SortException,
             Exception {
         pnode cur_node;                // needs pq_defs.java
-        Quadruple new_tuple, old_tuple;
+        BasicPattern new_tuple, old_tuple;
 
         cur_node = Q.deq();
         old_tuple = cur_node.tuple;
@@ -491,7 +489,7 @@ public class BPSort extends BPIterator implements GlobalConst {
         // tuple of the same run into the queue
         if (i_buf[cur_node.run_num].empty() != true) {
             // run not exhausted
-            new_tuple = new Quadruple(tuple_size); // need tuple.java??
+            new_tuple = new BasicPattern(tuple_size); // need tuple.java??
 
             try {
                 new_tuple.setHdr(n_cols, _in, str_lens);
@@ -531,25 +529,12 @@ public class BPSort extends BPIterator implements GlobalConst {
      * @throws IOException    from lower layers
      * @throws UnknowAttrType attrSymbol or attrNull encountered
      */
-    private Quadruple MIN_VAL()
+    private BasicPattern MIN_VAL()
             throws IOException,
             FieldNumberOutOfBoundException,
             UnknowAttrType, InvalidTupleSizeException, InvalidTypeException {
 
-        //    short[] s_size = new short[Tuple.max_size]; // need Tuple.java
-        //    AttrType[] junk = new AttrType[1];
-        //    junk[0] = new AttrType(sortFldType.attrType);
-
-        EID minSubjectId = new EID(new PageId(INVALID_PAGE), 1);
-        PID minPredicateId = new PID(new PageId(INVALID_PAGE), 1);
-        EID minObjectId = new EID(new PageId(INVALID_PAGE), 1);
-        float minConfidenceValue = -1;
-        Quadruple lastElem = new Quadruple();
-        lastElem.setHdr();
-        lastElem.setSubject(minSubjectId);
-        lastElem.setPredicate(minPredicateId);
-        lastElem.setObject(minObjectId);
-        lastElem.setValue(minConfidenceValue);
+        BasicPattern lastElem = new BasicPattern();
         return lastElem;
     }
 
@@ -566,9 +551,6 @@ public class BPSort extends BPIterator implements GlobalConst {
             FieldNumberOutOfBoundException,
             UnknowAttrType {
 
-        //    short[] s_size = new short[Tuple.max_size]; // need Tuple.java
-        //    AttrType[] junk = new AttrType[1];
-        //    junk[0] = new AttrType(sortFldType.attrType);
         char[] c = new char[1];
         c[0] = Character.MAX_VALUE;
         String s = new String(c);
@@ -643,7 +625,7 @@ public class BPSort extends BPIterator implements GlobalConst {
             }
         }
 
-        Quadruple t = new Quadruple(); // need Tuple.java
+        BasicPattern t = new BasicPattern(); // need Tuple.java
         try {
             t.setHdr(len_in, _in, str_sizes);
         } catch (Exception e) {
@@ -675,13 +657,13 @@ public class BPSort extends BPIterator implements GlobalConst {
 
         // as a heuristic, we set the number of runs to an arbitrary value
         // of ARBIT_RUNS
-        temp_files = new QuadrupleHeapFile[ARBIT_RUNS];
+        temp_files = new BasicPatternHeapFile[ARBIT_RUNS];
         n_tempfiles = ARBIT_RUNS;
         n_tuples = new int[ARBIT_RUNS];
         n_runs = ARBIT_RUNS;
 
         try {
-            temp_files[0] = new QuadrupleHeapFile(null);
+            temp_files[0] = new BasicPatternHeapFile(null);
         } catch (Exception e) {
             throw new SortException(e, "Sort.java: Heapfile error");
         }
@@ -696,7 +678,7 @@ public class BPSort extends BPIterator implements GlobalConst {
 
         Q = new pnodeSplayPQ(sort_fld, in[sort_fld - 1], order);
 
-        op_buf = new Quadruple(tuple_size);   // need Tuple.java
+        op_buf = new BasicPattern(tuple_size);   // need Tuple.java
         try {
             op_buf.setHdr(n_cols, _in, str_lens);
         } catch (Exception e) {

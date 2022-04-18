@@ -1,17 +1,19 @@
 package basicpatternheap;
 
 import global.BPID;
-import global.QID;
 import heap.HFBufMgrException;
 import heap.HFDiskMgrException;
 import heap.HFException;
 import heap.interfaces.HFile;
+import utils.supplier.dpageinfo.BPIDDPageInfoSupplier;
 import utils.supplier.dpageinfo.DPageInfoSupplier;
 import utils.supplier.hfilepage.BPIDHFilePageSupplier;
 import utils.supplier.hfilepage.HFilePageSupplier;
+import utils.supplier.id.BPIDSupplier;
 import utils.supplier.id.IDSupplier;
-import utils.supplier.id.QIDSupplier;
+import utils.supplier.scan.BPIDScanSupplier;
 import utils.supplier.scan.ScanSupplier;
+import utils.supplier.tuple.BPIDTupleSupplier;
 import utils.supplier.tuple.TupleSupplier;
 
 import java.io.IOException;
@@ -46,7 +48,7 @@ import java.io.IOException;
 
 
 
-public class BPHeapFile extends HFile<BPID,BasicPattern> {
+public class BasicPatternHeapFile extends HFile<BPID,BasicPattern> {
     @Override
     protected HFilePageSupplier<BPID, BasicPattern> getHFilePageSupplier() {
         return BPIDHFilePageSupplier.getSupplier();
@@ -58,8 +60,8 @@ public class BPHeapFile extends HFile<BPID,BasicPattern> {
     }
 
     @Override
-    protected IDSupplier<QID> getIDSupplier() {
-        return QIDSupplier.getSupplier();
+    protected IDSupplier<BPID> getIDSupplier() {
+        return BPIDSupplier.getSupplier();
     }
 
     @Override
@@ -83,7 +85,7 @@ public class BPHeapFile extends HFile<BPID,BasicPattern> {
      * @throws HFDiskMgrException exception thrown from diskmgr layer
      * @throws IOException        I/O errors
      */
-    public BPHeapFile(String name) throws HFException, HFBufMgrException, HFDiskMgrException, IOException {
+    public BasicPatternHeapFile(String name) throws HFException, HFBufMgrException, HFDiskMgrException, IOException {
         super(name);
     }
 }// End of HeapFile
