@@ -1,4 +1,4 @@
-package bpIterator;
+package bpiterator;
 
 import chainexception.ChainException;
 

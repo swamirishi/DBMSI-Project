@@ -1,5 +1,5 @@
 
-package bpIterator;
+package bpiterator;
 
 import global.AttrType;
 import global.TupleOrder;

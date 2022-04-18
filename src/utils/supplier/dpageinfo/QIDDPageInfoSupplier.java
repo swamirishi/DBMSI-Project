@@ -1,8 +1,6 @@
 package utils.supplier.dpageinfo;
 
-import heap.DataPageInfo;
 import heap.InvalidTupleSizeException;
-import heap.Tuple;
 import quadrupleheap.QuadrapleDataPageInfo;
 import quadrupleheap.Quadruple;
 
@@ -14,7 +12,6 @@ public class QIDDPageInfoSupplier implements DPageInfoSupplier<Quadruple>{
         return new QuadrapleDataPageInfo(tuple);
     }
     
-    @Override
     public QuadrapleDataPageInfo getDataPageInfo() {
         return new QuadrapleDataPageInfo();
     }

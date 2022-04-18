@@ -1,4 +1,4 @@
-package bpIterator;
+package bpiterator;
 
 import global.GlobalConst;
 import global.QID;

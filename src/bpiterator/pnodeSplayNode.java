@@ -1,5 +1,5 @@
 
-package bpIterator;
+package bpiterator;
 
 /**
  * An element in the binary tree.
