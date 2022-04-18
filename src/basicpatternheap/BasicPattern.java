@@ -28,7 +28,7 @@ public class BasicPattern extends Tuple {
         super(max_size);
         this.clear();
     }
-
+    
     public BasicPattern(byte [] aBasicPattern, int offset, int length) {
         super(aBasicPattern,offset,length);
     }
@@ -49,7 +49,6 @@ public class BasicPattern extends Tuple {
         return super.getTupleByteArray();
     }
 
-    //TODO: Check this
     public BasicPattern(int size) {
         super(size);
 
@@ -195,6 +194,6 @@ public class BasicPattern extends Tuple {
         for(int i=0;i<this.getNumberOfNodes();i++){
             ids.add(this.getNode(i));
         }
-        return ids.toString();
+        return ids.toString()+"\t"+this.getValue();
     }
 }

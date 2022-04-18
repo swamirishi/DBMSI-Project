@@ -93,6 +93,10 @@ public class PID implements ID<PID> {
         return new LID(this.pageNo, this.slotNo);
     }
     
+    public NID returnNid() {
+        return new NID(this.pageNo, this.slotNo);
+    }
+    
 }
 
 
