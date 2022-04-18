@@ -1,6 +1,7 @@
 package bpiterator;
 
 import basicpatternheap.BasicPattern;
+import heap.Tuple;
 
 /**
  * A structure describing a tuple.
@@ -11,7 +12,7 @@ public class pnode {
   public int     run_num;
 
   /** the tuple reference */
-  public BasicPattern tuple;
+  public Tuple tuple;
 
   /**
    * class constructor, sets <code>run_num</code> to 0 and <code>tuple</code>

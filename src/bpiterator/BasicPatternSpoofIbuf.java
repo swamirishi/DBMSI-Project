@@ -1,11 +1,12 @@
 package bpiterator;
 
 import basicpatternheap.BasicPattern;
-import basicpatternheap.BasicPatternHeapFile;
 import basicpatternheap.TScan;
 import global.BPID;
 import global.GlobalConst;
 import heap.InvalidTupleSizeException;
+import heap.Tuple;
+import heap.interfaces.HFile;
 
 import java.io.IOException;
 
@@ -32,7 +33,7 @@ public class BasicPatternSpoofIbuf implements GlobalConst  {
      *@exception IOException some I/O fault
      *@exception Exception other exceptions
      */
-    public  void init(BasicPatternHeapFile fd, byte bufs[][], int n_pages,
+    public  void init(HFile fd, byte bufs[][], int n_pages,
                       int tSize, int Ntuples)
             throws IOException,
             Exception
@@ -69,7 +70,7 @@ public class BasicPatternSpoofIbuf implements GlobalConst  {
      *@exception IOException some I/O fault
      *@exception Exception other exceptions
      */
-    public BasicPattern Get(BasicPattern  buf)throws IOException, Exception
+    public Tuple Get(Tuple buf)throws IOException, Exception
     {
         if (tot_t_proc == n_tuples) done = true;
 
@@ -90,7 +91,7 @@ public class BasicPatternSpoofIbuf implements GlobalConst  {
             done = true; buf = null;return null;
         }
 
-        buf.basicPatternSet(_bufs[curr_page],t_rd_from_pg*t_size,t_size);
+        buf.tupleSet(_bufs[curr_page],t_rd_from_pg*t_size,t_size);
         tot_t_proc++;
 
         // Setup for next read
@@ -151,7 +152,7 @@ public class BasicPatternSpoofIbuf implements GlobalConst  {
 
     private  int   TEST_fd;
 
-    private  BasicPatternHeapFile _fd;
+    private  HFile _fd;
     private TScan hf_scan;
     private  int    _n_pages;
     private  int    t_size;

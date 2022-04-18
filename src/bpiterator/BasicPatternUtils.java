@@ -7,6 +7,7 @@ import global.LID;
 import global.NID;
 import heap.FieldNumberOutOfBoundException;
 import heap.InvalidTupleSizeException;
+import heap.Tuple;
 import iterator.UnknowAttrType;
 import labelheap.Label;
 import labelheap.LabelHeapFile;
@@ -61,13 +62,13 @@ public class BasicPatternUtils {
 	 */
 
 	public static int CompareBPWithBP(AttrType fldType,
-									  BasicPattern t1, int t1_fld_no,
-									  BasicPattern t2, int t2_fld_no) throws Exception {
+									  Tuple t1, int t1_fld_no,
+									  Tuple t2, int t2_fld_no) throws Exception {
 		double t1_r, t2_r;
 		boolean status = OK;
 
-		NID nid_bp1 = t1.getNode(t1_fld_no);
-		NID nid_bp2 = t2.getNode(t2_fld_no);
+		NID nid_bp1 = ((BasicPattern)t1).getNode(t1_fld_no);
+		NID nid_bp2 = ((BasicPattern)t2).getNode(t2_fld_no);
 
 		LID lid_bp1 = nid_bp1.returnLid();
 		LID lid_bp2 = nid_bp2.returnLid();
@@ -116,8 +117,8 @@ public class BasicPatternUtils {
 
 
 			case AttrType.attrReal:                // Compare two floats
-				t1_r = t1.getValue();
-				t2_r = t2.getValue();
+				t1_r = ((BasicPattern)t1).getValue();
+				t2_r = ((BasicPattern)t2).getValue();
 				if (t1_r == t2_r) return 0;
 				else if (t1_r < t2_r) return -1;
 				return 1;
@@ -142,8 +143,8 @@ public class BasicPatternUtils {
 	 * @throws QuadrupleUtilsException exception from this class
 	 */
 	public static int CompareBPWithValue(AttrType fldType,
-												BasicPattern t1, int t1_fld_no,
-												BasicPattern value)
+										 Tuple t1, int t1_fld_no,
+										 Tuple value)
 			throws Exception {
 		return CompareBPWithBP(fldType, t1, t1_fld_no, value, t1_fld_no);
 	}

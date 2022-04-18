@@ -1,9 +1,10 @@
 package bpiterator;
 
 import basicpatternheap.BasicPattern;
-import basicpatternheap.BasicPatternHeapFile;
-import global.BPID;
 import global.GlobalConst;
+import global.ID;
+import heap.Tuple;
+import heap.interfaces.HFile;
 
 import java.io.IOException;
 
@@ -32,7 +33,7 @@ public class OBuf implements GlobalConst{
    *                      a nasty message. it is false by default.
   */
   public void init(byte[][] bufs, int n_pages, int tSize,
-                   BasicPatternHeapFile temp_fd, boolean buffer )
+                   HFile temp_fd, boolean buffer )
     {
       _bufs    = bufs;
       _n_pages = n_pages;
@@ -56,13 +57,13 @@ public class OBuf implements GlobalConst{
    *@exception IOException  some I/O fault
    *@exception Exception other exceptions
    */
-  public BasicPattern Put(BasicPattern buf)
+  public BasicPattern Put(Tuple buf)
     throws IOException,
 	   Exception
     {
       
       byte[] copybuf;
-      copybuf = buf.getBasicPatternByteArray();
+      copybuf = buf.getTupleByteArray();
       System.arraycopy(copybuf,0,_bufs[curr_page],t_wr_to_pg*t_size,t_size); 
       BasicPattern Quadruple_ptr = new BasicPattern(_bufs[curr_page] , t_wr_to_pg * t_size,t_size);
       
@@ -102,7 +103,7 @@ public class OBuf implements GlobalConst{
 	{
 	  for (count = 0; count <= curr_page; count++)
 	    {
-	      BPID rid;
+	      ID rid;
 	      // Will have to go thru entire buffer writing Quadruples to disk
 	      
 	      if (count == curr_page)
@@ -146,7 +147,7 @@ public class OBuf implements GlobalConst{
   private  int  t_size;                                // Size of a Quadruple
   private  long t_written;                        // # of Quadruples written so far.
   private  int  TEST_temp_fd;                        // fd of a temporary file
-  private BasicPatternHeapFile _temp_fd;
+  private HFile _temp_fd;
   private  boolean buffer_only;
 }
 
