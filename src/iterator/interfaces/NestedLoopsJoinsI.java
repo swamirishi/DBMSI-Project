@@ -48,7 +48,7 @@ public abstract class NestedLoopsJoinsI<I extends ID, T extends Tuple> extends I
     public abstract HFileSupplier<I, T> getHFileSupplier();
     
     protected abstract boolean predictedEvaluation(CondExpr p[], T t1, T t2, AttrType in1[],
-                                                   AttrType in2[]) throws InvalidTupleSizeException, FieldNumberOutOfBoundException, IOException, UnknowAttrType, InvalidTypeException, PredEvalException;
+                                                   AttrType in2[]) throws Exception;
     
     /**
      * constructor

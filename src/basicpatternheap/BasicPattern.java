@@ -196,4 +196,6 @@ public class BasicPattern extends Tuple {
         }
         return ids.toString()+"\t"+this.getValue();
     }
+    
+    
 }

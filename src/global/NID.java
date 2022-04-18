@@ -88,4 +88,11 @@ public class NID implements ID<NID> {
         return new LID(this.pageNo, this.slotNo);
     }
     
+    public EID returnEID() {
+        return new EID(this.pageNo, this.slotNo);
+    }
+    public PID returnPID() {
+        return new PID(this.pageNo, this.slotNo);
+    }
+    
 }
