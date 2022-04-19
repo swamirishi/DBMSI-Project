@@ -102,8 +102,12 @@ public class BasicPattern extends Tuple {
             throw new RuntimeException(e);
         }
     }
-    private int getOffset(int nodeIndex){
+    public static int getOffset(int nodeIndex){
         return 2*nodeIndex+1;
+    }
+
+    public static int[] getPageNumberAndSlot(int nodeIndex) {
+        return new int[]{getOffset(nodeIndex), getOffset(nodeIndex) + 1};
     }
 
     //TODO in getNode on nodeIndex=-1 I want to return float

@@ -21,7 +21,7 @@ import java.io.IOException;
  * An object of type scan will always have pinned one directory page
  * of the heapfile.
  */
-public class TScan extends ScanI<BPID, BasicPattern> {
+public class BPScan extends ScanI<BPID, BasicPattern> {
     @Override
     protected HFilePageSupplier<BPID, BasicPattern> getHFilePageSupplier() {
         return BPIDHFilePageSupplier.getSupplier();
@@ -46,7 +46,7 @@ public class TScan extends ScanI<BPID, BasicPattern> {
      * @throws InvalidTupleSizeException Invalid tuple size
      * @throws IOException               I/O errors
      */
-    public TScan(HFile<BPID,BasicPattern> hf) throws InvalidTupleSizeException, IOException {
+    public BPScan(HFile<BPID,BasicPattern> hf) throws InvalidTupleSizeException, IOException {
         super(hf);
     }
 }
