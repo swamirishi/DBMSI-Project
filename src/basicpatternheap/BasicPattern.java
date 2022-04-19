@@ -5,6 +5,8 @@ import heap.FieldNumberOutOfBoundException;
 import heap.InvalidTupleSizeException;
 import heap.InvalidTypeException;
 import heap.Tuple;
+import iterator.FldSpec;
+import iterator.RelSpec;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,24 +16,24 @@ import java.util.stream.IntStream;
 
 public class BasicPattern extends Tuple {
     public static final short numberOfNodes = 50;
-    public static final short numberOfFields =2*numberOfNodes+2;
+    public static final short numberOfFields = 2 * numberOfNodes + 2;
     private static final AttrType intType = new AttrType(AttrType.attrInteger);
     private static final AttrType floType = new AttrType(AttrType.attrReal);
-    public static final AttrType[] headerTypes = IntStream.range(0, numberOfFields).mapToObj(i->i==2?floType:intType).collect(
+    public static final AttrType[] headerTypes = IntStream.range(0, numberOfFields).mapToObj(i -> i == 2 ? floType : intType).collect(
             Collectors.toList()).toArray(new AttrType[numberOfFields]);
     public static final short[] strSizes = new short[numberOfFields];
 
     private static final int NUMBER_OF_NODES_FLD = 1;
     private static final int VALUE_FLD = 2;
     private boolean hdrSet = false;
-    
+
     public BasicPattern() {
         super(max_size);
         this.clear();
     }
 
-    public BasicPattern(byte [] aBasicPattern, int offset, int length) {
-        super(aBasicPattern,offset,length);
+    public BasicPattern(byte[] aBasicPattern, int offset, int length) {
+        super(aBasicPattern, offset, length);
     }
 
 //    public Quadruple(EID subject, PID predicate, EID object, float value) throws IOException, FieldNumberOutOfBoundException, InvalidTupleSizeException, InvalidTypeException {
@@ -50,7 +52,6 @@ public class BasicPattern extends Tuple {
         return super.getTupleByteArray();
     }
 
-    //TODO: Check this
     public BasicPattern(int size) {
         super(size);
 
@@ -60,7 +61,8 @@ public class BasicPattern extends Tuple {
     public void basicPatternCopy(BasicPattern fromBasicPattern) throws IOException, FieldNumberOutOfBoundException {
         super.tupleCopy(fromBasicPattern);
     }
-    public int getNumberOfNodes(){
+
+    public int getNumberOfNodes() {
         try {
             setHdrIfNotSet();
             return super.getIntFld(NUMBER_OF_NODES_FLD);
@@ -104,19 +106,24 @@ public class BasicPattern extends Tuple {
             throw new RuntimeException(e);
         }
     }
-    private int getOffset(int nodeIndex){
-        return 2*nodeIndex+1;
+
+    public static int getOffset(int nodeIndex) {
+        return 2 * nodeIndex + 1;
+    }
+
+    public static int[] getPageNumberAndSlot(int nodeIndex) {
+        return new int[]{getOffset(nodeIndex), getOffset(nodeIndex) + 1};
     }
 
     //TODO in getNode on nodeIndex=-1 I want to return float
-    public NID getNode(int nodeIndex){
+    public NID getNode(int nodeIndex) {
         try {
             setHdrIfNotSet();
-            if(nodeIndex>=this.getNumberOfNodes()){
-                throw new RuntimeException("Node Idx ="+nodeIndex+">="+this.getNumberOfNodes());
+            if (nodeIndex >= this.getNumberOfNodes()) {
+                throw new RuntimeException("Node Idx =" + nodeIndex + ">=" + this.getNumberOfNodes());
             }
             int offset = getOffset(nodeIndex);
-            return new NID(new PageId(super.getIntFld(offset)),super.getIntFld(offset+1));
+            return new NID(new PageId(super.getIntFld(offset)), super.getIntFld(offset + 1));
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (FieldNumberOutOfBoundException e) {
@@ -127,35 +134,25 @@ public class BasicPattern extends Tuple {
             throw new RuntimeException(e);
         }
     }
-    
+
     public void setHdrIfNotSet() throws InvalidTupleSizeException, IOException, InvalidTypeException {
-        if(!hdrSet){
+        if (!hdrSet) {
             this.setHdr();
         }
     }
+
     private void setNumberOfNodes(int numberOfNodes) throws IOException, FieldNumberOutOfBoundException {
         super.setIntFld(NUMBER_OF_NODES_FLD, numberOfNodes);
     }
-    public void addNode(NID node){
-        int numberOfNodes = this.getNumberOfNodes()+1;
-        if(numberOfNodes>BasicPattern.numberOfNodes){
-            throw new RuntimeException("Cannot add more than "+BasicPattern.numberOfNodes+" nodes");
+
+    public void addNode(NID node) {
+        int numberOfNodes = this.getNumberOfNodes() + 1;
+        if (numberOfNodes > BasicPattern.numberOfNodes) {
+            throw new RuntimeException("Cannot add more than " + BasicPattern.numberOfNodes + " nodes");
         }
         try {
             this.setNumberOfNodes(numberOfNodes);
-            this.setNode(numberOfNodes,node);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (FieldNumberOutOfBoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    
-    public void setNode(int nodeIndex, NID node){
-        int offset = getOffset(nodeIndex);
-        try {
-            super.setIntFld(offset,node.getPageNo().pid);
-            super.setIntFld(offset+1,node.getSlotNo());
+           this.setNode(numberOfNodes,node);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (FieldNumberOutOfBoundException e) {
@@ -163,24 +160,38 @@ public class BasicPattern extends Tuple {
         }
     }
 
-    
+    public void setNode(int nodeIndex, NID node){
+        int offset = getOffset(nodeIndex);
+        try {
+            super.setIntFld(offset, node.getPageNo().pid);
+            super.setIntFld(offset + 1, node.getSlotNo());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (FieldNumberOutOfBoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     @Deprecated
     public byte[] returnBasicPatternByteArray() {
         return super.returnTupleByteArray();
     }
-    public void basicPatternSet(byte [] record, int offset, int length) throws InvalidTupleSizeException, FieldNumberOutOfBoundException, IOException {
-        this.tupleSet(record,offset,length);
+
+    public void basicPatternSet(byte[] record, int offset, int length) throws InvalidTupleSizeException, FieldNumberOutOfBoundException, IOException {
+        this.tupleSet(record, offset, length);
     }
-    public void setHdr(short numFlds,  AttrType types[], short strSizes[]) throws InvalidTupleSizeException, IOException, InvalidTypeException {
+
+    public void setHdr(short numFlds, AttrType types[], short strSizes[]) throws InvalidTupleSizeException, IOException, InvalidTypeException {
         hdrSet = true;
-        super.setHdr(numFlds,types,strSizes);
+        super.setHdr(numFlds, types, strSizes);
     }
+
     public void setHdr() throws InvalidTupleSizeException, IOException, InvalidTypeException {
-        this.setHdr(numberOfFields,headerTypes,strSizes);
+        this.setHdr(numberOfFields, headerTypes, strSizes);
     }
-    
-    public void clear(){
+
+    public void clear() {
         try {
             this.setNumberOfNodes(0);
         } catch (IOException e) {
@@ -190,12 +201,23 @@ public class BasicPattern extends Tuple {
         }
     }
 
-    public String toString(){
+    public String toString() {
         //make sure it variables are not null
         List<NID> ids = new ArrayList<>();
-        for(int i=0;i<this.getNumberOfNodes();i++){
+        for (int i = 0; i < this.getNumberOfNodes(); i++) {
             ids.add(this.getNode(i));
         }
-        return ids.toString();
+        return ids.toString() + "\t" + this.getValue();
     }
+
+    public static FldSpec[] getProjectListForAllColumns() {
+        FldSpec[] projectionList = new FldSpec[numberOfFields];
+        projectionList[0] = new FldSpec(new RelSpec(RelSpec.outer), NUMBER_OF_NODES_FLD);
+        projectionList[1] = new FldSpec(new RelSpec(RelSpec.outer), VALUE_FLD);
+        for (int i = 2; i < numberOfFields; i++) {
+            projectionList[i] = new FldSpec(new RelSpec(RelSpec.outer), i+1);
+        }
+        return projectionList;
+    }
+
 }

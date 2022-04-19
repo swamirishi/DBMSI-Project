@@ -1,5 +1,7 @@
 package global;
 
+import java.io.IOException;
+
 public class NID implements ID<NID> {
     public int slotNo;
     public PageId pageNo;
@@ -21,17 +23,17 @@ public class NID implements ID<NID> {
     public int getSlotNo() {
         return this.slotNo;
     }
-    
+
     @Override
     public PageId getPageNo() {
         return this.pageNo;
     }
-    
+
     @Override
     public void setSlotNo(int slotNo) {
         this.slotNo = slotNo;
     }
-    
+
     @Override
     public void setPageNo(PageId pageId) {
         this.pageNo = pageId;
@@ -42,25 +44,42 @@ public class NID implements ID<NID> {
      * @param offset the offset of byte array to write
      * @exception java.io.IOException I/O errors
      */
-    public void writeToByteArray(byte [] ary, int offset)
-            throws java.io.IOException {
+    public void writeToByteArray(byte [] ary, int offset) throws IOException {
         Convert.setIntValue ( slotNo, offset, ary);
         Convert.setIntValue ( pageNo.pid, offset+4, ary);
     }
 
 
-    /** Compares two EID object by value
-     * @param eid EID object to be compared to
+    /** Compares two NID object, i.e, this to the rid
+     * @param nid NID object to be compared to
      * @return true is they are equal
      *         false if not.
      */
-    public boolean equals(NID eid) {
-        if ((this.pageNo.pid == eid.pageNo.pid) &&(this.slotNo == eid.slotNo))
+    public boolean equals(NID nid) {
+
+        if ((this.pageNo.pid==nid.pageNo.pid)
+                &&(this.slotNo==nid.slotNo))
             return true;
         else
             return false;
     }
-    
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        NID nid = (NID) o;
+
+        if (slotNo != nid.slotNo) {
+            return false;
+        }
+        return pageNo != null ? pageNo.equals(nid.pageNo) : nid.pageNo == null;
+    }
     /**
      * Casts EID object to LID object
      * @return new LID object
@@ -69,5 +88,11 @@ public class NID implements ID<NID> {
         return new LID(this.pageNo, this.slotNo);
     }
     
+    public EID returnEID() {
+        return new EID(this.pageNo, this.slotNo);
+    }
+    public PID returnPID() {
+        return new PID(this.pageNo, this.slotNo);
+    }
+    
 }
-

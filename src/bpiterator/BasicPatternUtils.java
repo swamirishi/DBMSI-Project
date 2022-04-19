@@ -10,6 +10,7 @@ import heap.InvalidTupleSizeException;
 import heap.Tuple;
 import iterator.UnknowAttrType;
 import labelheap.Label;
+import labelheap.LabelHeapFile;
 import quadrupleheap.Quadruple;
 
 import java.io.IOException;

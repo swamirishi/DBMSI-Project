@@ -5,6 +5,10 @@ import global.GlobalConst;
 import global.ID;
 import heap.Tuple;
 import heap.interfaces.HFile;
+import basicpatternheap.BasicPatternHeapFile;
+import global.BPID;
+import global.GlobalConst;
+
 
 import java.io.IOException;
 

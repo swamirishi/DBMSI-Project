@@ -1,6 +1,7 @@
 package bpiterator;
 
 import basicpatternheap.BasicPattern;
+import basicpatternheap.BasicPatternHeapFile;
 import basicpatternheap.TScan;
 import global.BPID;
 import global.GlobalConst;
