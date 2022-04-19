@@ -155,14 +155,14 @@ public class BPTripleJoin extends NestedLoopsJoins {
             ScanI scan = rightTable.openScan();
             RID qid = new RID();
             Tuple rightRow = scan.getNext(qid);
-            if (BasicPatternPredEval.Eval(rightFilter, rightRow, null, null, null)) {
-                if (BasicPatternPredEval.Eval(outputFilter, leftRow, rightRow, null, null)) {
-                    // Apply a projection on the outer and inner tuples.
-                    BasicPatternProjection.Join(leftRow, in1, rightRow, in2,
-                            outputTuple, projectionList, projectionList.length);
-                    return outputTuple;
-                }
-            }
+//            if (BasicPatternPredEval.Eval(rightFilter, rightRow, null, null, null)) {
+//                if (BasicPatternPredEval.Eval(outputFilter, leftRow, rightRow, null, null)) {
+//                    // Apply a projection on the outer and inner tuples.
+//                    BasicPatternProjection.Join(leftRow, in1, rightRow, in2,
+//                            outputTuple, projectionList, projectionList.length);
+//                    return outputTuple;
+//                }
+//            }
             leftRow = leftItr.get_next();
         }
         return null;
