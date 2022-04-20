@@ -24,7 +24,7 @@ import java.io.IOException;
  * index files (class BTreeFile).  It derives from abstract base
  * class IndexFileScan.  
  */
-public class QIDBTFileScan extends BTFileScanI<QID, Quadruple>
+public class QIDBTFileScan<K> extends BTFileScanI<QID, Quadruple,K>
 {
     @Override
     public BTLeafPageSupplier<QID, Quadruple> getBTLeafSupplier() {

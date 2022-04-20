@@ -9,27 +9,21 @@ import global.RID;
 import heap.*;
 import heap.interfaces.HFile;
 import utils.supplier.hfile.HFileSupplier;
+import utils.supplier.keyclass.KeyClassManager;
 
 import java.io.IOException;
 
-public class RIDBTreeFileSupplier implements BTreeFileSupplier<RID, Tuple> {
+public class RIDBTreeFileSupplier<K> implements BTreeFileSupplier<RID, Tuple,K> {
     @Override
-    public BTreeFileI<RID, Tuple> getBTreeFile(String name) throws ConstructPageException, GetFileEntryException, PinPageException {
-        return new BTreeFile(name);
-    }
-    
-    private RIDBTreeFileSupplier() {
-    }
-    
-    private static RIDBTreeFileSupplier supplier;
-    public static RIDBTreeFileSupplier getSupplier(){
-        if(supplier == null){
-            synchronized (RIDBTreeFileSupplier.class){
-                if(supplier == null){
-                    supplier = new RIDBTreeFileSupplier();
-                }
+    public BTreeFileI<RID, Tuple,K> getBTreeFile(String name,KeyClassManager<K> keyClassManager) throws ConstructPageException, GetFileEntryException, PinPageException {
+        return new BTreeFile<K>(name) {
+            @Override
+            public KeyClassManager<K> getKeyClassManager() {
+                return keyClassManager;
             }
-        }
-        return supplier;
+        };
+    }
+    
+    public RIDBTreeFileSupplier() {
     }
 }

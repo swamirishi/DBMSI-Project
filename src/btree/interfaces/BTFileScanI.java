@@ -18,11 +18,11 @@ import java.io.IOException;
  * index files (class BTreeFile).  It derives from abstract base
  * class IndexFileScan.  
  */
-public abstract class BTFileScanI<I extends ID, T extends Tuple> extends IndexFileScan<I>
+public abstract class BTFileScanI<I extends ID, T extends Tuple,K> extends IndexFileScan<I>
              implements  GlobalConst
 {
 
-  BTreeFileI<I,T> bfile;
+  BTreeFileI<I,T,K> bfile;
   String treeFilename;     // B+ tree we're scanning 
   BTLeafPageI<I,T> leafPage;   // leaf page containing current record
   I curRid;       // position in current leaf; note: this is

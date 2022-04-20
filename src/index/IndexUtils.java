@@ -1,13 +1,24 @@
 package index;
 import btree.interfaces.BTreeFileI;
+import diskmgr.RDFDB;
 import global.*;
 import btree.*;
+import heap.InvalidTupleSizeException;
+import heap.InvalidTypeException;
 import heap.Tuple;
+import index.label.LIDIndexScan;
+import index.quadraple.QIDIndexScan;
 import iterator.*;
-import utils.supplier.btfile.BTreeFileSupplier;
+import javafx.util.Pair;
+import labelheap.Label;
+import quadrupleheap.Quadruple;
+import utils.supplier.keyclass.IDListKeyClassManager;
+import utils.supplier.keyclass.KeyClassManager;
+import utils.supplier.keyclass.LIDKeyClassManager;
 
 import java.io.*;
-
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * IndexUtils class opens an index scan based on selection conditions.
@@ -29,7 +40,7 @@ public class IndexUtils {
    * @exception IteratorException iterator exception
    * @exception ConstructPageException failed to construct a header page
    */
-  public static <I extends ID,T extends Tuple> IndexFileScan<I> BTree_scan(CondExpr[] selects, IndexFile<I> indFile)
+  public static <I extends ID,T extends Tuple,K> IndexFileScan<I> BTree_scan(CondExpr[] selects, IndexFile<I,K> indFile)
     throws IOException, 
 	   UnknownKeyTypeException, 
 	   InvalidSelectionException,
@@ -42,7 +53,7 @@ public class IndexUtils {
       IndexFileScan<I> indScan;
       
       if (selects == null || selects[0] == null) {
-	indScan = ((BTreeFileI<I,T>)indFile).new_scan(null, null);
+	indScan = ((BTreeFileI<I,T,K>)indFile).new_scan(null, null);
 	return indScan;
       }
       
@@ -57,11 +68,11 @@ public class IndexUtils {
 	if (selects[0].op.attrOperator == AttrOperator.aopEQ) {
 	  if (selects[0].type1.attrType != AttrType.attrSymbol) {
 	    key = getValue(selects[0], selects[0].type1, 1);
-	    indScan = ((BTreeFileI<I,T>)indFile).new_scan(key, key);
+	    indScan = ((BTreeFileI<I,T,K>)indFile).new_scan(key, key);
 	  }
 	  else {
 	    key = getValue(selects[0], selects[0].type2, 2);
-	    indScan = ((BTreeFileI<I,T>)indFile).new_scan(key, key);
+	    indScan = ((BTreeFileI<I,T,K>)indFile).new_scan(key, key);
 	  }
 	  return indScan;
 	}
@@ -70,11 +81,11 @@ public class IndexUtils {
 	if (selects[0].op.attrOperator == AttrOperator.aopLT || selects[0].op.attrOperator == AttrOperator.aopLE) {
 	  if (selects[0].type1.attrType != AttrType.attrSymbol) {
 	    key = getValue(selects[0], selects[0].type1, 1);
-	    indScan = ((BTreeFileI<I,T>)indFile).new_scan(null, key);
+	    indScan = ((BTreeFileI<I,T,K>)indFile).new_scan(null, key);
 	  }
 	  else {
 	    key = getValue(selects[0], selects[0].type2, 2);
-	    indScan = ((BTreeFileI<I,T>)indFile).new_scan(null, key);
+	    indScan = ((BTreeFileI<I,T,K>)indFile).new_scan(null, key);
 	  }
 	  return indScan;
 	}
@@ -83,11 +94,11 @@ public class IndexUtils {
 	if (selects[0].op.attrOperator == AttrOperator.aopGT || selects[0].op.attrOperator == AttrOperator.aopGE) {
 	  if (selects[0].type1.attrType != AttrType.attrSymbol) {
 	    key = getValue(selects[0], selects[0].type1, 1);
-	    indScan = ((BTreeFileI<I,T>)indFile).new_scan(key, null);
+	    indScan = ((BTreeFileI<I,T,K>)indFile).new_scan(key, null);
 	  }
 	  else {
 	    key = getValue(selects[0], selects[0].type2, 2);
-	    indScan = ((BTreeFileI<I,T>)indFile).new_scan(key, null);
+	    indScan = ((BTreeFileI<I,T,K>)indFile).new_scan(key, null);
 	  }
 	  return indScan;
 	}
@@ -127,19 +138,19 @@ public class IndexUtils {
 	switch (type.attrType) {
 	case AttrType.attrString:
 	  if (((StringKey)key1).getKey().compareTo(((StringKey)key2).getKey()) < 0) {
-	    indScan = ((BTreeFileI<I, T>)indFile).new_scan(key1, key2);
+	    indScan = ((BTreeFileI<I, T,K>)indFile).new_scan(key1, key2);
 	  }
 	  else {
-	    indScan = ((BTreeFileI<I,T>)indFile).new_scan(key2, key1);
+	    indScan = ((BTreeFileI<I,T,K>)indFile).new_scan(key2, key1);
 	  }
 	  return indScan;
 	  
 	case AttrType.attrInteger:
 	  if (((IntegerKey)key1).getKey().intValue() < ((IntegerKey)key2).getKey().intValue()) {
-	    indScan = ((BTreeFileI<I,T>)indFile).new_scan(key1, key2);
+	    indScan = ((BTreeFileI<I,T,K>)indFile).new_scan(key1, key2);
 	  }
 	  else {
-	    indScan = ((BTreeFileI<I,T>)indFile).new_scan(key2, key1);
+	    indScan = ((BTreeFileI<I,T,K>)indFile).new_scan(key2, key1);
 	  }
 	  return indScan;
 	  
@@ -198,5 +209,150 @@ public class IndexUtils {
     }
     
   }
+//  public static <K> QIDIndexScan<K> getQIDIndexScan(String heapFileName, String bTreeFileName, KeyClassManager<K> keyClassManager, K filter, int indexOption) throws KeyTooLongException, KeyNotMatchException {
+//	  KeyClass k = keyClassManager.getKeyClass(filter);
+//  	AttrType[] attrType = new AttrType[1];
+//	  attrType[0] = new AttrType(AttrType.attrString);
+//	  short[] attrSize = new short[1];
+//	  attrSize[0] = Label.;
+//
+//	  FldSpec[] projlist = new FldSpec[1];
+//	  RelSpec rel = new RelSpec(RelSpec.outer);
+//	  projlist[0] = new FldSpec(rel, 1);
+//
+//	  CondExpr[] expr = new CondExpr[2];
+//	  expr[0] = new CondExpr();
+//	  expr[0].op = new AttrOperator(AttrOperator.aopEQ);
+//	  expr[0].type1 = new AttrType(AttrType.attrSymbol);
+//	  expr[0].type2 = new AttrType(AttrType.attrString);
+//	  expr[0].operand1.symbol = new FldSpec(new RelSpec(RelSpec.outer), 1);
+//	  if(k instanceof StringKey){
+//		  expr[0].operand2.string = ((StringKey) k).getKey();
+//	  }else if(k instanceof IntegerKey){
+//		  expr[0].operand1.integer =  ((IntegerKey) k).getKey();
+//	  }
+//
+//
+//	  expr[0].next = null;
+//	  expr[1] = null;
+//	  QIDIndexScan<K> iscan = new QIDIndexScan<K>(new IndexType(IndexType.B_Index),
+//	                                                    heapFileName,
+//	                                                    bTreeFileName,
+//	                                                    attrType,
+//	                                                    attrSize,
+//	                                                    1,
+//	                                                    1,
+//	                                                    projlist,
+//	                                                    expr,
+//	                                                    1,
+//	                                                    false,k,) {
+//		  @Override
+//		  public KeyClassManager<K> getKeyClassManager() {
+//			  return keyClassManager;
+//		  }
+//	  };
+//	  return iscan;
+//  }
+	
+	public static <K> QIDIndexScan<K> initializeQIDScan(KeyClass filter, KeyClassManager<K> keyClassManager, int index) throws IndexException, InvalidTupleSizeException, IOException, UnknownIndexTypeException, InvalidTypeException {
+		RelSpec rel = new RelSpec(RelSpec.outer);
+		FldSpec[] projlist2 = new FldSpec[Quadruple.numberOfFields];
+		
+		for (int i = 0; i < projlist2.length; i++)
+			projlist2[i] = new FldSpec(rel, i + 1);
+		
+		CondExpr[] expr = new CondExpr[2];
+		expr[0] = new CondExpr();
+		expr[0].op = new AttrOperator(AttrOperator.aopEQ);
+		expr[0].type1 = new AttrType(AttrType.attrSymbol);
+		expr[0].type2 = new AttrType(AttrType.attrString);
+		expr[0].operand1.symbol = new FldSpec(new RelSpec(RelSpec.outer), 1);
+		if(filter instanceof StringKey){
+			expr[0].operand2.string = ((StringKey) filter).getKey();
+		}else if(filter instanceof IntegerKey){
+			expr[0].operand2.integer = ((IntegerKey) filter).getKey();
+		}
+		
+		expr[0].next = null;
+		expr[1] = null;
+		
+		IndexType indexType = new IndexType(IndexType.B_Index);
+		QIDIndexScan<K> qidScan = new QIDIndexScan<K>(indexType, RDFDB.quadrupleHeapFileName, RDFDB.qidBTreeFileName,
+		                                                          Quadruple.headerTypes, Quadruple.strSizes, Quadruple.numberOfFields, Quadruple.numberOfFields, projlist2, null, 1, false, filter, index) {
+			@Override
+			public KeyClassManager<K> getKeyClassManager() {
+				return keyClassManager;
+			}
+		};
+		return qidScan;
+	}
+	
+  public static LIDIndexScan<Void> getLabelBTreeScan(String heapFileName, String bTreeFileName, String filter) throws UnknownIndexTypeException, InvalidTypeException, IndexException, IOException, InvalidTupleSizeException {
+	  AttrType[] attrType = new AttrType[1];
+	  attrType[0] = new AttrType(AttrType.attrString);
+	  short[] attrSize = new short[1];
+	  attrSize[0] = Label.MAX_LENGTH;
+	
+	  FldSpec[] projlist = new FldSpec[1];
+	  RelSpec rel = new RelSpec(RelSpec.outer);
+	  projlist[0] = new FldSpec(rel, 1);
+	
+	  CondExpr[] expr = new CondExpr[2];
+	  expr[0] = new CondExpr();
+	  expr[0].op = new AttrOperator(AttrOperator.aopEQ);
+	  expr[0].type1 = new AttrType(AttrType.attrSymbol);
+	  expr[0].type2 = new AttrType(AttrType.attrString);
+	  expr[0].operand1.symbol = new FldSpec(new RelSpec(RelSpec.outer), 1);
+	  expr[0].operand2.string = filter;
+	  expr[0].next = null;
+	  expr[1] = null;
+	  LIDIndexScan<Void> iscan = new LIDIndexScan<Void>(new IndexType(IndexType.B_Index),
+	                                                    heapFileName,
+	                                                    bTreeFileName,
+	                                                    attrType,
+	                                                    attrSize,
+	                                                    1,
+	                                                    1,
+	                                                    projlist,
+	                                                    expr,
+	                                                    1,
+	                                                    false) {
+		  @Override
+		  public KeyClassManager<Void> getKeyClassManager() {
+			  return null;
+		  }
+	  };
+	  return iscan;
+  	
+  }
+  
+  public static LID isLabelRecordInBtreeFound(String heapFileName, String bTreeFileName, String record) throws UnknownIndexTypeException, InvalidTypeException, IndexException, InvalidTupleSizeException, IOException, UnknownKeyTypeException {
+	  LIDIndexScan<Void> iscan = getLabelBTreeScan(heapFileName, bTreeFileName, record);
+	  LID lid = iscan.get_next_rid();
+	  iscan.close();
+//	  return isFound;
+	  return lid;
+  }
+  
+  public static <K> Quadruple isKeyFoundInQIDBtree(String heapFileName, String bTreeFileName, KeyClassManager<K> keyClassManager, K key, int index) throws KeyTooLongException, KeyNotMatchException, UnknownKeyTypeException, IndexException, IOException, InvalidTypeException, InvalidTupleSizeException, UnknownIndexTypeException {
+	  QIDIndexScan<K> iscan = initializeQIDScan(keyClassManager.getKeyClass(key),keyClassManager,index);
+	  Quadruple quadruple = iscan.get_next();
+	  iscan.close();
+	  return quadruple;
+  }
+
+	public static <K> QID getQIDFromQIDTree(String heapFileName, String bTreeFileName, KeyClassManager<K> keyClassManager, K key, int index) throws KeyTooLongException, KeyNotMatchException, UnknownKeyTypeException, IndexException, IOException, InvalidTypeException, InvalidTupleSizeException, UnknownIndexTypeException {
+		QIDIndexScan<K> iscan = initializeQIDScan(keyClassManager.getKeyClass(key),keyClassManager,index);
+		QID qid = iscan.get_next_rid();
+		iscan.close();
+		return qid;
+	}
+
+	public static <K> Pair<QID, Quadruple> getQIDQuadrupleFromQIDTree(String heapFileName, String bTreeFileName, KeyClassManager<K> keyClassManager, K key, int index) throws KeyTooLongException, KeyNotMatchException, UnknownKeyTypeException, IndexException, IOException, InvalidTypeException, InvalidTupleSizeException, UnknownIndexTypeException {
+		QIDIndexScan<K> iscan = initializeQIDScan(keyClassManager.getKeyClass(key),keyClassManager,index);
+		Pair<QID, Quadruple> itr = iscan.get_next_rid_tuple();
+		iscan.close();
+		return itr;
+	}
   
 }

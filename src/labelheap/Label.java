@@ -19,95 +19,89 @@ import static global.GlobalConst.MINIBASE_PAGESIZE;
  */
 
 public class Label extends Tuple {
-    private String label;
     private static final short numberOfFields = 1;
     private static final AttrType stringType = new AttrType(AttrType.attrString);
     private static final AttrType[] headerTypes = new AttrType[]{stringType};
-    private static final short[] strLengths = new short[]{50};
 
+    public static final int MAX_LENGTH = 200;
+    private static final short[] strLengths = new short[]{MAX_LENGTH};
+    private static int LABEL_FLD = 1;
+    private boolean hdrSet = false;
+    public Label(String label) throws InvalidTupleSizeException, IOException, InvalidTypeException {
+        this();
+        this.setLabel(label);
+    }
     public Label() {
-        this(max_size);
+        super();
     }
 
     public Label(byte [] labelbyteArray, int offset, int length) {
         super(labelbyteArray,offset,length);
-        setAttributes();
-    }
-    private void setAttributes(){
-        if(super.getLength()>=2){
-            try {
-                short length = Convert.getShortValue(this.getOffset(),this.getData());
-                if(length>0 && super.getLength()>=2+length)
-                    this.label = Convert.getStrValue(this.getOffset()+2,this.getData(),length);
-                else if(length==0){
-                    this.label = "";
-                }else{
-                    this.label = null;
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    
-    public Label(int size) {
-        this(new byte[size],0,size);
-        
-        //not handled setAttributes here
-    }
-    public Label(String label) throws IOException, FieldNumberOutOfBoundException {
-        this.label = label;
-    }
-    
-    public Label(Label label) throws InvalidTupleSizeException {
-        this(label.getLabelByteArray(),label.getLength(),0);
     }
 
-    public void setLabel(String label) throws FieldNumberOutOfBoundException, IOException {
-        this.label = label;
+    public Label(int size) {
+        super(size);
+    }
+
+    public Label(Label label) throws InvalidTupleSizeException {
+        super(label);
+    }
+    public void setHdrIfNotSet() throws InvalidTupleSizeException, IOException, InvalidTypeException {
+        if(!hdrSet){
+            this.setHdr();
+        }
+    }
+    public void setLabel(String label){
+        try {
+            setHdrIfNotSet();
+            this.setStrFld(LABEL_FLD,label);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (FieldNumberOutOfBoundException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidTupleSizeException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidTypeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void printLabel(){
         System.out.println("### Printing label ###");
-        System.out.println(this.label);
+        System.out.println(this.getLabel());
         System.out.println("### END : Printing label ###");
     }
 
     public String getLabel() {
-        return label;
-    }
-
-    public int getLength() {
-        return super.getLength();
+        try {
+            setHdrIfNotSet();
+            return super.getStrFld(LABEL_FLD);
+        } catch (IOException | FieldNumberOutOfBoundException | InvalidTupleSizeException | InvalidTypeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public byte[] returnLabelByteArray() throws IOException {
-        if(this.label==null){
-            byte[] data = new byte[2];
-            Convert.setShortValue((short)-1,0,data);
-            return data;
-        }
-        int length = this.label.length();
-        byte[] data = new byte[length+2];
-        Convert.setShortValue((short)length,0,data);
-        Convert.setStrValue(label,2,data);
-        return data;
+        return super.returnTupleByteArray();
     }
 
-    public byte [] getLabelByteArray() {
+    public byte [] getLabelByteArray() throws IOException {
         return super.getTupleByteArray();
     }
 
     public void labelCopy(Label newLabel) {
         super.tupleCopy(newLabel);
-        this.setAttributes();
     }
-    
-    public void tupleSet(byte[] record,int offset, int length) throws InvalidTupleSizeException {
-        super.tupleSet(record,offset,length);
-        this.setAttributes();
-    }
+
     public void labelSet(byte [] record, int offset, int length) throws InvalidTupleSizeException {
-        this.tupleSet(record,offset,length);
+        super.tupleSet(record,offset,length);
+    }
+
+    public void setHdr(short numFlds,  AttrType types[], short strSizes[]) throws InvalidTupleSizeException, IOException, InvalidTypeException {
+        hdrSet = true;
+        super.setHdr(numFlds,types,strSizes);
+    }
+    public void setHdr() throws InvalidTupleSizeException, IOException, InvalidTypeException {
+        this.setHdr(numberOfFields,headerTypes,strLengths);
     }
 }

@@ -13,6 +13,7 @@ import heap.*;
 import bufmgr.*;
 import diskmgr.*;
 import btree.*;
+import utils.supplier.keyclass.KeyClassManager;
 
 public class IndexCatalog extends Heapfile
   implements GlobalConst, Catalogglobal
@@ -502,7 +503,12 @@ public class IndexCatalog extends Heapfile
       
       if (accessType.indexType == IndexType.B_Index)
 	{
-	  btree = new BTreeFile(indexName, attrRec.attrType.attrType, attrRec.attrLen, 0);
+	  btree = new BTreeFile<Void>(indexName, attrRec.attrType.attrType, attrRec.attrLen, 0) {
+		  @Override
+		  public KeyClassManager<Void> getKeyClassManager() {
+			  return null;
+		  }
+	  };
 	} 
       
       

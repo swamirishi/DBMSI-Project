@@ -22,12 +22,17 @@ public class ChainException extends Exception
     prev = _prev;
   }
   
+  public ChainException() {
+    super();
+  }
   
   /**
    * Default constructor.  It will probably never be used
    * since every exception should be pushed onto the stack.
    */
-  public ChainException() { }
+  public ChainException(String message) {
+    super(message);
+  }
   
   /**
    * Print out all the exceptions caught across layers.
