@@ -1,12 +1,15 @@
 package iterator;
 
-import java.io.*; 
-import global.*;
-import bufmgr.*;
-import diskmgr.*;
-import heap.*;
-import index.*;
-import chainexception.*;
+import global.AttrType;
+import global.GlobalConst;
+import global.PageId;
+import global.TupleOrder;
+import heap.FieldNumberOutOfBoundException;
+import heap.Heapfile;
+import heap.Tuple;
+import iterator.interfaces.IteratorI;
+
+import java.io.IOException;
 
 /**
  * The Sort class sorts a file. All necessary information are passed as 
@@ -22,7 +25,7 @@ public class Sort extends Iterator implements GlobalConst
   private AttrType[]  _in;         
   private short       n_cols;
   private short[]     str_lens;
-  private Iterator    _am;
+  private IteratorI    _am;
   private int         _sort_fld;
   private TupleOrder  order;
   private int         _n_pages;
@@ -559,7 +562,7 @@ public class Sort extends Iterator implements GlobalConst
   public Sort(AttrType[] in,         
 	      short      len_in,             
 	      short[]    str_sizes,
-	      Iterator   am,                 
+	      IteratorI am,
 	      int        sort_fld,          
 	      TupleOrder sort_order,     
 	      int        sort_fld_len,  

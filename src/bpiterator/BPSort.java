@@ -2,7 +2,6 @@ package bpiterator;
 
 import basicpatternheap.BasicPattern;
 import basicpatternheap.BasicPatternHeapFile;
-import basicpatternheap.TScan;
 import diskmgr.RDFDB;
 import global.*;
 import heap.FieldNumberOutOfBoundException;
@@ -11,7 +10,7 @@ import heap.InvalidTypeException;
 import heap.Tuple;
 import heap.interfaces.HFile;
 import iterator.*;
-import quadrupleheap.Quadruple;
+import iterator.interfaces.IteratorI;
 
 import java.io.IOException;
 
@@ -34,7 +33,7 @@ public class BPSort extends BPIterator implements GlobalConst {
     private AttrType[] _in;
     private short n_cols;
     private short[] str_lens;
-    private Iterator _am;
+    private IteratorI _am;
     private int _sort_fld;
     private BPOrder order;
     private int _n_pages;
@@ -599,7 +598,7 @@ public class BPSort extends BPIterator implements GlobalConst {
                   AttrType[] in,
                   short len_in,
                   short[] str_sizes,
-                  Iterator am,
+                  IteratorI am,
                   int sort_fld,
                   BPOrder sort_order,
                   int sort_fld_len,

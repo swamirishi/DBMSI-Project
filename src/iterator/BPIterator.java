@@ -1,8 +1,7 @@
 package iterator;
 
-import bufmgr.PageNotReadException;
 import global.AttrType;
-import heap.*;
+import heap.Tuple;
 import index.IndexException;
 
 import java.io.IOException;
@@ -28,12 +27,12 @@ public class BPIterator extends FileScan{
     }
 
     @Override
-    public Tuple get_next() throws PageNotReadException, UnknowAttrType, FieldNumberOutOfBoundException, PredEvalException, WrongPermat, InvalidTupleSizeException, JoinsException, IOException, InvalidTypeException {
+    public Tuple get_next() throws Exception {
         return super.get_next();
     }
 
     @Override
-    public void close() {
+    public void close() throws SortException, IndexException, IOException, JoinsException {
         super.close();
     }
 }

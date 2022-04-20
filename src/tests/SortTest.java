@@ -1,12 +1,14 @@
 package tests;
 
-import java.io.*; 
 import global.*;
-import bufmgr.*;
-import diskmgr.*;
-import heap.*;
-import iterator.*;
-import index.*;
+import heap.Heapfile;
+import heap.Tuple;
+import iterator.FileScan;
+import iterator.FldSpec;
+import iterator.RelSpec;
+import iterator.Sort;
+
+import java.io.IOException;
 import java.util.Random;
 
 

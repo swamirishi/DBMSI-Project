@@ -5,19 +5,14 @@ import basicpatternheap.BasicPatternHeapFile;
 import bpiterator.BPSort;
 import diskmgr.RDFDB;
 import global.*;
-import heap.*;
-import iterator.BPIterator;
-import iterator.Iterator;
-import iterator.SortException;
+import iterator.BPFileScan;
+import iterator.FldSpec;
+import iterator.interfaces.IteratorI;
 import labelheap.Label;
 import labelheap.LabelHeapFile;
-import quadrupleheap.Quadruple;
-import basicpatternheap.TScan;
-
-import java.io.IOException;
 
 public class BPSortTest {
-    public static void main(String args[]) throws HFDiskMgrException, HFException, HFBufMgrException, IOException, InvalidTupleSizeException, InvalidTypeException, SpaceNotAvailableException, InvalidSlotNumberException, SortException {
+    public static void main(String args[]) throws Exception {
         SystemDefs sysdef = new SystemDefs("test1", 8193, 10000, "Clock");
         RDFDB rdfDB = SystemDefs.JavabaseDB;
         AttrType[] attrTypes = BasicPattern.headerTypes;
@@ -46,9 +41,25 @@ public class BPSortTest {
         rdfDB.setBpEntityLabelHeapFile(bpEntityHeapFile);
         rdfDB.setBpHeafFile(bpHeapFile);
 
-        BPIterator bpIterator = new BPIterator(bpHeapFile);
+        AttrType[] basicPatternAttrTypes = BasicPattern.headerTypes;
+        int basicPatternAttrTypesLen = BasicPattern.numberOfFields;
+
+        FldSpec[] basicPatternProjectionList = BasicPattern.getProjectListForAllColumns();
+
+        IteratorI<BasicPattern> bpFileScan = new BPFileScan("basicPatternHeapFile",
+                BasicPattern.headerTypes, BasicPattern.strSizes, (short) 0, basicPatternProjectionList.length,
+                basicPatternProjectionList, null);
+
+        iterator.bp.BPIterator bpIterator = (iterator.bp.BPIterator) bpFileScan;
         BPSort bpSort = new BPSort(rdfDB, attrTypes, len, strSizes,
                 bpIterator, 1, new BPOrder(BPOrder.Ascending), 1, 1024);
+
+        BasicPattern bpTemp;
+        int i = 0;
+        while((bpTemp = bpSort.get_next()) != null){
+            System.out.println("ID: " + i++ + "  Value: " + bpTemp.toString());
+        }
+
 
     }
 }

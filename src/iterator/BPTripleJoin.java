@@ -2,19 +2,12 @@ package iterator;
 
 //import heap.BasicPatternClass;
 
-import bufmgr.PageNotReadException;
-import diskmgr.RDFDB;
-import global.*;
-import heap.*;
+import global.AttrOperator;
+import global.AttrType;
+import global.RID;
+import heap.Tuple;
 import heap.interfaces.HFile;
 import heap.interfaces.ScanI;
-import index.IndexException;
-import labelheap.LabelHeapFile;
-import quadrupleheap.Quadruple;
-import quadrupleheap.QuadrupleHeapFile;
-import quadrupleheap.TScan;
-
-import java.io.IOException;
 
 public class BPTripleJoin extends NestedLoopsJoins {
     int memoryAmount;
