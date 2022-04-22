@@ -207,7 +207,7 @@ public class BasicPattern extends Tuple {
         for (int i = 0; i < this.getNumberOfNodes(); i++) {
             ids.add(this.getNode(i));
         }
-        return ids.toString() + "\t" + this.getValue();
+        return ids.toString() + "\\t" + this.getValue();
     }
 
     public static FldSpec[] getProjectListForAllColumns() {

@@ -4,13 +4,13 @@ import btree.basicpattern.BPIDBTFileScan;
 import global.BPID;
 import basicpatternheap.BasicPattern;
 
-public class BPIDBTFileScanSupplier implements BTFileScanSupplier<BPID, BasicPattern> {
+public class BPIDBTFileScanSupplier<K> implements BTFileScanSupplier<BPID, BasicPattern, K> {
     @Override
     public BPIDBTFileScan getBTFileScan() {
         return new BPIDBTFileScan();
     }
 
-    private BPIDBTFileScanSupplier() {
+    public BPIDBTFileScanSupplier() {
     }
     
     private static BPIDBTFileScanSupplier supplier;

@@ -1,31 +1,26 @@
 package utils.supplier.btfile;
 
+import basicpatternheap.BasicPattern;
 import btree.ConstructPageException;
 import btree.GetFileEntryException;
 import btree.PinPageException;
-import btree.interfaces.BTreeFileI;
 import btree.basicpattern.BPIDBTreeFile;
+import btree.interfaces.BTreeFileI;
 import global.BPID;
-import basicpatternheap.BasicPattern;
+import utils.supplier.keyclass.KeyClassManager;
 
-public class BPIDBTreeFileSupplier implements BTreeFileSupplier<BPID, BasicPattern> {
+public class BPIDBTreeFileSupplier<K> implements BTreeFileSupplier<BPID, BasicPattern,K> {
     @Override
-    public BTreeFileI<BPID, BasicPattern> getBTreeFile(String name) throws ConstructPageException, GetFileEntryException, PinPageException {
-        return new BPIDBTreeFile(name);
+    public BTreeFileI<BPID, BasicPattern,K> getBTreeFile(String name, KeyClassManager<K> keyClassManager) throws ConstructPageException, GetFileEntryException, PinPageException {
+        return new BPIDBTreeFile<K>(name) {
+            @Override
+            public KeyClassManager<K> getKeyClassManager() {
+                return keyClassManager;
+            }
+        };
     }
 
-    private BPIDBTreeFileSupplier() {
+    public BPIDBTreeFileSupplier() {
     }
-    
-    private static BPIDBTreeFileSupplier supplier;
-    public static BPIDBTreeFileSupplier getSupplier(){
-        if(supplier == null){
-            synchronized (BPIDBTreeFileSupplier.class){
-                if(supplier == null){
-                    supplier = new BPIDBTreeFileSupplier();
-                }
-            }
-        }
-        return supplier;
-    }
+
 }

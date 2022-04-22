@@ -1,13 +1,11 @@
 package utils.supplier.btindexpage;
 
-import btree.BTIndexPage;
+import basicpatternheap.BasicPattern;
 import btree.ConstructPageException;
 import btree.basicpattern.BPIDBTIndexPage;
 import diskmgr.Page;
-import global.PageId;
 import global.BPID;
-import heap.Tuple;
-import bsicpatternheap.BasicPattern;
+import global.PageId;
 
 import java.io.IOException;
 

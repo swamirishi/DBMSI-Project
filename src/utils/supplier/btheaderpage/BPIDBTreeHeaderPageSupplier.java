@@ -1,11 +1,11 @@
 package utils.supplier.btheaderpage;
 
+import basicpatternheap.BasicPattern;
 import btree.ConstructPageException;
 import btree.basicpattern.BPIDBTreeHeaderPage;
 import diskmgr.Page;
-import global.PageId;
 import global.BPID;
-import basicpattern.BasicPattern;
+import global.PageId;
 
 public class BPIDBTreeHeaderPageSupplier implements BTreeHeaderPageSupplier<BPID, BasicPattern> {
     @Override

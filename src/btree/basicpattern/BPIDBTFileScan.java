@@ -6,16 +6,13 @@
  */
 package btree.basicpattern;
 
-import btree.KeyDataEntry;
+import basicpatternheap.BasicPattern;
 import btree.ScanDeleteException;
 import btree.ScanIteratorException;
 import btree.interfaces.BTFileScanI;
 import global.BPID;
-import heap.Tuple;
-import basicpatternheap.BasicPattern;
-import utils.supplier.btleafpage.BTLeafPageSupplier;
 import utils.supplier.btleafpage.BPIDBTLeafPageSupplier;
-import utils.supplier.btleafpage.RIDBTLeafPageSupplier;
+import utils.supplier.btleafpage.BTLeafPageSupplier;
 
 import java.io.IOException;
 
@@ -24,7 +21,7 @@ import java.io.IOException;
  * index files (class BTreeFile).  It derives from abstract base
  * class IndexFileScan.  
  */
-public class BPIDBTFileScan extends BTFileScanI<BPID, BasicPattern>
+public class BPIDBTFileScan<K> extends BTFileScanI<BPID, BasicPattern, K>
 {
     @Override
     public BTLeafPageSupplier<BPID, BasicPattern> getBTLeafSupplier() {
