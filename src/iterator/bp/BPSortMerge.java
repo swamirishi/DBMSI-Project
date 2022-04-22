@@ -1,22 +1,24 @@
-package iterator;
+package iterator.bp;
 
-import heap.*;
-import global.*;
-import diskmgr.*;
-import bufmgr.*;
-import index.*;
+import basicpatternheap.BasicPattern;
+import global.AttrType;
+import global.BPID;
+import global.BPID;
+import global.TupleOrder;
+import heap.Tuple;
+import iterator.*;
 import iterator.interfaces.IteratorI;
 import iterator.interfaces.SortMergeI;
 import utils.supplier.hfile.HFileSupplier;
-import utils.supplier.hfile.RIDHFileSupplier;
+import utils.supplier.hfile.BPIDHFileSupplier;
 import utils.supplier.iterator.iobuf.IoBufSupplier;
-import utils.supplier.iterator.iobuf.RIDIoBufSupplier;
-import utils.supplier.iterator.sort.RIDSortSupplier;
+import utils.supplier.iterator.iobuf.BPIDIoBufSupplier;
+import utils.supplier.iterator.sort.BPIDSortSupplier;
 import utils.supplier.iterator.sort.SortSupplier;
-import utils.supplier.tuple.RIDTupleSupplier;
+import utils.supplier.tuple.BPIDTupleSupplier;
 import utils.supplier.tuple.TupleSupplier;
 
-import java.io.*;
+import java.io.IOException;
 
 /**
  * This file contains the interface for the sort_merg joins.
@@ -26,7 +28,7 @@ import java.io.*;
  * sorting utility to generate runs, and then uses the iterator interface to
  * get successive tuples for the final merge.
  */
-public class SortMerge extends SortMergeI<RID,Tuple>
+public class BPSortMerge extends SortMergeI<BPID, BasicPattern>
 {
 	/**
 	 * constructor,initialization
@@ -56,25 +58,25 @@ public class SortMerge extends SortMergeI<RID,Tuple>
 	 * @throws TupleUtilsException exception from using tuple utils
 	 * @throws IOException         some I/O fault
 	 */
-	public SortMerge(AttrType[] in1,
-	                 int len_in1,
-	                 short[] s1_sizes,
-	                 AttrType[] in2,
-	                 int len_in2,
-	                 short[] s2_sizes,
-	                 int join_col_in1,
-	                 int sortFld1Len,
-	                 int join_col_in2,
-	                 int sortFld2Len,
-	                 int amt_of_mem,
-	                 IteratorI<Tuple> am1,
-	                 IteratorI<Tuple> am2,
-	                 boolean in1_sorted,
-	                 boolean in2_sorted,
-	                 TupleOrder order,
-	                 CondExpr[] outFilter,
-	                 FldSpec[] proj_list,
-	                 int n_out_flds) throws JoinNewFailed, JoinLowMemory, SortException, TupleUtilsException, IOException {
+	public BPSortMerge(AttrType[] in1,
+                     int len_in1,
+                     short[] s1_sizes,
+                     AttrType[] in2,
+                     int len_in2,
+                     short[] s2_sizes,
+                     int join_col_in1,
+                     int sortFld1Len,
+                     int join_col_in2,
+                     int sortFld2Len,
+                     int amt_of_mem,
+                     IteratorI<BasicPattern> am1,
+                     IteratorI<BasicPattern> am2,
+                     boolean in1_sorted,
+                     boolean in2_sorted,
+                     TupleOrder order,
+                     CondExpr[] outFilter,
+                     FldSpec[] proj_list,
+                     int n_out_flds) throws JoinNewFailed, JoinLowMemory, SortException, TupleUtilsException, IOException {
 		super(in1,
 		      len_in1,
 		      s1_sizes,
@@ -97,23 +99,23 @@ public class SortMerge extends SortMergeI<RID,Tuple>
 	}
 	
 	@Override
-	public TupleSupplier<Tuple> getTupleSupplier() {
-		return RIDTupleSupplier.getSupplier();
+	public TupleSupplier<BasicPattern> getTupleSupplier() {
+		return BPIDTupleSupplier.getSupplier();
 	}
 	
 	@Override
-	public HFileSupplier<RID, Tuple> getHFileSupplier() {
-		return RIDHFileSupplier.getSupplier();
+	public HFileSupplier<BPID, BasicPattern> getHFileSupplier() {
+		return BPIDHFileSupplier.getSupplier();
 	}
 	
 	@Override
-	public IoBufSupplier<RID, Tuple> getIoBufSupplier() {
-		return RIDIoBufSupplier.getSupplier();
+	public IoBufSupplier<BPID, BasicPattern> getIoBufSupplier() {
+		return BPIDIoBufSupplier.getSupplier();
 	}
 	
 	@Override
-	public SortSupplier<RID, Tuple> getSortSupplier() {
-		return RIDSortSupplier.getSupplier();
+	public SortSupplier<BPID, BasicPattern> getSortSupplier() {
+		return BPIDSortSupplier.getSupplier();
 	}
 }
 

@@ -1,21 +1,15 @@
 package iterator;
 
-import basicpatternheap.BPScan;
 import basicpatternheap.BasicPattern;
-import basicpatternheap.BasicPatternHeapFile;
 import diskmgr.RDFDB;
 import global.AttrOperator;
 import global.AttrType;
-import global.BPID;
-import global.SystemDefs;
 import heap.*;
-import heap.interfaces.ScanI;
+import iterator.bp.BPFileScan;
+import iterator.bp.BPIterator;
 import iterator.bp.BPNestedLoopJoin;
-import iterator.interfaces.FileScanI;
 import iterator.interfaces.IteratorI;
-import iterator.interfaces.NestedLoopsJoinsI;
 import quadrupleheap.Quadruple;
-import quadrupleheap.TScan;
 
 import java.io.IOException;
 
@@ -63,8 +57,8 @@ public class BPTripleJoinDriver {
         FldSpec[] basicPatternProjectionList = BasicPattern.getProjectListForAllColumns();
 
         IteratorI<BasicPattern> bpFileScan = new BPFileScan("basicPatternHeapFile",
-                BasicPattern.headerTypes, BasicPattern.strSizes, (short) 0, basicPatternProjectionList.length,
-                basicPatternProjectionList, null);
+                                                            BasicPattern.headerTypes, BasicPattern.strSizes, (short) 0, basicPatternProjectionList.length,
+                                                            basicPatternProjectionList, null);
 
         IteratorI<BasicPattern> bpNestedLoopJoin = new BPNestedLoopJoin(basicPatternAttrTypes, basicPatternAttrTypesLen,
                 BasicPattern.strSizes, Quadruple.headerTypes, Quadruple.numberOfFields, Quadruple.strSizes, memoryAmount,

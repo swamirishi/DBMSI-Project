@@ -46,7 +46,7 @@ public class Quadruple extends BasicPattern {
 //        this.quadrupleCopy(this);
 //    }
 
-    public Quadruple(Quadruple fromQuadruple) throws InvalidTupleSizeException {
+    public Quadruple(Quadruple fromQuadruple){
         super(fromQuadruple);
     }
 

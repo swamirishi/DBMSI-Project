@@ -1,22 +1,26 @@
-package iterator;
+package iterator.bp;
 
-import java.io.*; 
-import global.*;
-import heap.*;
+import basicpatternheap.BasicPattern;
+import global.AttrType;
+import global.BPID;
+import global.TupleOrder;
+import iterator.SortException;
 import iterator.interfaces.IteratorI;
 import iterator.interfaces.SortI;
+import utils.supplier.hfile.BPIDHFileSupplier;
 import utils.supplier.hfile.HFileSupplier;
-import utils.supplier.hfile.RIDHFileSupplier;
+import utils.supplier.iterator.pnode.BPIDPNodeSupplier;
 import utils.supplier.iterator.pnode.PNodeSupplier;
-import utils.supplier.iterator.pnode.RIDPNodeSupplier;
-import utils.supplier.iterator.pnodesplaypq.RIDPNodeSPlayPQSupplier;
+import utils.supplier.iterator.pnodesplaypq.BPIDPNodeSPlayPQSupplier;
 import utils.supplier.iterator.pnodesplaypq.pnodeSplayPQSupplier;
-import utils.supplier.iterator.spoofIBuf.RIDSpoofIBufSupplier;
+import utils.supplier.iterator.spoofIBuf.BPIDSpoofIBufSupplier;
 import utils.supplier.iterator.spoofIBuf.SpoofIBufSupplier;
+import utils.supplier.iterator.obuf.BPIDOBufSupplier;
 import utils.supplier.iterator.obuf.OBufSupplier;
-import utils.supplier.iterator.obuf.RIDOBufSupplier;
-import utils.supplier.tuple.RIDTupleSupplier;
+import utils.supplier.tuple.BPIDTupleSupplier;
 import utils.supplier.tuple.TupleSupplier;
+
+import java.io.IOException;
 
 /**
  * The Sort class sorts a file. All necessary information are passed as 
@@ -25,7 +29,7 @@ import utils.supplier.tuple.TupleSupplier;
  * After the sorting is done, the user should call <code>close()</code>
  * to clean up.
  */
-public class Sort extends SortI<RID,Tuple>
+public class BPSort extends SortI<BPID, BasicPattern>
 {
     /**
      * Class constructor, take information about the tuples, and set up
@@ -42,45 +46,45 @@ public class Sort extends SortI<RID,Tuple>
      * @throws IOException   from lower layers
      * @throws SortException something went wrong in the lower layer.
      */
-    public Sort(AttrType[] in,
-                short len_in,
-                short[] str_sizes,
-                IteratorI<Tuple> am,
-                int sort_fld,
-                TupleOrder sort_order,
-                int sort_fld_len,
-                int n_pages) throws IOException, SortException {
+    public BPSort(AttrType[] in,
+                  short len_in,
+                  short[] str_sizes,
+                  IteratorI<BasicPattern> am,
+                  int sort_fld,
+                  TupleOrder sort_order,
+                  int sort_fld_len,
+                  int n_pages) throws IOException, SortException {
         super(in, len_in, str_sizes, am, sort_fld, sort_order, sort_fld_len, n_pages);
     }
     
     @Override
-    protected SpoofIBufSupplier<RID, Tuple> getSpoofIBufSupplier() {
-        return RIDSpoofIBufSupplier.getSupplier();
+    protected SpoofIBufSupplier<BPID, BasicPattern> getSpoofIBufSupplier() {
+        return BPIDSpoofIBufSupplier.getSupplier();
     }
     
     @Override
-    protected TupleSupplier<Tuple> getTupleSupplier() {
-        return RIDTupleSupplier.getSupplier();
+    protected TupleSupplier<BasicPattern> getTupleSupplier() {
+        return BPIDTupleSupplier.getSupplier();
     }
     
     @Override
-    protected pnodeSplayPQSupplier<Tuple> getPnodeSplayPQSupplier() {
-        return RIDPNodeSPlayPQSupplier.getSupplier();
+    protected pnodeSplayPQSupplier<BasicPattern> getPnodeSplayPQSupplier() {
+        return BPIDPNodeSPlayPQSupplier.getSupplier();
     }
     
     @Override
-    protected OBufSupplier<RID, Tuple> getOBufSupplier() {
-        return RIDOBufSupplier.getSupplier();
+    protected OBufSupplier<BPID, BasicPattern> getOBufSupplier() {
+        return BPIDOBufSupplier.getSupplier();
     }
     
     @Override
-    protected PNodeSupplier<Tuple> getPNodeSupplier() {
-        return RIDPNodeSupplier.getSupplier();
+    protected PNodeSupplier<BasicPattern> getPNodeSupplier() {
+        return BPIDPNodeSupplier.getSupplier();
     }
     
     @Override
-    protected HFileSupplier<RID, Tuple> getHFileSupplier() {
-        return RIDHFileSupplier.getSupplier();
+    protected HFileSupplier<BPID, BasicPattern> getHFileSupplier() {
+        return BPIDHFileSupplier.getSupplier();
     }
 }
 

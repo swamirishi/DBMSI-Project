@@ -43,7 +43,7 @@ public class BasicPattern extends Tuple {
 //        this.quadrupleCopy(this);
 //    }
 
-    public BasicPattern(BasicPattern fromBasicPattern) throws InvalidTupleSizeException {
+    public BasicPattern(BasicPattern fromBasicPattern){
         super(fromBasicPattern);
     }
 

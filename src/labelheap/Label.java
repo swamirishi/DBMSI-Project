@@ -43,7 +43,7 @@ public class Label extends Tuple {
         super(size);
     }
 
-    public Label(Label label) throws InvalidTupleSizeException {
+    public Label(Label label){
         super(label);
     }
     public void setHdrIfNotSet() throws InvalidTupleSizeException, IOException, InvalidTypeException {
