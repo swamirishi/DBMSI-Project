@@ -15,7 +15,7 @@ public class Quadruple extends BasicPattern {
     public static final short numberOfFields = 7;
     private static final AttrType intType = new AttrType(AttrType.attrInteger);
     private static final AttrType floType = new AttrType(AttrType.attrReal);
-    public static final AttrType[] headerTypes = new AttrType[]{intType,intType,intType,intType,intType,intType,intType,floType};
+    public static final AttrType[] headerTypes = new AttrType[]{intType,floType,intType,intType,intType,intType,intType,intType};
     public static final short[] strSizes = new short[]{0,0,0,0,0,0,0,0};
     public static final int SUBJECT_NODE_INDEX = 1;
     public static final int OBJECT_NODE_INDEX = 2;
