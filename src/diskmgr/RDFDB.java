@@ -29,7 +29,7 @@ import java.util.List;
 
 public class RDFDB extends DB {
 
-    private String curr_dbname; 				//RDF Database name
+    private String curr_dbname;                //RDF Database name
     private static final short REC_LEN1 = 150;
 
     private QuadrupleHeapFile quadrupleHeapFile;
@@ -101,27 +101,32 @@ public class RDFDB extends DB {
         this.qidBtreeFile = qtf;
     }
 
-    public void initializeLabelBTreeFiles() throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
-        subjectBtreeIndexFile = new LIDBTreeFile<Void>(subjectBTreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
-            @Override
-            public KeyClassManager<Void> getKeyClassManager() {
-                return null;
-            }
-        };
-
+    public void initializePredicateBTreeFile() throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
         predicateBtreeIndexFile = new LIDBTreeFile<Void>(predicateBTreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
             @Override
             public KeyClassManager<Void> getKeyClassManager() {
                 return null;
             }
         };
+    }
 
-        objectBtreeIndexFile = new LIDBTreeFile<Void>(objectBTreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
-            @Override
-            public KeyClassManager<Void> getKeyClassManager() {
-                return null;
-            }
-        };
+    public void initializeEntityBTreeFiles() throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
+//        if(isSubject) {
+            subjectBtreeIndexFile = new LIDBTreeFile<Void>(subjectBTreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
+                @Override
+                public KeyClassManager<Void> getKeyClassManager() {
+                    return null;
+                }
+            };
+//        }else {
+
+            objectBtreeIndexFile = new LIDBTreeFile<Void>(objectBTreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
+                @Override
+                public KeyClassManager<Void> getKeyClassManager() {
+                    return null;
+                }
+            };
+//        }
     }
 
     public int getQuadrupleCnt() throws HFDiskMgrException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException {
@@ -147,32 +152,38 @@ public class RDFDB extends DB {
     //Need to return EID
     public EID insertEntity(String entityLabel, boolean isSubject) {
         try {
-            LID lid = getLIDEntityFromHeapFileScan("entityLabelHeapFile", entityLabel);
+            initializeEntityBTreeFiles();
+            LID lid = null;
+            lid = getLIDEntityFromHeapFileScan("entityLabelHeapFile", entityLabel);
             if (lid == null) {
-                lid = entityLabelHeapFile.insertRecord(new Label(entityLabel).getLabelByteArray());
-
-                //updating subject/object counters
+            lid = entityLabelHeapFile.insertRecord(new Label(entityLabel).getLabelByteArray());
+//
+//                updating subject/object counters
                 if (isSubject)
                     subjectCount++;
                 else
                     objectCount++;
-
+//
                 if (isSubject) {
                     subjectBtreeIndexFile.insert(new StringKey(entityLabel), lid);
                 } else {
                     objectBtreeIndexFile.insert(new StringKey(entityLabel), lid);
                 }
             }
-            if(isSubject) {
-                subjectBtreeIndexFile.close();
-            }else {
-                objectBtreeIndexFile.close();
-            }
+            this.closeEntityBTreeFile(isSubject);
             return lid.returnEid();
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public void closeEntityBTreeFile(boolean isSubject) throws HashEntryNotFoundException, InvalidFrameNumberException, PageUnpinnedException, ReplacerException {
+//        if(isSubject) {
+            subjectBtreeIndexFile.close();
+//        }else {
+            objectBtreeIndexFile.close();
+//        }
     }
 
     public boolean deleteEntity(String entityLabel, boolean isSubject) {
@@ -192,8 +203,11 @@ public class RDFDB extends DB {
     }
 
     public PID insertPredicate(String predicateLabel) throws SpaceNotAvailableException, HFDiskMgrException, HFException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException, FieldNumberOutOfBoundException, InvalidTypeException {
+
         try {
-            LID lid = getLIDPredicateFromHeapFileScan("predicateLabelHeapFile", predicateLabel);
+            initializePredicateBTreeFile();
+            LID lid;
+            lid = getLIDPredicateFromHeapFileScan("predicateLabelHeapFile", predicateLabel);
             if (lid == null) {
                 lid = predicateLabelHeapFile.insertRecord(new Label(predicateLabel).getLabelByteArray());
                 predicateBtreeIndexFile.insert(new StringKey(predicateLabel), lid);
@@ -213,39 +227,15 @@ public class RDFDB extends DB {
 
     //Need to return QID. Change type void to QID
     public QID insertQuadruple(byte[] inputData) throws Exception {
-//        Quadruple thisQuadruple = new Quadruple(quadruplePtr, 0, quadruplePtr.length);
-//        QID qid = new QID();
-//        Quadruple foundQ = null;
-//        boolean found = false;
-//        QuadrupleUtils.rdfdb = this;
-//        try {
-//            TScan tScan = new TScan(getQuadrupleHeapFile());
-//            foundQ = tScan.getNext(qid);
-//            while (foundQ != null) {
-//                foundQ.setHdr();
-//                AttrType attrType = new AttrType(AttrType.attrLID);
-//                if (QuadrupleUtils.CompareQuadrupleWithValue(attrType, foundQ, 1, thisQuadruple) == 0) {
-//                    if (QuadrupleUtils.CompareQuadrupleWithValue(attrType, foundQ, 2, thisQuadruple) == 0)
-//                        if (QuadrupleUtils.CompareQuadrupleWithValue(attrType, foundQ, 3, thisQuadruple) == 0) {
-//                            found = true;
-//                            break;
-//                        }
-//                }
-//                foundQ = tScan.getNext(qid);
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+        initializeIndexesAsPerType();
         Quadruple givenQuadruple = new Quadruple(inputData, 0, inputData.length);
-        Pair<QID, Quadruple> itr = getQIDQuadrupleFromHeapFileScan(givenQuadruple);
-        QID qid;
-        if (itr==null) {
+        QID qid = getQIDFromHeapFileScan(inputData);
+        if (qid == null) {
             qid = quadrupleHeapFile.insertRecord(inputData);
             this.insertInQIDBTree(givenQuadruple, qid);
-        }else{
-            qid = itr.getKey();
-            Quadruple found = itr.getValue();
-            if(givenQuadruple.getValue() >= found.getValue()){
+        } else {
+            Quadruple found = quadrupleHeapFile.getRecord(qid);
+            if (givenQuadruple.getValue() >= found.getValue()) {
                 quadrupleHeapFile.updateRecord(qid, givenQuadruple);
             }
         }
@@ -257,7 +247,7 @@ public class RDFDB extends DB {
 
 //        if (thisQuadruple.getValue() > foundQ.getValue()) {
 
-            //if record exist, store only the quadruple with higher confidence!
+        //if record exist, store only the quadruple with higher confidence!
 //            boolean updated = quadrupleHeapFile.updateRecord(qid, thisQuadruple);
 //            QID qidThisQuadruple = new QID();
 //            if(updated) {
@@ -287,34 +277,16 @@ public class RDFDB extends DB {
         return stream;
     }
 
-    private LID getLIDEntityFromHeapFileScan(String heapFileName, String inputLabel) throws InvalidTupleSizeException, IOException, HFDiskMgrException, HFException, HFBufMgrException, IndexException, UnknownKeyTypeException, UnknownIndexTypeException, InvalidTypeException {
-//        if(this.indexType !=3 || this.indexType)
-//        LID lid = new LID();
-//        LScan scan = (LScan) getCorresponsingHeapFile(heapFileName).openScan();
-//        boolean isFound = false;
-//        Label label = scan.getNext(lid);
-//        while (label!=null) {
-//            if (inputLabel.equals(label.getLabel())) {
-////                System.out.println("Found " + inputLabel + " wont create new");
-//                isFound = true;
-//                break;
-//            }
-//            label = scan.getNext(lid);
-//        }
-//        if (!isFound) {
-//            lid.getPageNo().pid = -1;
-//        }
-//        scan.closescan();
-//        return lid;
-        LID subjectId = IndexUtils.isLabelRecordInBtreeFound(heapFileName, subjectBTreeFileName, inputLabel);
+    private LID getLIDEntityFromHeapFileScan(String heapFileName, String inputLabel) throws InvalidTupleSizeException, IOException, HFDiskMgrException, HFException, HFBufMgrException, IndexException, UnknownKeyTypeException, UnknownIndexTypeException, InvalidTypeException, IteratorException, ConstructPageException, KeyNotMatchException, ScanIteratorException, PinPageException, UnpinPageException, HashEntryNotFoundException, InvalidFrameNumberException, PageUnpinnedException, ReplacerException {
+        LID subjectId = IndexUtils.isLabelRecordInBtreeFound(subjectBtreeIndexFile, inputLabel);
         if (subjectId != null) {
             return subjectId;
         }
-        LID objectId = IndexUtils.isLabelRecordInBtreeFound(heapFileName, objectBTreeFileName, inputLabel);
+        LID objectId = IndexUtils.isLabelRecordInBtreeFound(objectBtreeIndexFile, inputLabel);
         return objectId;
     }
 
-    private LID getLIDPredicateFromHeapFileScan(String heapFileName, String inputLabel) throws InvalidTupleSizeException, IOException, HFDiskMgrException, HFException, HFBufMgrException, IndexException, UnknownKeyTypeException, UnknownIndexTypeException, InvalidTypeException {
+    private LID getLIDPredicateFromHeapFileScan(String heapFileName, String inputLabel) throws InvalidTupleSizeException, IOException, HFDiskMgrException, HFException, HFBufMgrException, IndexException, UnknownKeyTypeException, UnknownIndexTypeException, InvalidTypeException, IteratorException, ConstructPageException, KeyNotMatchException, ScanIteratorException, PinPageException, UnpinPageException, HashEntryNotFoundException, InvalidFrameNumberException, PageUnpinnedException, ReplacerException {
 //        if(this.indexType !=3 || this.indexType)
 //        LID lid = new LID();
 //        LScan scan = (LScan) getCorresponsingHeapFile(heapFileName).openScan();
@@ -333,7 +305,7 @@ public class RDFDB extends DB {
 //        }
 //        scan.closescan();
 //        return lid;
-        LID predicateId = IndexUtils.isLabelRecordInBtreeFound(heapFileName, predicateBTreeFileName, inputLabel);
+        LID predicateId = IndexUtils.isLabelRecordInBtreeFound(predicateBtreeIndexFile, inputLabel);
         return predicateId;
     }
 
@@ -347,28 +319,12 @@ public class RDFDB extends DB {
         return new LabelHeapFile("tempHeapFile");
     }
 
-    private QID getQIDFromHeapFileScan(byte[] inputData) throws InvalidTupleSizeException, IOException, KeyTooLongException, UnknownKeyTypeException, IndexException, KeyNotMatchException, UnknownIndexTypeException, InvalidTypeException {
-//        QID qid = new QID();
-//        TScan scan = (TScan) quadrupleHeapFile.openScan();
-//        boolean isFound = false;
-//        Quadruple quadruple = scan.getNext(qid);
-//        while (quadruple != null) {
-//            if (Arrays.equals(inputData, quadruple.getQuadrupleByteArray())) {
-//                isFound = true;
-//                break;
-//            }
-//            quadruple = scan.getNext(qid);
-//        }
-//        if (!isFound) {
-//            qid.pageNo.pid = -1;
-//        }
-//        scan.closescan();
-//        return qid;
+    private QID getQIDFromHeapFileScan(byte[] inputData) throws InvalidTupleSizeException, IOException, KeyTooLongException, UnknownKeyTypeException, IndexException, KeyNotMatchException, UnknownIndexTypeException, InvalidTypeException, IteratorException, HashEntryNotFoundException, ConstructPageException, ScanIteratorException, PinPageException, InvalidFrameNumberException, PageUnpinnedException, UnpinPageException, ReplacerException {
         Quadruple q = new Quadruple(inputData, 0, inputData.length);
         List<KeyClassManager> keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
         List<?> ids = Arrays.asList(q.getSubject().returnLid(), q.getPredicate().returnLid(), q.getObject().returnLid());
         IDListKeyClassManager idListKeyClassManager = new IDListKeyClassManager(keyClassManagers, 20, 10);
-        QID qid = IndexUtils.getQIDFromQIDTree(quadrupleHeapFileName, qidBTreeFileName, idListKeyClassManager, ids,1);
+        QID qid = IndexUtils.getQIDFromQIDTree(qidBtreeFile, idListKeyClassManager, ids);
         return qid;
     }
 
@@ -376,7 +332,7 @@ public class RDFDB extends DB {
         List<KeyClassManager> keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
         List<?> ids = Arrays.asList(q.getSubject().returnLid(), q.getPredicate().returnLid(), q.getObject().returnLid());
         IDListKeyClassManager idListKeyClassManager = new IDListKeyClassManager(keyClassManagers, 20, 10);
-        Pair<QID, Quadruple> itr = IndexUtils.getQIDQuadrupleFromQIDTree(quadrupleHeapFileName, qidBTreeFileName, idListKeyClassManager, ids,1);
+        Pair<QID, Quadruple> itr = IndexUtils.getQIDQuadrupleFromQIDTree(quadrupleHeapFileName, qidBTreeFileName, idListKeyClassManager, ids, 1);
         return itr;
     }
 
@@ -446,56 +402,49 @@ public class RDFDB extends DB {
                 keyList = Arrays.asList(objectId);
                 qidBtreeFile.insert(keyList, qid);
                 break;
-            
+
         }
     }
 
     public void setIndexType(int indexoption) {
-        this.indexType=indexoption;
+        this.indexType = indexoption;
     }
 
     /**
      * Open an existing rdf database
+     *
      * @param name Database name
      */
     public void rdfcloseDB()
-            throws PageUnpinnedException, InvalidFrameNumberException, HashEntryNotFoundException, ReplacerException
-    {
+            throws PageUnpinnedException, InvalidFrameNumberException, HashEntryNotFoundException, ReplacerException {
         try {
 
-            if(this.subjectBtreeIndexFile != null)
-            {
+            if (this.subjectBtreeIndexFile != null) {
                 this.subjectBtreeIndexFile.close();
             }
-            if(predicateBtreeIndexFile != null)
-            {
+            if (predicateBtreeIndexFile != null) {
                 predicateBtreeIndexFile.close();
             }
-            if(objectBtreeIndexFile != null)
-            {
+            if (objectBtreeIndexFile != null) {
                 objectBtreeIndexFile.close();
             }
-            if(this.qidBtreeFile != null) {
+            if (this.qidBtreeFile != null) {
                 qidBtreeFile.close();
                 //dup_tree.destroyFile();
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
 
-    public void openrdfDB(String dbname,int type)
-    {
+    public void openrdfDB(String dbname, int type) {
         curr_dbname = new String(dbname);
-        try
-        {
+        try {
             openDB(dbname);
             this.setRDFDBProperties(type);
-        }
-        catch (Exception e)
-        {
-            System.err.println (""+e);
+        } catch (Exception e) {
+            System.err.println("" + e);
             e.printStackTrace();
             Runtime.getRuntime().exit(1);
         }
@@ -503,28 +452,25 @@ public class RDFDB extends DB {
 
     /**
      * Create a new RDF database
-     * @param dbname Database name
+     *
+     * @param dbname    Database name
      * @param num_pages Num of pages to allocate for the database
-     * @param type different indexing types to use for the database
+     * @param type      different indexing types to use for the database
      */
-    public void openrdfDB(String dbname,int num_pages,int type)
-    {
+    public void openrdfDB(String dbname, int num_pages, int type) {
         curr_dbname = new String(dbname);
-        try
-        {
-            openDB(dbname,num_pages);
+        try {
+            openDB(dbname, num_pages);
             this.setRDFDBProperties(type);
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
 
-            System.err.println (""+e);
+            System.err.println("" + e);
             e.printStackTrace();
             Runtime.getRuntime().exit(1);
         }
     }
 
-    public LabelHeapFile getQueryEntityLabelHeapFile(){
+    public LabelHeapFile getQueryEntityLabelHeapFile() {
         return QueryUtils.getQueryEntityLabelHeapFile();
     }
 }

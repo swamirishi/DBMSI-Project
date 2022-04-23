@@ -1,13 +1,23 @@
 package diskmgr;
 
+import basicpatternheap.BasicPattern;
+import btree.*;
+import bufmgr.HashEntryNotFoundException;
+import bufmgr.InvalidFrameNumberException;
+import bufmgr.PageUnpinnedException;
+import bufmgr.ReplacerException;
 import global.EID;
 import global.LID;
 import global.PID;
 import global.SystemDefs;
-import heap.HFBufMgrException;
-import heap.HFDiskMgrException;
-import heap.InvalidSlotNumberException;
-import heap.InvalidTupleSizeException;
+import heap.*;
+import index.IndexException;
+import index.IndexUtils;
+import index.UnknownIndexTypeException;
+import iterator.*;
+import iterator.bp.BPNestedLoopJoin;
+import iterator.interfaces.IteratorI;
+import iterator.interfaces.NestedLoopsJoinsI;
 import labelheap.LScan;
 import labelheap.Label;
 import quadrupleheap.Quadruple;
@@ -33,7 +43,7 @@ public class CommandLine {
 //        query test_db_200 1 1 :Jorunn_Danielsen * * * 10
 //        query test_db 6 6 :Jorunn_Danielsen * * * 10000
 //        batchinsert Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
-//        query test_db 2 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
+//        query wp_db 2 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query test_db 3 3 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query test_db 4 4 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query test_db 5 5 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
@@ -62,7 +72,7 @@ public class CommandLine {
         while (!inputString.equals("exit")) {
             System.out.println("\nNew command loop: ");
             System.out.println("Type exit to stop!");
-                        Scanner sc = new Scanner(System.in);
+            Scanner sc = new Scanner(System.in);
             inputString = sc.nextLine();
             String[] input = inputString.split(" ");
             String operationType = input[0];
@@ -95,14 +105,12 @@ public class CommandLine {
         String dbPath = dbName + "_" + index_option;
 
         File file = new File(dbPath);
-        if(file.exists())
-        {
+        if (file.exists()) {
             //open existing database
             systemDefs = new SystemDefs(dbPath, 0, 5000, "Clock", index_option);
-        }
-        else{
+        } else {
             //create a new db
-            systemDefs = new SystemDefs(dbPath, 5000, 5000, "Clock", index_option);
+            systemDefs = new SystemDefs(dbPath, 5000, 5050, "Clock", index_option);
         }
 
         rdfdb = SystemDefs.JavabaseDB;
@@ -135,8 +143,8 @@ public class CommandLine {
         LScan lScan = (LScan) rdfdb.getEntityLabelHeapFile().openScan();
         LID itr = new LID();
         Label l = lScan.getNext(itr);
-        while(l!=null){
-            System.out.println("Label: "+l.getLabel());
+        while (l != null) {
+            System.out.println("Label: " + l.getLabel());
             l = lScan.getNext(itr);
         }
 
@@ -157,6 +165,7 @@ public class CommandLine {
         EID objectId = rdfdb.insertEntity(objectLabel, false);
 
         Quadruple q = new Quadruple(subjectId, predicateId, objectId, confidence);
+        q.setNumberOfNodes(3);
         rdfdb.insertQuadruple(q.getQuadrupleByteArray());
     }
 
@@ -190,19 +199,17 @@ public class CommandLine {
         String OBJECTFILTER = input[5];
         String CONFIDENCEFILTER = input[6];
 //        rdfdb.setIndexType(INDEXOPTION);
-        numbuf = input[7] != null? Integer.parseInt(input[7]) : 0;
+        numbuf = input[7] != null ? Integer.parseInt(input[7]) : 0;
 //        if(SystemDefs.JavabaseBM == null)
 //            systemDefs = new SystemDefs()
 //        SystemDefs.JavabaseBM.setNumBuffers(numbuf);
         String dbPath = RDFDBNAME + "_" + INDEXOPTION;
         File file = new File(dbPath);
 
-        if(file.exists())
-        {
+        if (file.exists()) {
             //open existing database
             systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
-        }
-        else{
+        } else {
             //create a new db
             systemDefs = new SystemDefs(dbPath, 5000, numbuf, "Clock", INDEXOPTION);
         }
@@ -212,8 +219,8 @@ public class CommandLine {
         LScan lScan = (LScan) rdfdb.getEntityLabelHeapFile().openScan();
         LID itr = new LID();
         Label l = lScan.getNext(itr);
-        while(l!=null){
-            System.out.println("Label: "+l);
+        while (l != null) {
+            System.out.println("Label: " + l);
             l = lScan.getNext(itr);
         }
         System.out.println("Warning!: Number of Buffers changed to: " + SystemDefs.JavabaseBM.getNumBuffers());
@@ -225,14 +232,51 @@ public class CommandLine {
         Double confidenceFilter = CONFIDENCEFILTER == null ? null : Double.valueOf(CONFIDENCEFILTER);
 
         Stream stream = rdfdb.openStream(ORDER, SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
-        Quadruple currQuadruple = stream.getNext();
-        while (currQuadruple != null) {
-            System.out.println(currQuadruple);
-            currQuadruple = stream.getNext();
-        }
 
+        System.out.println("Provide Comma Separated for First Level Join");
+        Scanner sc = new Scanner(System.in);
+        String firstJoinQuery = sc.nextLine();
+        String secondJoinQuery = sc.nextLine();
+        IteratorI<BasicPattern> firstLevelJoinIterator = getJoinIterator(firstJoinQuery, stream);
+//        IteratorI<BasicPattern> secondLevelJoinIterator = getJoinIterator(secondJoinQuery, firstLevelJoinIterator);
+        sc.close();
+        BasicPattern basicPattern = firstLevelJoinIterator.get_next();
+        while(basicPattern!=null){
+            basicPattern.printBasicPatternValues();
+            basicPattern = firstLevelJoinIterator.get_next();
+        }
         System.out.println("Disk page READ COUNT: " + PCounter.rcounter);
         System.out.println("Disk page WRITE COUNT: " + PCounter.wcounter);
+    }
+
+    private static IteratorI<BasicPattern> getJoinIterator(String joinQuery, IteratorI<BasicPattern> stream) throws HFDiskMgrException, InvalidRelation, HFException, NestedLoopException, FileScanException, HFBufMgrException, InvalidTupleSizeException, IOException, TupleUtilsException, IndexException, UnknownKeyTypeException, UnknownIndexTypeException, InvalidTypeException, IteratorException, ConstructPageException, KeyNotMatchException, ScanIteratorException, PinPageException, UnpinPageException, HashEntryNotFoundException, InvalidFrameNumberException, PageUnpinnedException, ReplacerException, AddFileEntryException, GetFileEntryException {
+        String[] firstJoinParams = joinQuery.split(",");
+        int memoryAmount = Integer.parseInt(firstJoinParams[0]);
+        int numLeftNodes = Integer.parseInt(firstJoinParams[1]);
+        int bpJoinNodePosition = Integer.parseInt(firstJoinParams[2]);
+        int joinOnSubjectOrObject = Integer.parseInt(firstJoinParams[3]);
+        String rightSubjectFilter = firstJoinParams[4];
+        String rightPredicateFilter = firstJoinParams[5];
+        String rightObjectFilter = firstJoinParams[6];
+        double rightConfidenceFilter = Double.parseDouble(firstJoinParams[7]);
+        int[] leftOutNodePositions = new int[]{Integer.parseInt(firstJoinParams[8])};
+        int outputRightSubject = Integer.parseInt(firstJoinParams[9]);
+        int outputRightObject = Integer.parseInt(firstJoinParams[10]);
+        rdfdb.initializeEntityBTreeFiles();
+        rdfdb.initializePredicateBTreeFile();
+        LID subjectId = IndexUtils.isLabelRecordInBtreeFound(SystemDefs.JavabaseDB.getSubjectBtreeIndexFile(),
+                rightSubjectFilter);
+        LID predicateId = IndexUtils.isLabelRecordInBtreeFound(SystemDefs.JavabaseDB.getPredicateBtreeIndexFile(),
+                rightPredicateFilter);
+        LID objectId = IndexUtils.isLabelRecordInBtreeFound(SystemDefs.JavabaseDB.getObjectBtreeIndexFile(),
+                rightObjectFilter);
+
+        BPTripleJoinDriver bpTripleJoinDriver = new BPTripleJoinDriver(memoryAmount, numLeftNodes,
+                bpJoinNodePosition, joinOnSubjectOrObject,
+                subjectId, predicateId,
+                objectId, rightConfidenceFilter, leftOutNodePositions,
+                outputRightSubject, outputRightObject);
+        return bpTripleJoinDriver.getJoinIterator(stream);
     }
 }
 

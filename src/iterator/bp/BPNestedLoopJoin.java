@@ -9,6 +9,7 @@ import heap.InvalidTypeException;
 import iterator.*;
 import iterator.interfaces.IteratorI;
 import iterator.interfaces.NestedLoopsJoinsI;
+import quadrupleheap.Quadruple;
 import utils.supplier.hfile.BPIDHFileSupplier;
 import utils.supplier.hfile.HFileSupplier;
 import utils.supplier.id.BPIDSupplier;
@@ -62,13 +63,10 @@ public class BPNestedLoopJoin extends NestedLoopsJoinsI<BPID, BasicPattern> {
     public HFileSupplier<BPID, BasicPattern> getHFileSupplier() {
         return BPIDHFileSupplier.getSupplier();
     }
-    
+
     @Override
-    protected boolean predictedEvaluation(CondExpr[] p,
-                                          BasicPattern t1,
-                                          BasicPattern t2,
-                                          AttrType[] in1,
-                                          AttrType[] in2) throws Exception {
-        return BasicPatternPredEval.Eval(p, t1, t2, in1, in2);
+    protected boolean predictedEvaluation(CondExpr[] p, BasicPattern t1, BasicPattern t2, AttrType[] in1, AttrType[] in2) throws Exception {
+        boolean res = PredEval.Eval(p, t1, t2, in1, in2);
+        return res;
     }
 }

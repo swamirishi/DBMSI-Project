@@ -391,7 +391,7 @@ public abstract class IndexScanI<I extends ID, T extends Tuple, K> extends Itera
      */
     public void close() throws IOException, IndexException {
         if (!closeFlag) {
-            if (indScan instanceof BTFileScan) {
+            if (indScan instanceof BTFileScanI) {
                 try {
                     ((BTFileScanI<I, T,K>) indScan).DestroyBTreeFileScan();
                 } catch (Exception e) {

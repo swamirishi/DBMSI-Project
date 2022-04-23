@@ -1,11 +1,13 @@
 package diskmgr;
 
+import basicpatternheap.BasicPattern;
 import btree.KeyClass;
 import btree.KeyNotMatchException;
 import btree.KeyTooLongException;
 import btree.StringKey;
 import btree.label.LIDBTreeFile;
 import btree.quadraple.QIDBTreeFile;
+import bufmgr.PageNotReadException;
 import global.*;
 import heap.*;
 import index.IndexException;
@@ -14,6 +16,7 @@ import index.UnknownIndexTypeException;
 import index.label.LIDIndexScan;
 import index.quadraple.QIDIndexScan;
 import iterator.*;
+import iterator.interfaces.IteratorI;
 import labelheap.Label;
 import labelheap.LabelHeapFile;
 import qiterator.QuadrupleSort;
@@ -33,7 +36,7 @@ import java.util.*;
 import static global.AttrType.*;
 import static global.GlobalConst.INVALID_PAGE;
 
-public class Stream {
+public class Stream extends IteratorI<BasicPattern> {
     public static QuadrupleSort quadrupleSort;
     public static RDFDB rdfDB;
     public static String subjectFilter;
@@ -169,6 +172,7 @@ public class Stream {
             }
             subjectID = subjectIndexScan.get_next_rid();
         }
+        subjectIndexScan.close();
     }
 
     private void queryInQIDBTreeFile(LID subjectID, LID predicateID, LID objectID, Optional<Float> confidenceValue) throws Exception {
@@ -293,6 +297,7 @@ public class Stream {
 //            subjectC++;
 //            subjectID = subjectIndexScan.get_next_rid();
 //        }
+        predicateIndexScan.close();
     }
 
     public void orderSubject() throws Exception {
@@ -302,6 +307,7 @@ public class Stream {
             queryInQIDBTreeFile(subjectID, null, null, Optional.empty());
             subjectID = subjectIndexScan.get_next_rid();
         }
+        subjectIndexScan.close();
     }
 
     public void orderPredicate() throws Exception {
@@ -311,6 +317,7 @@ public class Stream {
             queryInQIDBTreeFile(null, predicateId, null, Optional.empty());
             predicateId = predicateIndexScan.get_next_rid();
         }
+        predicateIndexScan.close();
     }
 
     public void orderObject() throws Exception {
@@ -320,6 +327,7 @@ public class Stream {
             queryInQIDBTreeFile(null, null, objectID, Optional.empty());
             objectID = objectIndexScan.get_next_rid();
         }
+        objectIndexScan.close();
 
     }
 
@@ -328,6 +336,25 @@ public class Stream {
      */
     public void closeStream() throws HFBufMgrException, SortException, IOException {
         quadrupleSort.close();
+    }
+
+    @Override
+    public BasicPattern get_next() throws IOException, JoinsException, IndexException, InvalidTupleSizeException, InvalidTypeException, PageNotReadException, TupleUtilsException, PredEvalException, SortException, LowMemException, UnknowAttrType, UnknownKeyTypeException, Exception {
+        Quadruple quadruple = this.getNext();
+        if(quadruple==null){
+            return null;
+        }
+        BasicPattern basicPattern = new BasicPattern();
+        basicPattern.clear();
+        basicPattern.addNode(quadruple.getSubject().returnNid());
+        basicPattern.addNode(quadruple.getObject().returnNid());
+        basicPattern.setValue(quadruple.getValue());
+        return basicPattern;
+    }
+
+    @Override
+    public void close() throws IOException, JoinsException, SortException, IndexException, HFBufMgrException {
+        this.closeStream();
     }
 }
 

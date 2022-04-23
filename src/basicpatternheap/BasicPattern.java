@@ -8,6 +8,7 @@ import heap.Tuple;
 import iterator.FldSpec;
 import iterator.RelSpec;
 
+import javax.xml.soap.Node;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,11 +20,11 @@ public class BasicPattern extends Tuple {
     public static final short numberOfFields = 2 * numberOfNodes + 2;
     private static final AttrType intType = new AttrType(AttrType.attrInteger);
     private static final AttrType floType = new AttrType(AttrType.attrReal);
-    public static final AttrType[] headerTypes = IntStream.range(0, numberOfFields).mapToObj(i -> i == 2 ? floType : intType).collect(
+    public static final AttrType[] headerTypes = IntStream.range(0, numberOfFields).mapToObj(i -> i == 1 ? floType : intType).collect(
             Collectors.toList()).toArray(new AttrType[numberOfFields]);
     public static final short[] strSizes = null;
     private static final int NUMBER_OF_NODES_FLD = 1;
-    private static final int VALUE_FLD = 2;
+    public static final int VALUE_FLD = 2;
     private boolean hdrSet = false;
 
     public BasicPattern() {
@@ -118,7 +119,7 @@ public class BasicPattern extends Tuple {
     public NID getNode(int nodeIndex) {
         try {
             setHdrIfNotSet();
-            if (nodeIndex >= this.getNumberOfNodes()) {
+            if (nodeIndex > this.getNumberOfNodes()) {
                 throw new RuntimeException("Node Idx =" + nodeIndex + ">=" + this.getNumberOfNodes());
             }
             int offset = getOffset(nodeIndex);
@@ -140,7 +141,8 @@ public class BasicPattern extends Tuple {
         }
     }
 
-    private void setNumberOfNodes(int numberOfNodes) throws IOException, FieldNumberOutOfBoundException {
+    public void setNumberOfNodes(int numberOfNodes) throws IOException, FieldNumberOutOfBoundException, InvalidTupleSizeException, InvalidTypeException {
+        this.setHdrIfNotSet();
         super.setIntFld(NUMBER_OF_NODES_FLD, numberOfNodes);
     }
 
@@ -156,10 +158,15 @@ public class BasicPattern extends Tuple {
             throw new RuntimeException(e);
         } catch (FieldNumberOutOfBoundException e) {
             throw new RuntimeException(e);
+        } catch (InvalidTupleSizeException e) {
+            e.printStackTrace();
+        } catch (InvalidTypeException e) {
+            e.printStackTrace();
         }
     }
 
-    public void setNode(int nodeIndex, NID node) {
+    public void setNode(int nodeIndex, NID node) throws InvalidTupleSizeException, IOException, InvalidTypeException {
+        setHdrIfNotSet();
         int offset = getOffset(nodeIndex);
         try {
             super.setIntFld(offset, node.getPageNo().pid);
@@ -192,8 +199,9 @@ public class BasicPattern extends Tuple {
 
     public void clear() {
         try {
+            this.setHdrIfNotSet();
             this.setNumberOfNodes(0);
-        } catch (IOException e) {
+        } catch (IOException | InvalidTupleSizeException | InvalidTypeException e) {
             throw new RuntimeException(e);
         } catch (FieldNumberOutOfBoundException e) {
             throw new RuntimeException(e);
@@ -219,4 +227,7 @@ public class BasicPattern extends Tuple {
         return projectionList;
     }
 
+    public void printBasicPatternValues(){
+        System.out.println("Confidence:" + this.getValue());
+    }
 }

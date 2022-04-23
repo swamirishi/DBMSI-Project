@@ -60,11 +60,11 @@ public abstract class IteratorI<T extends Tuple> implements Flags {
    *@exception IndexException exception from Index class
    *@exception SortException exception Sort class
    */
-  public abstract void close() 
-    throws IOException, 
-	   JoinsException, 
-	   SortException,
-	   IndexException;
+  public abstract void close()
+          throws IOException,
+          JoinsException,
+          SortException,
+          IndexException, HFBufMgrException;
   
   /**
    * tries to get n_pages of buffer space

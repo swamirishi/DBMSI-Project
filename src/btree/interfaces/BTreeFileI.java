@@ -252,11 +252,6 @@ public abstract class BTreeFileI<I extends ID, T extends Tuple,K> extends IndexF
       }
       
       dbname=new String(filename);
-		try {
-			unpinPage(headerPageId, true /*dirty*/ );
-		} catch (UnpinPageException e) {
-			e.printStackTrace();
-		}
 	}
   
   /** Close the B+ tree file.  Unpin header page.

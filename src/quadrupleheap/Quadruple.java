@@ -12,7 +12,7 @@ import java.util.stream.IntStream;
 
 public class Quadruple extends BasicPattern {
 
-    public static final short numberOfFields = 7;
+    public static final short numberOfFields = 8;
     private static final AttrType intType = new AttrType(AttrType.attrInteger);
     private static final AttrType floType = new AttrType(AttrType.attrReal);
     public static final AttrType[] headerTypes = new AttrType[]{intType,floType,intType,intType,intType,intType,intType,intType};
@@ -32,6 +32,17 @@ public class Quadruple extends BasicPattern {
     }
     public Quadruple() {
         super(max_size);
+        try {
+            this.setNumberOfNodes(numberOfFields);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (FieldNumberOutOfBoundException e) {
+            e.printStackTrace();
+        } catch (InvalidTupleSizeException e) {
+            e.printStackTrace();
+        } catch (InvalidTypeException e) {
+            e.printStackTrace();
+        }
     }
 
     public Quadruple(byte [] aQuadruple, int offset, int length) {
@@ -81,15 +92,15 @@ public class Quadruple extends BasicPattern {
         return super.getValue();
     }
 
-    public void setSubject(EID subject){
+    public void setSubject(EID subject) throws InvalidTupleSizeException, IOException, InvalidTypeException {
         super.setNode(SUBJECT_NODE_INDEX,subject.returnNid());
     }
 
-    public void setPredicate(PID predicate){
+    public void setPredicate(PID predicate) throws InvalidTupleSizeException, IOException, InvalidTypeException {
         super.setNode(PREDICTE_NODE_INDEX,predicate.returnNid());
     }
 
-    public void setObject(EID object){
+    public void setObject(EID object) throws InvalidTupleSizeException, IOException, InvalidTypeException {
         super.setNode(OBJECT_NODE_INDEX, object.returnNid());
     }
 
