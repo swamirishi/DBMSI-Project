@@ -59,6 +59,7 @@ public class RDFDB extends DB {
 //        quadrupleHeapFile = new QuadrupleHeapFile(quadrupleHeapFileName);
 //        entityLabelHeapFile = new LabelHeapFile(entityLabelFileName);
 //        predicateLabelHeapFile = new LabelHeapFile(predicateLabelFileName);
+        super();
     }
 
     public void setRDFDBProperties(int type) throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
@@ -154,7 +155,7 @@ public class RDFDB extends DB {
                     objectBtreeIndexFile.insert(new StringKey(entityLabel), lid);
                 }
             }
-            this.closeEntityBTreeFile(isSubject);
+            this.closeEntityBTreeFile();
             return lid.returnEid();
         } catch (Exception e) {
             e.printStackTrace();
@@ -162,12 +163,16 @@ public class RDFDB extends DB {
         }
     }
 
-    public void closeEntityBTreeFile(boolean isSubject) throws HashEntryNotFoundException, InvalidFrameNumberException, PageUnpinnedException, ReplacerException {
+    public void closeEntityBTreeFile() throws HashEntryNotFoundException, InvalidFrameNumberException, PageUnpinnedException, ReplacerException {
 //        if(isSubject) {
             subjectBtreeIndexFile.close();
 //        }else {
             objectBtreeIndexFile.close();
 //        }
+    }
+
+    public void closePredicateBTreeFile() throws HashEntryNotFoundException, InvalidFrameNumberException, PageUnpinnedException, ReplacerException {
+        predicateBtreeIndexFile.close();
     }
 
     public boolean deleteEntity(String entityLabel, boolean isSubject) {
@@ -384,6 +389,7 @@ public class RDFDB extends DB {
                 qidBtreeFile.close();
                 //dup_tree.destroyFile();
             }
+            new Heapfile("tempHeapFileabhishek0").deleteFile();
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
