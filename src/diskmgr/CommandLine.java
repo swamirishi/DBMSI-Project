@@ -165,7 +165,6 @@ public class CommandLine {
         EID objectId = rdfdb.insertEntity(objectLabel, false);
 
         Quadruple q = new Quadruple(subjectId, predicateId, objectId, confidence);
-        q.setNumberOfNodes(3);
         rdfdb.insertQuadruple(q.getQuadrupleByteArray());
     }
 
@@ -235,12 +234,14 @@ public class CommandLine {
 
         System.out.println("Provide Comma Separated for First Level Join");
         Scanner sc = new Scanner(System.in);
-        String firstJoinQuery = sc.nextLine();
-        String secondJoinQuery = sc.nextLine();
+        String firstJoinQuery = "1000,4,1,0,:Jorunn_Danielsen,:knows,:Eirik_Newth,0.5232177,1,1,1";
+//                sc.nextLine();
+        String secondJoinQuery = "1000,4,1,0,:Jorunn_Danielsen,:title,:Ms,0.5232177,1,1,1";
+//                sc.nextLine();
         IteratorI<BasicPattern> firstLevelJoinIterator = getJoinIterator(firstJoinQuery, stream);
-//        IteratorI<BasicPattern> secondLevelJoinIterator = getJoinIterator(secondJoinQuery, firstLevelJoinIterator);
+        IteratorI<BasicPattern> secondLevelJoinIterator = getJoinIterator(secondJoinQuery, firstLevelJoinIterator);
         sc.close();
-        BasicPattern basicPattern = firstLevelJoinIterator.get_next();
+        BasicPattern basicPattern = secondLevelJoinIterator.get_next();
         while(basicPattern!=null){
             basicPattern.printBasicPatternValues();
             basicPattern = firstLevelJoinIterator.get_next();

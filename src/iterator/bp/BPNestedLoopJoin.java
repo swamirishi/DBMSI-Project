@@ -69,4 +69,11 @@ public class BPNestedLoopJoin extends NestedLoopsJoinsI<BPID, BasicPattern> {
         boolean res = PredEval.Eval(p, t1, t2, in1, in2);
         return res;
     }
+
+    @Override
+    protected void projectionEvaluation(BasicPattern t1, AttrType[] type1, BasicPattern t2, AttrType[] type2, BasicPattern Jtuple, FldSpec[] perm_mat, int nOutFlds) throws Exception {
+        BasicPatternProjection.Join(t1, type1, t2, type2, Jtuple, perm_mat, nOutFlds);
+    }
+
+
 }

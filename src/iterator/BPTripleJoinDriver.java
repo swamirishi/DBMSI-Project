@@ -13,11 +13,12 @@ import iterator.interfaces.IteratorI;
 import quadrupleheap.Quadruple;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BPTripleJoinDriver {
     int memoryAmount;
     int numLeftNodes;
-    BPIterator leftItr;
     int bpJoinNodePosition;
     int joinOnSubjectOrObject;
     LID rightSubjectFilter;
@@ -27,7 +28,6 @@ public class BPTripleJoinDriver {
     int[] leftOutNodePositions;
     int outputRightSubject;
     int outputRightObject;
-    private AttrType in1[], in2[];
 
     public BPTripleJoinDriver(int memoryAmount, int numLeftNodes,
                               int bpJoinNodePosition, int joinOnSubjectOrObject, LID
@@ -61,49 +61,18 @@ public class BPTripleJoinDriver {
     }
 
     private FldSpec[] getProjectionList() {
-        int projectionListLen = leftOutNodePositions.length * 2;
-        if (outputRightSubject == 1) {
-            projectionListLen += 2;
-        }
-        if (outputRightObject == 1) {
-            projectionListLen += 2;
-        }
-        FldSpec[] projectionList = new FldSpec[projectionListLen];
-        in1 = new AttrType[projectionListLen];
-        in2 = new AttrType[projectionListLen];
-        int i;
-        for (i = 0; i < leftOutNodePositions.length; i++) {
-            int[] pageNumAndSlot = BasicPattern.getPageNumberAndSlot(leftOutNodePositions[i]);
-            projectionList[2 * i] = new FldSpec(new RelSpec(RelSpec.outer), pageNumAndSlot[0]);
-            projectionList[2 * i + 1] = new FldSpec(new RelSpec(RelSpec.outer), pageNumAndSlot[1]);
-            in1[2 * i] = new AttrType(AttrType.attrInteger);
-            in1[2 * i + 1] = new AttrType(AttrType.attrInteger);
-            in2[2 * i] = new AttrType(AttrType.attrInteger);
-            in2[2 * i + 1] = new AttrType(AttrType.attrInteger);
+        List<FldSpec> projectionList = new ArrayList<FldSpec>();
+        projectionList.add(BasicPattern.getValueProject(new RelSpec(RelSpec.outer)));
+        for(int pos:leftOutNodePositions){
+            projectionList.addAll(BasicPattern.getProjectListForNode(pos, new RelSpec(RelSpec.outer)));
         }
         if (outputRightSubject == 1) {
-            int[] pageNumAndSlot = BasicPattern.getPageNumberAndSlot(Quadruple.SUBJECT_NODE_INDEX);
-            projectionList[2 * i] = new FldSpec(new RelSpec(RelSpec.innerRel), pageNumAndSlot[0]);
-            projectionList[2 * i + 1] = new FldSpec(new RelSpec(RelSpec.innerRel), pageNumAndSlot[1]);
-            in1[i] = new AttrType(AttrType.attrInteger);
-            in1[2 * i] = new AttrType(AttrType.attrInteger);
-            in1[2 * i + 1] = new AttrType(AttrType.attrInteger);
-            in2[2 * i] = new AttrType(AttrType.attrInteger);
-            in2[2 * i + 1] = new AttrType(AttrType.attrInteger);
-            i++;
+            projectionList.addAll(BasicPattern.getProjectListForNode(Quadruple.SUBJECT_NODE_INDEX, new RelSpec(RelSpec.innerRel)));
         }
         if (outputRightObject == 1) {
-            int[] pageNumAndSlot = BasicPattern.getPageNumberAndSlot(Quadruple.OBJECT_NODE_INDEX);
-            projectionList[2 * i] = new FldSpec(new RelSpec(RelSpec.innerRel), pageNumAndSlot[0]);
-            projectionList[2 * i + 1] = new FldSpec(new RelSpec(RelSpec.innerRel), pageNumAndSlot[1]);
-            in1[i] = new AttrType(AttrType.attrInteger);
-            in1[2 * i] = new AttrType(AttrType.attrInteger);
-            in1[2 * i + 1] = new AttrType(AttrType.attrInteger);
-            in2[2 * i] = new AttrType(AttrType.attrInteger);
-            in2[2 * i + 1] = new AttrType(AttrType.attrInteger);
-            i++;
+            projectionList.addAll(BasicPattern.getProjectListForNode(Quadruple.OBJECT_NODE_INDEX, new RelSpec(RelSpec.innerRel)));
         }
-        return projectionList;
+        return projectionList.toArray(new FldSpec[projectionList.size()]);
     }
 
     private CondExpr[] getOutputFilter() {
@@ -148,7 +117,7 @@ public class BPTripleJoinDriver {
         expr[5] = objectCondExpr[1];
 
         expr[6] = new CondExpr();
-        expr[6].op = new AttrOperator(AttrOperator.aopEQ);
+        expr[6].op = new AttrOperator(AttrOperator.aopGE);
         expr[6].next = null;
         expr[6].type1 = new AttrType(AttrType.attrSymbol);
         expr[6].type2 = new AttrType(AttrType.attrReal);

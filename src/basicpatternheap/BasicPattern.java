@@ -155,25 +155,18 @@ public class BasicPattern extends Tuple {
         }
         return ids.toString() + "\t" + this.getValue();
     }
-    private static FldSpec getFldSpec(int idx){
-        return new FldSpec(new RelSpec(RelSpec.outer), idx);
+    private static FldSpec getFldSpec(int idx, RelSpec relSpec){
+        return new FldSpec(relSpec, idx);
     }
-    public static FldSpec getValueProject(){
-        return getFldSpec(1);
+    public static FldSpec getValueProject(RelSpec relSpec){
+        return getFldSpec(1, relSpec);
     }
-    public static FldSpec[] getProjectListForNode(int nodeIdx){
+    public static List<FldSpec> getProjectListForNode(int nodeIdx, RelSpec relSpec){
         List<FldSpec> nodeFields = new ArrayList<>();
         for(int i:getPageNumberAndSlot(nodeIdx)){
-            nodeFields.add(getFldSpec(i));
+            nodeFields.add(getFldSpec(i, relSpec));
         }
-        return nodeFields.toArray(new FldSpec[2]);
-    }
-    public static FldSpec[] getProjectListForAllColumns() {
-        FldSpec[] projectionList = new FldSpec[numberOfFields];
-        for (int i = 0; i < this.getTotalNumberOfNodes(); i++) {
-            projectionList[i] = new FldSpec(new RelSpec(RelSpec.outer), i+1);
-        }
-        return projectionList;
+        return nodeFields;
     }
 
     public void printBasicPatternValues(){

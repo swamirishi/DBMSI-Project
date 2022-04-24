@@ -181,38 +181,10 @@ public class Stream extends IteratorI<BasicPattern> {
         List<KeyClassManager> list = null;
         IDListKeyClassManager idListKeyClassManager;
         StringKey key;
-        switch (indexOption) {
-            case 1:
-                list = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
-                idListKeyClassManager = new IDListKeyClassManager(list, 20, 10);
-                key = (StringKey) idListKeyClassManager.getKeyClass(Arrays.asList(subjectID, predicateID, objectID));
-                filter = key;
-                break;
-            case 2:
-                list = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
-                idListKeyClassManager = new IDListKeyClassManager(list, 20, 10);
-                key = (StringKey) idListKeyClassManager.getKeyClass(Arrays.asList(predicateID, subjectID, objectID));
-                filter = key;
-                break;
-            case 3:
-                list = Arrays.asList(LIDKeyClassManager.getSupplier());
-                idListKeyClassManager = new IDListKeyClassManager(list, 20, 10);
-                key = (StringKey) idListKeyClassManager.getKeyClass(Arrays.asList(subjectID));
-                filter = key;
-                break;
-            case 4:
-                list = Arrays.asList(LIDKeyClassManager.getSupplier());
-                idListKeyClassManager = new IDListKeyClassManager(list, 20, 10);
-                key = (StringKey) idListKeyClassManager.getKeyClass(Arrays.asList(predicateID));
-                filter = key;
-                break;
-            case 5:
-                list = Arrays.asList(LIDKeyClassManager.getSupplier());
-                idListKeyClassManager = new IDListKeyClassManager(list, 20, 10);
-                key = (StringKey) idListKeyClassManager.getKeyClass(Arrays.asList(objectID));
-                filter = key;
-                break;
-        }
+        list = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+        idListKeyClassManager = new IDListKeyClassManager(list, 20, 10);
+        key = (StringKey) idListKeyClassManager.getKeyClass(Arrays.asList(subjectID, predicateID, objectID));
+        filter = key;
 
         QIDIndexScan<List<?>> qidIndexScan = initializeQIDScan(filter, list);
         getQuadruplesFromScanAndHeapFile(qidIndexScan);
@@ -345,9 +317,8 @@ public class Stream extends IteratorI<BasicPattern> {
             return null;
         }
         BasicPattern basicPattern = new BasicPattern();
-        basicPattern.clear();
-        basicPattern.addNode(quadruple.getSubject().returnNid());
-        basicPattern.addNode(quadruple.getObject().returnNid());
+        basicPattern.setNode(1, quadruple.getSubject().returnNid());
+        basicPattern.setNode(2, quadruple.getObject().returnNid());
         basicPattern.setValue(quadruple.getValue());
         return basicPattern;
     }

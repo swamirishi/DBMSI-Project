@@ -74,23 +74,7 @@ public class RDFDB extends DB {
 
     public void initializeIndexesAsPerType() throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
         List<KeyClassManager> keyClassManagers = null;
-        switch (indexType) {
-            case 1:
-                keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
-                break;
-            case 2:
-                keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
-                break;
-            case 3:
-                keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier());
-                break;
-            case 4:
-                keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier());
-                break;
-            case 5:
-                keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier());
-                break;
-        }
+        keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
         IDListKeyClassManager idListKeyClassManager = new IDListKeyClassManager(keyClassManagers, 20, 10);
         QIDBTreeFile<List<?>> qtf = new QIDBTreeFile<List<?>>(qidBTreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
             @Override
@@ -309,16 +293,6 @@ public class RDFDB extends DB {
         return predicateId;
     }
 
-    LabelHeapFile getCorresponsingHeapFile(String inputLabel) throws HFDiskMgrException, HFException, HFBufMgrException, IOException {
-        switch (inputLabel) {
-            case "entityLabelHeapFile":
-                return this.entityLabelHeapFile;
-            case "predicateLabelHeapFile":
-                return this.predicateLabelHeapFile;
-        }
-        return new LabelHeapFile("tempHeapFile");
-    }
-
     private QID getQIDFromHeapFileScan(byte[] inputData) throws InvalidTupleSizeException, IOException, KeyTooLongException, UnknownKeyTypeException, IndexException, KeyNotMatchException, UnknownIndexTypeException, InvalidTypeException, IteratorException, HashEntryNotFoundException, ConstructPageException, ScanIteratorException, PinPageException, InvalidFrameNumberException, PageUnpinnedException, UnpinPageException, ReplacerException {
         Quadruple q = new Quadruple(inputData, 0, inputData.length);
         List<KeyClassManager> keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
@@ -380,30 +354,8 @@ public class RDFDB extends DB {
         LID objectId = q.getObject().returnLid();
         float confidence = q.getValue();
         List keyList;
-
-        switch (indexType) {
-            case 1:
-                keyList = Arrays.asList(subjectId, predicateId, objectId);
-                qidBtreeFile.insert(keyList, qid);
-                break;
-            case 2:
-                keyList = Arrays.asList(predicateId, subjectId, objectId);
-                qidBtreeFile.insert(keyList, qid);
-                break;
-            case 3:
-                keyList = Arrays.asList(subjectId);
-                qidBtreeFile.insert(keyList, qid);
-                break;
-            case 4:
-                keyList = Arrays.asList(predicateId);
-                qidBtreeFile.insert(keyList, qid);
-                break;
-            case 5:
-                keyList = Arrays.asList(objectId);
-                qidBtreeFile.insert(keyList, qid);
-                break;
-
-        }
+        keyList = Arrays.asList(subjectId, predicateId, objectId);
+        qidBtreeFile.insert(keyList, qid);
     }
 
     public void setIndexType(int indexoption) {

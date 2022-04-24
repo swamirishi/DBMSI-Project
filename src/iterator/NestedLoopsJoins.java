@@ -67,6 +67,11 @@ public class NestedLoopsJoins  extends NestedLoopsJoinsI<RID,Tuple>
 	protected boolean predictedEvaluation(CondExpr[] p, Tuple t1, Tuple t2, AttrType[] in1, AttrType[] in2) throws InvalidTupleSizeException, FieldNumberOutOfBoundException, IOException, UnknowAttrType, InvalidTypeException, PredEvalException {
 		return PredEval.Eval(p, t1, t2, in1, in2);
 	}
+
+	@Override
+	protected void projectionEvaluation(Tuple t1, AttrType[] type1, Tuple t2, AttrType[] type2, Tuple Jtuple, FldSpec[] perm_mat, int nOutFlds) throws Exception {
+		Projection.Join(t1, type1, t2, type2, Jtuple, perm_mat, nOutFlds);
+	}
 }
 
 
