@@ -51,6 +51,9 @@ public class RDFDB extends DB {
     private LIDBTreeFile<Void> predicateBtreeIndexFile;
     private LIDBTreeFile<Void> objectBtreeIndexFile;
     private QIDBTreeFile<List<?>> qidBtreeFile;
+    private QIDBTreeFile<List<?>> qidBtreeFile2;
+    private QIDBTreeFile<List<?>> qidBtreeFile3;
+    private QIDBTreeFile<List<?>> qidBtreeFile4;
 
     private int subjectCount = 0; //TODO Sure these values are updated correctly?
     private int objectCount = 0;
