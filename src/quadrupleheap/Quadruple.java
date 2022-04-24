@@ -12,11 +12,11 @@ import java.util.stream.IntStream;
 
 public class Quadruple extends BasicPattern {
 
-    public static final short numberOfFields = 8;
+    public static final short numberOfFields = 7;
     private static final AttrType intType = new AttrType(AttrType.attrInteger);
     private static final AttrType floType = new AttrType(AttrType.attrReal);
-    public static final AttrType[] headerTypes = new AttrType[]{intType,floType,intType,intType,intType,intType,intType,intType};
-    public static final short[] strSizes = new short[]{0,0,0,0,0,0,0,0};
+    public static final AttrType[] headerTypes = new AttrType[]{floType,intType,intType,intType,intType,intType,intType};
+    public static final short[] strSizes = new short[]{0,0,0,0,0,0,0};
     public static final int SUBJECT_NODE_INDEX = 1;
     public static final int OBJECT_NODE_INDEX = 2;
     public static final int PREDICTE_NODE_INDEX = 3;
@@ -32,17 +32,6 @@ public class Quadruple extends BasicPattern {
     }
     public Quadruple() {
         super(max_size);
-        try {
-            this.setNumberOfNodes(numberOfFields);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (FieldNumberOutOfBoundException e) {
-            e.printStackTrace();
-        } catch (InvalidTupleSizeException e) {
-            e.printStackTrace();
-        } catch (InvalidTypeException e) {
-            e.printStackTrace();
-        }
     }
 
     public Quadruple(byte [] aQuadruple, int offset, int length) {
