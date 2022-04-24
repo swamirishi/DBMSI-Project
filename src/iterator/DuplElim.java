@@ -5,6 +5,7 @@ import global.*;
 import bufmgr.*;
 import diskmgr.*;
 import index.*;
+import iterator.interfaces.IteratorI;
 
 import java.lang.*;
 import java.io.*;
@@ -18,7 +19,7 @@ public class DuplElim extends Iterator
   private short       in_len;
   private short[]    str_lens;
   
-  private Iterator _am;
+  private IteratorI _am;
   private boolean      done;
   
   private AttrType  sortFldType;

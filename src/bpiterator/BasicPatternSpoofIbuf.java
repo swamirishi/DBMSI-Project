@@ -2,7 +2,7 @@ package bpiterator;
 
 import basicpatternheap.BasicPattern;
 import basicpatternheap.BasicPatternHeapFile;
-import basicpatternheap.TScan;
+import basicpatternheap.BPScan;
 import global.BPID;
 import global.GlobalConst;
 import heap.InvalidTupleSizeException;
@@ -52,7 +52,7 @@ public class BasicPatternSpoofIbuf implements GlobalConst  {
         if (hf_scan != null)  hf_scan = null;
 
         try {
-            hf_scan = (TScan) _fd.openScan();
+            hf_scan = (BPScan) _fd.openScan();
         }
         catch(Exception e){
             throw e;
@@ -152,7 +152,7 @@ public class BasicPatternSpoofIbuf implements GlobalConst  {
     private  int   TEST_fd;
 
     private  BasicPatternHeapFile _fd;
-    private TScan hf_scan;
+    private BPScan hf_scan;
     private  int    _n_pages;
     private  int    t_size;
 
