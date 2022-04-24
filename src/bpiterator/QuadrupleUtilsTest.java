@@ -23,11 +23,11 @@ public class QuadrupleUtilsTest {
     public static RDFDB rdfdb;
 
     static {
-        try {
-            rdfdb = new RDFDB(0);
-        } catch (ConstructPageException | AddFileEntryException | GetFileEntryException | IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+////            rdfdb = new RDFDB(0);
+//        } catch (ConstructPageException | AddFileEntryException | GetFileEntryException | IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     public static boolean assertEquals(int reportedValue, int expectedValue){
@@ -61,7 +61,7 @@ public class QuadrupleUtilsTest {
         rdfdb.insertQuadruple(q1.getQuadrupleByteArray());
         rdfdb.insertQuadruple(q2.getQuadrupleByteArray());
 
-        int reportedValue = BasicPatternUtils.CompareQuadrupleWithQuadruple(new AttrType(AttrType.attrLID), q1, 1, q2, 1);
+        int reportedValue = BasicPatternUtils.CompareBPWithBP(new AttrType(AttrType.attrLID), q1, 1, q2, 1, false);
 
         System.out.println(reportedValue);
 
