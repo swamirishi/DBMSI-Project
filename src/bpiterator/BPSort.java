@@ -1,8 +1,8 @@
 package bpiterator;
 
+import basicpatternheap.BPScan;
 import basicpatternheap.BasicPattern;
 import basicpatternheap.BasicPatternHeapFile;
-import basicpatternheap.TScan;
 import diskmgr.RDFDB;
 import global.*;
 import heap.FieldNumberOutOfBoundException;
@@ -31,7 +31,7 @@ public class BPSort extends BPIterator implements GlobalConst {
     private AttrType[] _in;
     private short n_cols;
     private short[] str_lens;
-    private TScan _am;
+    private BPScan _am;
     private int _sort_fld;
     private BPOrder order;
     private int _n_pages;
@@ -595,7 +595,7 @@ public class BPSort extends BPIterator implements GlobalConst {
     public BPSort(RDFDB rdfdb, int orderType, AttrType[] in,
                   short len_in,
                   short[] str_sizes,
-                  TScan am,
+                  BPScan am,
                   int sort_fld,
                   BPOrder sort_order,
                   int sort_fld_len,

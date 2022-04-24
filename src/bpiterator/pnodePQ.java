@@ -78,7 +78,7 @@ public abstract class pnodePQ
    */
   public int pnodeCMP(pnode a, pnode b)
           throws Exception {
-    int ans = BasicPatternUtils.CompareQuadrupleWithQuadruple(fld_type, a.tuple, fld_no, b.tuple, fld_no);
+    int ans = BasicPatternUtils.CompareBPWithBP(fld_type, a.tuple, fld_no, b.tuple, fld_no, false);
     return ans;
   }
 
