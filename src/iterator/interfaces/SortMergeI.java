@@ -70,6 +70,9 @@ public abstract class SortMergeI<I extends ID, T extends Tuple> extends Iterator
 	public abstract HFileSupplier<I, T> getHFileSupplier();
 	public abstract IoBufSupplier<I,T> getIoBufSupplier();
 	public abstract SortSupplier<I,T> getSortSupplier();
+	public abstract int compare(AttrType fldType,
+								T  t1, int t1_fld_no,
+								T  t2, int t2_fld_no) throws UnknowAttrType, IOException, TupleUtilsException;
   
   /**
    *constructor,initialization
@@ -308,7 +311,7 @@ public abstract class SortMergeI<I extends ID, T extends Tuple> extends Iterator
 	      // Note that depending on whether the sort order
 	      // is ascending or descending,
 	      // this loop will be modified.
-	      comp_res = TupleUtils.CompareTupleWithTuple(sortFldType, tuple1,
+	      comp_res = compare(sortFldType, tuple1,
 							  jc_in1, tuple2, jc_in2);
 	      while ((comp_res < 0 && _order.tupleOrder == TupleOrder.Ascending) ||
 		     (comp_res > 0 && _order.tupleOrder == TupleOrder.Descending))
@@ -318,11 +321,11 @@ public abstract class SortMergeI<I extends ID, T extends Tuple> extends Iterator
 		    return null;
 		  }
 		  
-		  comp_res = TupleUtils.CompareTupleWithTuple(sortFldType, tuple1,
+		  comp_res = compare(sortFldType, tuple1,
 							      jc_in1, tuple2, jc_in2);
 		}
 	      
-	      comp_res = TupleUtils.CompareTupleWithTuple(sortFldType, tuple1,
+	      comp_res = compare(sortFldType, tuple1,
 							  jc_in1, tuple2, jc_in2);
 	      while ((comp_res > 0 && _order.tupleOrder == TupleOrder.Ascending) ||
 		     (comp_res < 0 && _order.tupleOrder == TupleOrder.Descending))
@@ -333,7 +336,7 @@ public abstract class SortMergeI<I extends ID, T extends Tuple> extends Iterator
 		      return null;
 		    }
 		  
-		  comp_res = TupleUtils.CompareTupleWithTuple(sortFldType, tuple1,
+		  comp_res = compare(sortFldType, tuple1,
 							      jc_in1, tuple2, jc_in2);
 		}
 	      
@@ -349,7 +352,7 @@ public abstract class SortMergeI<I extends ID, T extends Tuple> extends Iterator
 	      io_buf1.init(_bufs1,       1, t1_size, temp_file_fd1);
 	      io_buf2.init(_bufs2,       1, t2_size, temp_file_fd2);
 	      
-	      while (TupleUtils.CompareTupleWithTuple(sortFldType, tuple1,
+	      while (compare(sortFldType, tuple1,
 						      jc_in1, TempTuple1, jc_in1) == 0)
 		{
 		  // Insert tuple1 into io_buf1
@@ -366,7 +369,7 @@ public abstract class SortMergeI<I extends ID, T extends Tuple> extends Iterator
 		    }
 		}
 	      
-	      while (TupleUtils.CompareTupleWithTuple(sortFldType, tuple2,
+	      while (compare(sortFldType, tuple2,
 						      jc_in2, TempTuple2, jc_in2) == 0)
 		{
 		  // Insert tuple2 into io_buf2

@@ -1,10 +1,9 @@
 package iterator;
 
-import heap.*;
-import global.*;
-import diskmgr.*;
-import bufmgr.*;
-import index.*;
+import global.AttrType;
+import global.RID;
+import global.TupleOrder;
+import heap.Tuple;
 import iterator.interfaces.IteratorI;
 import iterator.interfaces.SortMergeI;
 import utils.supplier.hfile.HFileSupplier;
@@ -16,7 +15,7 @@ import utils.supplier.iterator.sort.SortSupplier;
 import utils.supplier.tuple.RIDTupleSupplier;
 import utils.supplier.tuple.TupleSupplier;
 
-import java.io.*;
+import java.io.IOException;
 
 /**
  * This file contains the interface for the sort_merg joins.
@@ -114,6 +113,11 @@ public class SortMerge extends SortMergeI<RID,Tuple>
 	@Override
 	public SortSupplier<RID, Tuple> getSortSupplier() {
 		return RIDSortSupplier.getSupplier();
+	}
+
+	@Override
+	public int compare(AttrType fldType, Tuple t1, int t1_fld_no, Tuple t2, int t2_fld_no) throws UnknowAttrType, IOException, TupleUtilsException {
+		return TupleUtils.CompareTupleWithTuple(fldType, t1, t1_fld_no, t2, t2_fld_no);
 	}
 }
 

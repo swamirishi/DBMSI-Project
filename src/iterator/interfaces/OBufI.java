@@ -66,6 +66,7 @@ public abstract class OBufI<I extends ID,T extends Tuple> implements GlobalConst
       
       byte[] copybuf;
       copybuf = buf.getTupleByteArray();
+      System.out.println("Debug:" + curr_page + " " + t_wr_to_pg*t_size + " " + t_size + " " + buf.size());
       System.arraycopy(copybuf,0,_bufs[curr_page],t_wr_to_pg*t_size,t_size); 
       T tuple_ptr = getTupleSupplier().getTuple(_bufs[curr_page] , t_wr_to_pg * t_size,t_size);
       t_written++; t_wr_to_pg++; t_wr_to_buf++; dirty = true;

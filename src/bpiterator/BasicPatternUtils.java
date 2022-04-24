@@ -65,12 +65,9 @@ public class BasicPatternUtils {
 									  BasicPattern t2, int t2_fld_no,boolean referenceBased) {
 		double t1_r, t2_r;
 		boolean status = OK;
+		t1_fld_no-=1;
+		t2_fld_no-=1;
 
-		NID nid_bp1 = t1.getNode(t1_fld_no);
-		NID nid_bp2 = t2.getNode(t2_fld_no);
-
-		LID lid_bp1 = nid_bp1.returnLid();
-		LID lid_bp2 = nid_bp2.returnLid();
 
         /*
             Following maps store attribute no with its LID object. Ex : (1, subjectLid) (2, predicateLid)
@@ -79,8 +76,11 @@ public class BasicPatternUtils {
 		
 
 		switch (fldType.attrType) {
-
-			case AttrType.attrLID:
+			case AttrType.attrInteger:
+				NID nid_bp1 = t1.getNode(t1_fld_no);
+				NID nid_bp2 = t2.getNode(t2_fld_no);
+				LID lid_bp1 = nid_bp1.returnLid();
+				LID lid_bp2 = nid_bp2.returnLid();
 				int res = 0;
 				if(referenceBased){
 					if(lid_bp1.getPageNo().pid==lid_bp2.getPageNo().pid){

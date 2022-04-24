@@ -15,9 +15,7 @@ import index.IndexException;
 import index.IndexUtils;
 import index.UnknownIndexTypeException;
 import iterator.*;
-import iterator.bp.BPNestedLoopJoin;
 import iterator.interfaces.IteratorI;
-import iterator.interfaces.NestedLoopsJoinsI;
 import labelheap.LScan;
 import labelheap.Label;
 import quadrupleheap.Quadruple;
@@ -35,7 +33,7 @@ public class CommandLine {
     public static void main(String[] args) throws Exception {
 //        SystemDefs.MINIBASE_RESTART_FLAG = true;
 
-//        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
+//        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 abhi_db
 //        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test1.txt 6 popi
 //        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query bablu 1 1 :Bernhard_A_M_Seefeld :name :Bernhard_A_M_Seefeld * 5000
@@ -43,7 +41,7 @@ public class CommandLine {
 //        query test_db_200 1 1 :Jorunn_Danielsen * * * 10
 //        query test_db 6 6 :Jorunn_Danielsen * * * 10000
 //        batchinsert Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
-//        query wp_db 2 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
+//        query gg_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query test_db 3 3 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query test_db 4 4 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query test_db 5 5 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
@@ -93,6 +91,7 @@ public class CommandLine {
                 System.out.println("Running Report ......................");
                 runReport(Arrays.copyOfRange(input, 1, input.length));
             }
+//            break;
         }
     }
 
@@ -234,9 +233,9 @@ public class CommandLine {
 
         System.out.println("Provide Comma Separated for First Level Join");
         Scanner sc = new Scanner(System.in);
-        String firstJoinQuery = "1000,4,1,0,:Jorunn_Danielsen,:knows,:Eirik_Newth,0.5232177,1,1,1";
+        String firstJoinQuery = "1000,4,1,0,:Jorunn_Danielsen,:knows,:Eirik_Newth,0.1,1,1,1";
 //                sc.nextLine();
-        String secondJoinQuery = "1000,4,1,0,:Jorunn_Danielsen,:title,:Ms,0.5232177,1,1,1";
+        String secondJoinQuery = "1000,4,1,0,:Jorunn_Danielsen,:knows,:Eirik_Newth,0.1,1,1,1";
 //                sc.nextLine();
         IteratorI<BasicPattern> firstLevelJoinIterator = getJoinIterator(firstJoinQuery, stream);
         IteratorI<BasicPattern> secondLevelJoinIterator = getJoinIterator(secondJoinQuery, firstLevelJoinIterator);
@@ -244,13 +243,13 @@ public class CommandLine {
         BasicPattern basicPattern = secondLevelJoinIterator.get_next();
         while(basicPattern!=null){
             basicPattern.printBasicPatternValues();
-            basicPattern = firstLevelJoinIterator.get_next();
+            basicPattern = secondLevelJoinIterator.get_next();
         }
         System.out.println("Disk page READ COUNT: " + PCounter.rcounter);
         System.out.println("Disk page WRITE COUNT: " + PCounter.wcounter);
     }
 
-    private static IteratorI<BasicPattern> getJoinIterator(String joinQuery, IteratorI<BasicPattern> stream) throws HFDiskMgrException, InvalidRelation, HFException, NestedLoopException, FileScanException, HFBufMgrException, InvalidTupleSizeException, IOException, TupleUtilsException, IndexException, UnknownKeyTypeException, UnknownIndexTypeException, InvalidTypeException, IteratorException, ConstructPageException, KeyNotMatchException, ScanIteratorException, PinPageException, UnpinPageException, HashEntryNotFoundException, InvalidFrameNumberException, PageUnpinnedException, ReplacerException, AddFileEntryException, GetFileEntryException {
+    private static IteratorI<BasicPattern> getJoinIterator(String joinQuery, IteratorI<BasicPattern> stream) throws HFDiskMgrException, InvalidRelation, HFException, NestedLoopException, FileScanException, HFBufMgrException, InvalidTupleSizeException, IOException, TupleUtilsException, IndexException, UnknownKeyTypeException, UnknownIndexTypeException, InvalidTypeException, IteratorException, ConstructPageException, KeyNotMatchException, ScanIteratorException, PinPageException, UnpinPageException, HashEntryNotFoundException, InvalidFrameNumberException, PageUnpinnedException, ReplacerException, AddFileEntryException, GetFileEntryException, SortException, JoinNewFailed, JoinLowMemory {
         String[] firstJoinParams = joinQuery.split(",");
         int memoryAmount = Integer.parseInt(firstJoinParams[0]);
         int numLeftNodes = Integer.parseInt(firstJoinParams[1]);
@@ -277,7 +276,7 @@ public class CommandLine {
                 subjectId, predicateId,
                 objectId, rightConfidenceFilter, leftOutNodePositions,
                 outputRightSubject, outputRightObject);
-        return bpTripleJoinDriver.getJoinIterator(stream);
+        return bpTripleJoinDriver.getJoinIteratorSMJ(stream);
     }
 }
 

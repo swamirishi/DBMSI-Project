@@ -1,6 +1,8 @@
 package basicpatternheap;
 
-import global.*;
+import global.AttrType;
+import global.NID;
+import global.PageId;
 import heap.FieldNumberOutOfBoundException;
 import heap.InvalidTupleSizeException;
 import heap.InvalidTypeException;
@@ -8,7 +10,6 @@ import heap.Tuple;
 import iterator.FldSpec;
 import iterator.RelSpec;
 
-import javax.xml.soap.Node;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +25,7 @@ public class BasicPattern extends Tuple {
             Collectors.toList()).toArray(new AttrType[numberOfFields]);
     public static final short[] strSizes = null;
     public static final int VALUE_FLD = 1;
-    private boolean hdrSet = false;
+    protected boolean hdrSet = false;
 
     public BasicPattern() {
         super(max_size);
@@ -36,6 +37,7 @@ public class BasicPattern extends Tuple {
 
     public BasicPattern(BasicPattern fromBasicPattern){
         super(fromBasicPattern);
+        this.hdrSet = fromBasicPattern.hdrSet;
     }
 
     public byte[] getBasicPatternByteArray() {
