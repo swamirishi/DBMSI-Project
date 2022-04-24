@@ -45,6 +45,10 @@ public class BasicPattern extends Tuple {
     public BasicPattern(int size) {
         super(size);
     }
+    
+    public int getTotalNumberOfNodes(){
+        return this.getFldCnt()/2;
+    }
 
     public void basicPatternCopy(BasicPattern fromBasicPattern) throws IOException, FieldNumberOutOfBoundException {
         super.tupleCopy(fromBasicPattern);
@@ -146,7 +150,7 @@ public class BasicPattern extends Tuple {
     public String toString() {
         //make sure it variables are not null
         List<NID> ids = new ArrayList<>();
-        for (int i = 0; i < this.numberOfNodes; i++) {
+        for (int i = 1; i <= this.getTotalNumberOfNodes(); i++) {
             ids.add(this.getNode(i));
         }
         return ids.toString() + "\t" + this.getValue();
@@ -166,7 +170,7 @@ public class BasicPattern extends Tuple {
     }
     public static FldSpec[] getProjectListForAllColumns() {
         FldSpec[] projectionList = new FldSpec[numberOfFields];
-        for (int i = 0; i < numberOfFields; i++) {
+        for (int i = 0; i < this.getTotalNumberOfNodes(); i++) {
             projectionList[i] = new FldSpec(new RelSpec(RelSpec.outer), i+1);
         }
         return projectionList;
