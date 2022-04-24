@@ -62,7 +62,7 @@ public class BasicPatternUtils {
 
 	public static int CompareBPWithBP(AttrType fldType,
 									  BasicPattern t1, int t1_fld_no,
-									  BasicPattern t2, int t2_fld_no) throws Exception {
+									  BasicPattern t2, int t2_fld_no,boolean referenceBased) {
 		double t1_r, t2_r;
 		boolean status = OK;
 
@@ -75,19 +75,28 @@ public class BasicPatternUtils {
         /*
             Following maps store attribute no with its LID object. Ex : (1, subjectLid) (2, predicateLid)
         * */
-
-		LabelHeapFile labelHeapFileQ1 = rdfdb.getEntityLabelHeapFile();
-		LabelHeapFile labelHeapFileQ2 = rdfdb.getEntityLabelHeapFile();
-
-		Label labelQ1 = new Label();
-		Label labelQ2 = new Label();
+		
+		
 
 		switch (fldType.attrType) {
 
 			case AttrType.attrLID:
-
-
+				int res = 0;
+				if(referenceBased){
+					if(lid_bp1.getPageNo().pid==lid_bp2.getPageNo().pid){
+						res = Integer.compare(lid_bp1.getSlotNo(), lid_bp2.getSlotNo());
+					}else{
+						res = Integer.compare(lid_bp1.getPageNo().pid,lid_bp2.getPageNo().pid);
+					}
+					
+				}else{
+					LabelHeapFile labelHeapFileQ1 = rdfdb.getEntityLabelHeapFile();
+					LabelHeapFile labelHeapFileQ2 = rdfdb.getEntityLabelHeapFile();
+					
+					Label labelQ1 = new Label();
+					Label labelQ2 = new Label();
 					try {
+						
 						labelQ1 = labelHeapFileQ1.getRecord(lid_bp1);
 					}
 					catch (Exception e){
@@ -106,13 +115,17 @@ public class BasicPatternUtils {
 					} else if (labelQ2 == null) {
 						return 1;
 					}
-					int res = labelQ1.getLabel().compareTo(labelQ2.getLabel());
-					if(res == 0)
-						return res;
-					if(res > 0)
-						return 1;
-					if(res < 0)
-						return -1;
+					res = labelQ1.getLabel().compareTo(labelQ2.getLabel());
+					
+				}
+				if(res == 0)
+					return res;
+				if(res > 0)
+					return 1;
+				if(res < 0)
+					return -1;
+				
+					
 
 
 			case AttrType.attrReal:                // Compare two floats
@@ -143,9 +156,14 @@ public class BasicPatternUtils {
 	 */
 	public static int CompareBPWithValue(AttrType fldType,
 												BasicPattern t1, int t1_fld_no,
-												BasicPattern value)
-			throws Exception {
-		return CompareBPWithBP(fldType, t1, t1_fld_no, value, t1_fld_no);
+												BasicPattern value) {
+		return CompareBPWithBP(fldType, t1, t1_fld_no, value, t1_fld_no,false);
+	}
+	
+	public static int CompareBPWithReference(AttrType fldType,
+	                                     BasicPattern t1, int t1_fld_no,
+	                                     BasicPattern value) {
+		return CompareBPWithBP(fldType, t1, t1_fld_no, value, t1_fld_no,true);
 	}
 
 //	public static int compareQuadrupleWithQuadrupleAsPerOrderType(Quadruple q1, Quadruple q2, int orderType) throws Exception {

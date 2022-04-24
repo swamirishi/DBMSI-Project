@@ -52,12 +52,19 @@ public abstract class SortI<I extends ID, T extends Tuple> extends IteratorI<T> 
     private SpoofIbufI<I, T>[] i_buf;
     private PageId[] bufs_pids;
     private boolean useBM = true; // flag for whether to use buffer manager
-    protected abstract SpoofIBufSupplier<I,T> getSpoofIBufSupplier();
+    
+    protected abstract SpoofIBufSupplier<I, T> getSpoofIBufSupplier();
+    
     protected abstract TupleSupplier<T> getTupleSupplier();
+    
     protected abstract pnodeSplayPQSupplier<T> getPnodeSplayPQSupplier();
-    protected abstract OBufSupplier<I,T> getOBufSupplier();
+    
+    protected abstract OBufSupplier<I, T> getOBufSupplier();
+    
     protected abstract PNodeSupplier<T> getPNodeSupplier();
-    protected abstract HFileSupplier<I,T> getHFileSupplier();
+    
+    protected abstract HFileSupplier<I, T> getHFileSupplier();
+    
     /**
      * Set up for merging the runs.
      * Open an input buffer for each run, and insert the first element (min)
@@ -128,6 +135,8 @@ public abstract class SortI<I extends ID, T extends Tuple> extends IteratorI<T> 
         }
         return;
     }
+    
+    public abstract int compare(AttrType fldType, T t1, int t1_fld_no, T value) throws TupleUtilsException, UnknowAttrType, IOException;
     
     /**
      * Generate sorted runs.
@@ -215,10 +224,7 @@ public abstract class SortI<I extends ID, T extends Tuple> extends IteratorI<T> 
             }
             p_elems_curr_Q--;
             
-            comp_res = TupleUtils.CompareTupleWithValue(sortFldType,
-                                                        cur_node.tuple,
-                                                        _sort_fld,
-                                                        lastElem);  // need tuple_utils.java
+            comp_res = compare(sortFldType, cur_node.tuple, _sort_fld, lastElem);  // need tuple_utils.java
             
             if ((comp_res < 0 && order.tupleOrder == TupleOrder.Ascending) || (comp_res > 0 && order.tupleOrder
                                                                                                == TupleOrder.Descending)) {
@@ -248,7 +254,7 @@ public abstract class SortI<I extends ID, T extends Tuple> extends IteratorI<T> 
                 
                 // check to see whether need to expand the array
                 if (run_num == n_tempfiles) {
-                    HFile<I,T>[] temp1 = new HFile[2 * n_tempfiles];
+                    HFile<I, T>[] temp1 = new HFile[2 * n_tempfiles];
                     for (int i = 0; i < n_tempfiles; i++) {
                         temp1[i] = temp_files[i];
                     }
@@ -339,7 +345,7 @@ public abstract class SortI<I extends ID, T extends Tuple> extends IteratorI<T> 
                     
                     // check to see whether need to expand the array
                     if (run_num == n_tempfiles) {
-                        HFile<I,T>[] temp1 = new HFile[2 * n_tempfiles];
+                        HFile<I, T>[] temp1 = new HFile[2 * n_tempfiles];
                         for (int i = 0; i < n_tempfiles; i++) {
                             temp1[i] = temp_files[i];
                         }

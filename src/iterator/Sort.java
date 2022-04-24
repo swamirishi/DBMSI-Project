@@ -82,6 +82,11 @@ public class Sort extends SortI<RID,Tuple>
     protected HFileSupplier<RID, Tuple> getHFileSupplier() {
         return RIDHFileSupplier.getSupplier();
     }
+    
+    @Override
+    public int compare(AttrType fldType, Tuple t1, int t1_fld_no, Tuple value) throws TupleUtilsException, UnknowAttrType, IOException {
+        return TupleUtils.CompareTupleWithValue(fldType, t1, t1_fld_no, value);
+    }
 }
 
 

@@ -35,6 +35,18 @@ public class BPIDSortSupplier implements SortSupplier<BPID, BasicPattern> {
                                       TupleOrder sort_order,
                                       int sort_fld_len,
                                       int n_pages) throws IOException, SortException {
-        return new BPSort(in, len_in, str_sizes, am, sort_fld, sort_order, sort_fld_len, n_pages);
+        return this.getSort(in, len_in, str_sizes, am, sort_fld, sort_order, sort_fld_len, n_pages,true);
+    }
+    
+    public SortI<BPID, BasicPattern> getSort(AttrType[] in,
+                                             short len_in,
+                                             short[] str_sizes,
+                                             IteratorI<BasicPattern> am,
+                                             int sort_fld,
+                                             TupleOrder sort_order,
+                                             int sort_fld_len,
+                                             int n_pages,
+                                             boolean referenceBased) throws IOException, SortException {
+        return new BPSort(in, len_in, str_sizes, am, sort_fld, sort_order, sort_fld_len, n_pages,referenceBased);
     }
 }
