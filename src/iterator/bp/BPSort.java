@@ -98,7 +98,7 @@ public abstract class BPSort extends SortI<BPID, BasicPattern>
                               BasicPattern tuple,
                               int fld_no,
                               AttrType fldType) throws TupleUtilsException, UnknowAttrType, IOException, FieldNumberOutOfBoundException {
-        value.basicPatternCopy(tuple);
+        BasicPatternUtils.setValue(value,tuple,fld_no,fldType);
     }
     
     @Override

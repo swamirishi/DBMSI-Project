@@ -130,7 +130,7 @@ public class BasicPatternUtils {
 					} else if (labelQ2 == null) {
 						return 1;
 					}
-					res = labelQ1.getLabel().compareTo(labelQ2.getLabel());
+					res = labelQ2.getLabel().compareTo(labelQ1.getLabel());
 					
 				}
 				if(res == 0)
