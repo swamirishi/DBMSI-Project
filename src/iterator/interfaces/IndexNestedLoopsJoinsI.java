@@ -255,9 +255,16 @@ public abstract class IndexNestedLoopsJoinsI<I extends ID, T extends Tuple> exte
     }
 
     private List<?> getMaxFilterList() {
+        NID leftFilter = ((BasicPattern) outer_tuple).getNode(joinCondition.getLeftNodePosition());
         LID rightSubjectFilter = this.rightSubjectFilter != null ? this.rightSubjectFilter : new LID(new PageId(QIDKeyClassManager.MAX_PAGE_NO), QIDKeyClassManager.MAX_SLOT_NO);
         LID rightPredicateFilter = this.rightPredicateFilter != null ? this.rightPredicateFilter : new LID(new PageId(QIDKeyClassManager.MAX_PAGE_NO), QIDKeyClassManager.MAX_SLOT_NO);
         LID rightObjectFilter = this.rightObjectFilter != null ? this.rightObjectFilter : new LID(new PageId(QIDKeyClassManager.MAX_PAGE_NO), QIDKeyClassManager.MAX_SLOT_NO);
+
+        if (joinCondition.isJoinOnSubject()) {
+            rightSubjectFilter = leftFilter.returnLid();
+        }else{
+            rightObjectFilter = leftFilter.returnLid();
+        }
 
         switch (index) {
             case 1:
@@ -273,9 +280,16 @@ public abstract class IndexNestedLoopsJoinsI<I extends ID, T extends Tuple> exte
     }
 
     private List<?> getMinFilterList() {
+        NID leftFilter = ((BasicPattern) outer_tuple).getNode(joinCondition.getLeftNodePosition());
         LID rightSubjectFilter = this.rightSubjectFilter != null ? this.rightSubjectFilter : new LID(new PageId(0), 0);
         LID rightPredicateFilter = this.rightPredicateFilter != null ? this.rightPredicateFilter : new LID(new PageId(0), 0);
         LID rightObjectFilter = this.rightObjectFilter != null ? this.rightObjectFilter : new LID(new PageId(0), 0);
+
+        if (joinCondition.isJoinOnSubject()) {
+            rightSubjectFilter = leftFilter.returnLid();
+        }else{
+            rightObjectFilter = leftFilter.returnLid();
+        }
 
         switch (index) {
             case 1:
@@ -291,15 +305,16 @@ public abstract class IndexNestedLoopsJoinsI<I extends ID, T extends Tuple> exte
     }
 
     private boolean evalLeftRightFilter() {
+//        ((BasicPattern)outer_tuple).printBasicPatternValues();
         NID leftFilter = ((BasicPattern) outer_tuple).getNode(joinCondition.getLeftNodePosition());
         if (joinCondition.isJoinOnSubject()) {
             if(rightSubjectFilter==null) {
-                this.rightSubjectFilter = leftFilter.returnLid();
+                return true;
             }
             return leftFilter.returnLid().equals(rightSubjectFilter);
         } else {
             if(rightObjectFilter==null){
-                this.rightObjectFilter = leftFilter.returnLid();
+                return true;
             }
             return leftFilter.returnLid().equals(rightObjectFilter);
         }
