@@ -123,6 +123,17 @@ public class BPSortMerge extends SortMergeI<BPID, BasicPattern>
 	public int compare(AttrType fldType, BasicPattern t1, int t1_fld_no, BasicPattern t2, int t2_fld_no) {
 		return BasicPatternUtils.CompareBPWithBP(fldType,t1,t1_fld_no,t2,t2_fld_no,true);
 	}
+	
+	@Override
+	protected boolean predictedEvaluation(CondExpr[] p, BasicPattern t1, BasicPattern t2, AttrType[] in1, AttrType[] in2) throws Exception {
+		boolean res = PredEval.Eval(p, t1, t2, in1, in2);
+		return res;
+	}
+	
+	@Override
+	protected void projectionEvaluation(BasicPattern t1, AttrType[] type1, BasicPattern t2, AttrType[] type2, BasicPattern Jtuple, FldSpec[] perm_mat, int nOutFlds) throws Exception {
+		BasicPatternProjection.Join(t1, type1, t2, type2, Jtuple, perm_mat, nOutFlds);
+	}
 }
 
 

@@ -76,7 +76,13 @@ public abstract class SortMergeI<I extends ID, T extends Tuple> extends Iterator
                                 int t1_fld_no,
                                 T t2,
                                 int t2_fld_no) throws UnknowAttrType, IOException, TupleUtilsException;
+    protected abstract boolean predictedEvaluation(CondExpr p[], T t1, T t2, AttrType in1[],
+                                                   AttrType in2[]) throws Exception;
     
+    protected abstract void projectionEvaluation(T t1, AttrType type1[],
+                                                 T t2, AttrType type2[],
+                                                 T Jtuple, FldSpec perm_mat[],
+                                                 int nOutFlds) throws Exception;
     /**
      * constructor,initialization
      *
@@ -396,8 +402,9 @@ public abstract class SortMergeI<I extends ID, T extends Tuple> extends Iterator
                     _tuple2 = io_buf2.Get(TempTuple2);
                 }
             }
-            if (PredEval.Eval(OutputFilter, TempTuple1, TempTuple2, _in1, _in2) == true) {
-                Projection.Join(TempTuple1, _in1, TempTuple2, _in2, Jtuple, perm_mat, nOutFlds);
+            
+            if (this.predictedEvaluation(OutputFilter, TempTuple1, TempTuple2, _in1, _in2) == true) {
+                this.projectionEvaluation(TempTuple1, _in1, TempTuple2, _in2, Jtuple, perm_mat, nOutFlds);
                 return Jtuple;
             }
         }

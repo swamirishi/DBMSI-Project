@@ -3,6 +3,9 @@ package iterator;
 import global.AttrType;
 import global.RID;
 import global.TupleOrder;
+import heap.FieldNumberOutOfBoundException;
+import heap.InvalidTupleSizeException;
+import heap.InvalidTypeException;
 import heap.Tuple;
 import iterator.interfaces.IteratorI;
 import iterator.interfaces.SortMergeI;
@@ -118,6 +121,16 @@ public class SortMerge extends SortMergeI<RID,Tuple>
 	@Override
 	public int compare(AttrType fldType, Tuple t1, int t1_fld_no, Tuple t2, int t2_fld_no) throws UnknowAttrType, IOException, TupleUtilsException {
 		return TupleUtils.CompareTupleWithTuple(fldType, t1, t1_fld_no, t2, t2_fld_no);
+	}
+	
+	@Override
+	protected boolean predictedEvaluation(CondExpr[] p, Tuple t1, Tuple t2, AttrType[] in1, AttrType[] in2) throws InvalidTupleSizeException, FieldNumberOutOfBoundException, IOException, UnknowAttrType, InvalidTypeException, PredEvalException {
+		return PredEval.Eval(p, t1, t2, in1, in2);
+	}
+	
+	@Override
+	protected void projectionEvaluation(Tuple t1, AttrType[] type1, Tuple t2, AttrType[] type2, Tuple Jtuple, FldSpec[] perm_mat, int nOutFlds) throws Exception {
+		Projection.Join(t1, type1, t2, type2, Jtuple, perm_mat, nOutFlds);
 	}
 }
 
