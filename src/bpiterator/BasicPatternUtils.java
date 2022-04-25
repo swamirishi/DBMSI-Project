@@ -7,6 +7,8 @@ import global.LID;
 import global.NID;
 import heap.FieldNumberOutOfBoundException;
 import heap.InvalidTupleSizeException;
+import iterator.TupleUtils;
+import iterator.TupleUtilsException;
 import iterator.UnknowAttrType;
 import labelheap.Label;
 import labelheap.LabelHeapFile;
@@ -59,14 +61,26 @@ public class BasicPatternUtils {
 	 * @throws IOException             some I/O fault
 	 * @throws QuadrupleUtilsException exception from this class
 	 */
-
+	public static void setValue(BasicPattern value,
+	                            BasicPattern tuple,
+	                            int fld_no,
+	                            AttrType fldType) throws TupleUtilsException, UnknowAttrType, IOException {
+		switch (fldType.attrType){
+			case AttrType.attrInteger:{
+				TupleUtils.SetValue(value,tuple,fld_no,fldType);
+				TupleUtils.SetValue(value,tuple,fld_no+1,fldType);
+				break;
+			}
+			default:{
+				TupleUtils.SetValue(value,tuple,fld_no,fldType);
+			}
+		}
+	}
 	public static int CompareBPWithBP(AttrType fldType,
 									  BasicPattern t1, int t1_fld_no,
 									  BasicPattern t2, int t2_fld_no,boolean referenceBased) {
 		double t1_r, t2_r;
 		boolean status = OK;
-		t1_fld_no-=1;
-		t2_fld_no-=1;
 
 
         /*
@@ -77,8 +91,8 @@ public class BasicPatternUtils {
 
 		switch (fldType.attrType) {
 			case AttrType.attrInteger:
-				NID nid_bp1 = t1.getNode(t1_fld_no);
-				NID nid_bp2 = t2.getNode(t2_fld_no);
+				NID nid_bp1 = t1.getNodeWithOffset(t1_fld_no);
+				NID nid_bp2 = t2.getNodeWithOffset(t2_fld_no);
 				LID lid_bp1 = nid_bp1.returnLid();
 				LID lid_bp2 = nid_bp2.returnLid();
 				int res = 0;

@@ -84,6 +84,16 @@ public class Sort extends SortI<RID,Tuple>
     }
     
     @Override
+    public boolean isReferenceBased() {
+        return false;
+    }
+    
+    @Override
+    public void setDummyValue(Tuple value, Tuple tuple, int fld_no, AttrType fldType) throws TupleUtilsException, UnknowAttrType, IOException {
+        TupleUtils.SetValue(value,tuple,fld_no,fldType);
+    }
+    
+    @Override
     public int compare(AttrType fldType, Tuple t1, int t1_fld_no, Tuple value) throws TupleUtilsException, UnknowAttrType, IOException {
         return TupleUtils.CompareTupleWithValue(fldType, t1, t1_fld_no, value);
     }

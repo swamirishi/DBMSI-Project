@@ -16,6 +16,7 @@ import index.IndexUtils;
 import index.UnknownIndexTypeException;
 import iterator.*;
 import iterator.interfaces.IteratorI;
+import javafx.util.Pair;
 import labelheap.LScan;
 import labelheap.Label;
 import quadrupleheap.Quadruple;
@@ -33,7 +34,8 @@ public class CommandLine {
     public static void main(String[] args) throws Exception {
 //        SystemDefs.MINIBASE_RESTART_FLAG = true;
 
-//        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 abhi_db
+//        batchinsert /Users/swamirishi/Documents/asu/Spring_2022/DBMSI/DBMSI-Project/test.txt 3 swami_db
+//        query swami_db 3 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test1.txt 6 popi
 //        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query bablu 1 1 :Bernhard_A_M_Seefeld :name :Bernhard_A_M_Seefeld * 5000
@@ -71,7 +73,8 @@ public class CommandLine {
             System.out.println("\nNew command loop: ");
             System.out.println("Type exit to stop!");
             Scanner sc = new Scanner(System.in);
-            inputString = sc.nextLine();
+//            inputString = sc.nextLine();
+            inputString = "query swami_db 3 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000";
             String[] input = inputString.split(" ");
             String operationType = input[0];
 
@@ -91,7 +94,7 @@ public class CommandLine {
                 System.out.println("Running Report ......................");
                 runReport(Arrays.copyOfRange(input, 1, input.length));
             }
-//            break;
+            break;
         }
     }
 
@@ -237,19 +240,21 @@ public class CommandLine {
 //                sc.nextLine();
         String secondJoinQuery = "1000,4,1,0,:Jorunn_Danielsen,:knows,:Eirik_Newth,0.1,1,1,1";
 //                sc.nextLine();
-        IteratorI<BasicPattern> firstLevelJoinIterator = getJoinIterator(firstJoinQuery, stream);
-        IteratorI<BasicPattern> secondLevelJoinIterator = getJoinIterator(secondJoinQuery, firstLevelJoinIterator);
+        Pair<IteratorI<BasicPattern>,Integer> firstLevelJoinIterator = getJoinIterator(firstJoinQuery, stream,2);
+        Pair<IteratorI<BasicPattern>,Integer> secondLevelJoinIterator = getJoinIterator(secondJoinQuery, firstLevelJoinIterator.getKey(),
+                                                                          firstLevelJoinIterator.getValue());
         sc.close();
-        BasicPattern basicPattern = secondLevelJoinIterator.get_next();
+        
+        BasicPattern basicPattern = secondLevelJoinIterator.getKey().get_next();
         while(basicPattern!=null){
             basicPattern.printBasicPatternValues();
-            basicPattern = secondLevelJoinIterator.get_next();
+            basicPattern = secondLevelJoinIterator.getKey().get_next();
         }
         System.out.println("Disk page READ COUNT: " + PCounter.rcounter);
         System.out.println("Disk page WRITE COUNT: " + PCounter.wcounter);
     }
 
-    private static IteratorI<BasicPattern> getJoinIterator(String joinQuery, IteratorI<BasicPattern> stream) throws HFDiskMgrException, InvalidRelation, HFException, NestedLoopException, FileScanException, HFBufMgrException, InvalidTupleSizeException, IOException, TupleUtilsException, IndexException, UnknownKeyTypeException, UnknownIndexTypeException, InvalidTypeException, IteratorException, ConstructPageException, KeyNotMatchException, ScanIteratorException, PinPageException, UnpinPageException, HashEntryNotFoundException, InvalidFrameNumberException, PageUnpinnedException, ReplacerException, AddFileEntryException, GetFileEntryException, SortException, JoinNewFailed, JoinLowMemory {
+    private static Pair<IteratorI<BasicPattern>,Integer> getJoinIterator(String joinQuery, IteratorI<BasicPattern> stream, int numberOfNodes) throws HFDiskMgrException, InvalidRelation, HFException, NestedLoopException, FileScanException, HFBufMgrException, InvalidTupleSizeException, IOException, TupleUtilsException, IndexException, UnknownKeyTypeException, UnknownIndexTypeException, InvalidTypeException, IteratorException, ConstructPageException, KeyNotMatchException, ScanIteratorException, PinPageException, UnpinPageException, HashEntryNotFoundException, InvalidFrameNumberException, PageUnpinnedException, ReplacerException, AddFileEntryException, GetFileEntryException, SortException, JoinNewFailed, JoinLowMemory {
         String[] firstJoinParams = joinQuery.split(",");
         int memoryAmount = Integer.parseInt(firstJoinParams[0]);
         int numLeftNodes = Integer.parseInt(firstJoinParams[1]);
@@ -276,7 +281,7 @@ public class CommandLine {
                 subjectId, predicateId,
                 objectId, rightConfidenceFilter, leftOutNodePositions,
                 outputRightSubject, outputRightObject);
-        return bpTripleJoinDriver.getJoinIteratorSMJ(stream);
+        return bpTripleJoinDriver.getJoinIteratorSMJ(stream,numberOfNodes);
     }
 }
 

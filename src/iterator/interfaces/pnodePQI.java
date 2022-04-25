@@ -75,6 +75,9 @@ public abstract class pnodePQI<T extends Tuple> {
      * @return the element removed, null if the tree is empty
      */
     abstract public pnodeI<T> deq();
+    abstract public int compare(AttrType fldType,
+                                T  t1, int t1_fld_no,
+                                T  t2, int t2_fld_no) throws IOException, UnknowAttrType, TupleUtilsException;
     
     /**
      * compares two elements.
@@ -90,7 +93,7 @@ public abstract class pnodePQI<T extends Tuple> {
      * @throws TupleUtilsException error in tuple compare routines
      */
     public int pnodeCMP(pnodeI<T> a, pnodeI<T> b) throws IOException, UnknowAttrType, TupleUtilsException {
-        int ans = TupleUtils.CompareTupleWithTuple(fld_type, a.tuple, fld_no, b.tuple, fld_no);
+        int ans = compare(fld_type, a.tuple, fld_no, b.tuple, fld_no);
         return ans;
     }
     

@@ -7,6 +7,6 @@ import iterator.interfaces.pnodeSplayPQI;
 import iterator.pnodeSplayPQ;
 
 public interface pnodeSplayPQSupplier<T extends Tuple> {
-    pnodeSplayPQI<T> getPnodeSplayPQ(int fldNo, AttrType fldType, TupleOrder order);
-    pnodeSplayPQI<T> getPnodeSplayPQ();
+    pnodeSplayPQI<T> getPnodeSplayPQ(int fldNo, AttrType fldType, TupleOrder order,boolean referenceBased);
+    pnodeSplayPQI<T> getPnodeSplayPQ(boolean referenceBased);
 }

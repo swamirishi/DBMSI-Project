@@ -7,6 +7,7 @@ import global.BPID;
 import global.TupleOrder;
 import heap.Tuple;
 import iterator.SortException;
+import iterator.TupleUtils;
 import iterator.TupleUtilsException;
 import iterator.UnknowAttrType;
 import iterator.interfaces.IteratorI;
@@ -92,6 +93,20 @@ public class BPSort extends SortI<BPID, BasicPattern>
     @Override
     protected HFileSupplier<BPID, BasicPattern> getHFileSupplier() {
         return BPIDHFileSupplier.getSupplier();
+    }
+    
+    @Override
+    public boolean isReferenceBased() {
+        return referenceBased;
+    }
+    
+    @Override
+    public void setDummyValue(BasicPattern value,
+                              BasicPattern tuple,
+                              int fld_no,
+                              AttrType fldType) throws TupleUtilsException, UnknowAttrType, IOException {
+        BasicPatternUtils.setValue(value,tuple,fld_no,fldType);
+        
     }
     
     @Override
