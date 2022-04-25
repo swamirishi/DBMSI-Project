@@ -402,7 +402,6 @@ public class RDFDB extends DB {
                 objectBtreeIndexFile.close();
             }
             this.closeQIDBTreeFiles();
-            new Heapfile("tempHeapFileabhishek0").deleteFile();
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

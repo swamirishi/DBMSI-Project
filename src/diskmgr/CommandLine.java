@@ -37,12 +37,12 @@ public class CommandLine {
 //        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test1.txt 6 popi
 //        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query bablu 1 1 :Bernhard_A_M_Seefeld :name :Bernhard_A_M_Seefeld * 5000
-//        batchinsert D:\DBMSI-Project\phase3.txt 1 gg_db
+//        batchinsert D:\DBMSI-Project\phase3.txt 1 real_db
 //        query test_db_200 1 1 :Jorunn_Danielsen * * * 10
 //        query test_db 6 6 :Jorunn_Danielsen * * * 10000
 //        batchinsert Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
-//        query gg_db 1 2 * * * * 5000
-//        query gg_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
+//        query real_db 1 2 * * * * 5000
+//        query real_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query test_db 3 3 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query test_db 4 4 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query test_db 5 5 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
@@ -215,31 +215,32 @@ public class CommandLine {
 
         System.out.println("Provide Comma Separated for First Level Join");
 //        Scanner sc = new Scanner(System.in);
-        String firstJoinQuery = "1000,4,1,0,*,*,:Eirik_Newth,0.5232177,1,1,1";
+        String firstJoinQuery = "20,4,1,0,*,*,:Eirik_Newth,0.5232177,1,1,1";
 //                sc.nextLine();
-        String secondJoinQuery = "1000,4,1,0,*,*,:Ms,0.5232177,1,1,1";
+        String secondJoinQuery = "20,4,1,0,*,*,:Ms,0.5232177,1,1,1";
 //                sc.nextLine();
 
         BPTripleJoinDriver bpTripleJoinDriver1 = getJoinDriver(firstJoinQuery);
         BPTripleJoinDriver bpTripleJoinDriver2 = getJoinDriver(secondJoinQuery);
 
-        openStreamAndExecuteNLJ(bpTripleJoinDriver1, bpTripleJoinDriver2, ORDER, SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
-        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
-        SystemDefs.close();
-
-        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
-        rdfdb = SystemDefs.JavabaseDB;
-        rdfdb.name = dbPath;
-        openStreamAndExecuteIndexNLJ(bpTripleJoinDriver1, bpTripleJoinDriver2, ORDER, SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
-        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
-        SystemDefs.close();
+//        openStreamAndExecuteNLJ(bpTripleJoinDriver1, bpTripleJoinDriver2, ORDER, SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
+//        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
+//        SystemDefs.close();
 //
 //        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
 //        rdfdb = SystemDefs.JavabaseDB;
 //        rdfdb.name = dbPath;
-//        openStreamAndExecuteSMJ(bpTripleJoinDriver1, bpTripleJoinDriver2, ORDER, SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
+//        PCounter.initialize();
+//        openStreamAndExecuteIndexNLJ(bpTripleJoinDriver1, bpTripleJoinDriver2, ORDER, SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
 //        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
 //        SystemDefs.close();
+////
+//        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
+//        rdfdb = SystemDefs.JavabaseDB;
+//        rdfdb.name = dbPath;
+        openStreamAndExecuteSMJ(bpTripleJoinDriver1, bpTripleJoinDriver2, ORDER, SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
+        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
+        SystemDefs.close();
     }
 
     private static void openStreamAndExecuteSMJ(BPTripleJoinDriver bpTripleJoinDriver1, BPTripleJoinDriver bpTripleJoinDriver2, int order, String subjectfilter, String predicatefilter, String objectfilter, Double confidenceFilter) throws Exception {
@@ -251,11 +252,11 @@ public class CommandLine {
                 bpTripleJoinDriver2.getJoinIteratorSMJ(firstLevelJoinIterator.getKey(),
                         firstLevelJoinIterator.getValue());
 
-        BasicPattern basicPattern = secondLevelJoinIterator.getKey().get_next();
+        BasicPattern basicPattern = firstLevelJoinIterator.getKey().get_next();
 //        Quadruple q = stream.getNext();
         while (basicPattern != null) {
             basicPattern.printBasicPatternValues();
-            basicPattern = secondLevelJoinIterator.getKey().get_next();
+            basicPattern = firstLevelJoinIterator.getKey().get_next();
         }
 
         secondLevelJoinIterator.getKey().close();

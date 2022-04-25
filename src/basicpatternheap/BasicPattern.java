@@ -1,14 +1,13 @@
 package basicpatternheap;
 
-import global.AttrType;
-import global.NID;
-import global.PageId;
+import global.*;
 import heap.FieldNumberOutOfBoundException;
 import heap.InvalidTupleSizeException;
 import heap.InvalidTypeException;
 import heap.Tuple;
 import iterator.FldSpec;
 import iterator.RelSpec;
+import labelheap.LabelHeapFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -180,6 +179,17 @@ public class BasicPattern extends Tuple {
     }
 
     public void printBasicPatternValues(){
-        System.out.println("Confidence:" + this.getValue());
+        try {
+            LabelHeapFile labelHeapFile = SystemDefs.JavabaseDB.getEntityLabelHeapFile();
+            for (int i = 1; i <= this.getTotalNumberOfNodes(); i++) {
+                LID lid = this.getNode(i).returnLid();
+                String label = labelHeapFile.getRecord(lid).getLabel();
+                System.out.print("ID(LID) " + lid.toString() + " = " + label + "  || ");
+            }
+            System.out.println("Confidence:" + this.getValue());
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -55,6 +55,7 @@ public abstract class SpoofIbufI<I extends ID, T extends Tuple> implements Globa
         
         // open a scan
         if (hf_scan != null) {
+            hf_scan.closescan();
             hf_scan = null;
         }
         
@@ -78,6 +79,7 @@ public abstract class SpoofIbufI<I extends ID, T extends Tuple> implements Globa
      */
     public T Get(T buf) throws IOException, Exception {
         if (tot_t_proc == n_tuples) {
+            hf_scan.closescan();
             done = true;
         }
         
@@ -98,6 +100,7 @@ public abstract class SpoofIbufI<I extends ID, T extends Tuple> implements Globa
         
         if (t_in_buf == 0)                        // No tuples read in?
         {
+            hf_scan.closescan();
             done = true;
             buf = null;
             return null;
@@ -161,7 +164,7 @@ public abstract class SpoofIbufI<I extends ID, T extends Tuple> implements Globa
     private byte[][] _bufs;
     private int TEST_fd;
     private HFile<I, T> _fd;
-    private ScanI<I, T> hf_scan;
+    public ScanI<I, T> hf_scan;
     private int _n_pages;
     private int t_size;
     private int t_proc, t_in_buf;

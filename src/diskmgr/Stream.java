@@ -50,6 +50,8 @@ public class Stream extends IteratorI<BasicPattern> {
 
     public static final int maxLabelLen = 200;
     public int orderType;
+    public TScan tScan;
+    public QID qid = new QID();
 
     public Stream(RDFDB rdfdb, int orderType, String subjectFil, String predicateFil,
                   String objectFil, Double confidenceFil) throws Exception {
@@ -57,7 +59,7 @@ public class Stream extends IteratorI<BasicPattern> {
         QuadrupleUtils.rdfdb = rdfdb;
         this.orderType = orderType;
 
-        TScan tScan = new TScan(rdfDB.getQuadrupleHeapFile());
+        tScan = new TScan(rdfDB.getQuadrupleHeapFile());
         TupleOrder tupleOrders = new TupleOrder(0);
 
         AttrType[] attrTypes = Quadruple.headerTypes;

@@ -104,7 +104,7 @@ public class BPTripleJoinDriver {
         return new Pair<>(basicPatternAttrTypesLen,basicPatternAttrTypes);
     }
 
-    public Pair<IteratorI<BasicPattern>,Integer>  getJoinIteratorSMJ(IteratorI<BasicPattern> basicPatternIterator, int iteratorNumberOfNodes) throws HFDiskMgrException, HFException, HFBufMgrException, IOException, InvalidTupleSizeException, NestedLoopException, InvalidRelation, FileScanException, TupleUtilsException, SortException, JoinNewFailed, JoinLowMemory {
+    public Pair<IteratorI<BasicPattern>,Integer>  getJoinIteratorSMJ(IteratorI<BasicPattern> basicPatternIterator, int iteratorNumberOfNodes) throws Exception {
         CondExpr[] rightFilter = getRightFilter();
         CondExpr[] outputFilter = getOutputFilter();
         FldSpec[] projectionList = getProjectionList();
@@ -122,7 +122,14 @@ public class BPTripleJoinDriver {
         FldSpec[] fldSpecs = projectionList1.toArray(new FldSpec[projectionList1.size()]);
         IteratorI<BasicPattern> bpFileScan = new BPFileScan(relationName, Quadruple.headerTypes, Quadruple.strSizes,
                 (short) Quadruple.headerTypes.length, fldSpecs.length, fldSpecs, rightFilter);
-
+//        BasicPattern basicPattern = bpFileScan.get_next();
+//        while(basicPattern!=null){
+//            basicPattern.printBasicPatternValues();
+//            basicPattern = bpFileScan.get_next();
+//        }
+//        bpFileScan.close();
+//        bpFileScan = new BPFileScan(relationName, Quadruple.headerTypes, Quadruple.strSizes,
+//                (short) Quadruple.headerTypes.length, fldSpecs.length, fldSpecs, rightFilter);
         int quadrupleJoinNodePosition = joinOnSubjectOrObject == 0 ? Quadruple.SUBJECT_NODE_INDEX : Quadruple.OBJECT_NODE_INDEX;
 
         IteratorI<BasicPattern> bpSortMergeJoin = new BPSortMerge(

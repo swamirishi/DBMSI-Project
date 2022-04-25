@@ -241,7 +241,7 @@ public abstract class SortMergeI<I extends ID, T extends Tuple> extends Iterator
         // Two buffer pages to store equivalence classes
         // NOTE -- THESE PAGES ARE NOT OBTAINED FROM THE BUFFER POOL
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        _n_pages = 10;
+        _n_pages = 1;
         _bufs1 = new byte[_n_pages][MINIBASE_PAGESIZE];
         _bufs2 = new byte[_n_pages][MINIBASE_PAGESIZE];
         
@@ -344,8 +344,8 @@ public abstract class SortMergeI<I extends ID, T extends Tuple> extends Iterator
                 TempTuple1.tupleCopy(tuple1);
                 TempTuple2.tupleCopy(tuple2);
                 
-                io_buf1.init(_bufs1, _n_pages, t1_size, temp_file_fd1);
-                io_buf2.init(_bufs2, _n_pages, t2_size, temp_file_fd2);
+                io_buf1.init(_bufs1, 1, t1_size, temp_file_fd1);
+                io_buf2.init(_bufs2, 1, t2_size, temp_file_fd2);
                 
                 while (compare(sortFldType, tuple1, jc_in1, TempTuple1, jc_in1) == 0) {
                     // Insert tuple1 into io_buf1

@@ -132,7 +132,9 @@ public abstract class SortI<I extends ID, T extends Tuple> extends IteratorI<T> 
                 }
                 
             }
+//            i_buf[i].hf_scan.closescan();
         }
+
         return;
     }
     public abstract boolean isReferenceBased();
@@ -697,7 +699,11 @@ public abstract class SortI<I extends ID, T extends Tuple> extends IteratorI<T> 
     public void close() throws SortException, IOException {
         // clean up
         if (!closeFlag) {
-            
+            if(i_buf!=null){
+                for(int i=0;i<i_buf.length;i++){
+                    i_buf[i].hf_scan.closescan();
+                }
+            }
             try {
                 _am.close();
             } catch (Exception e) {

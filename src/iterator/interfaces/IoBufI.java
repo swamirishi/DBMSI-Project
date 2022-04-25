@@ -96,6 +96,9 @@ public abstract class IoBufI<I extends ID, T extends Tuple> implements GlobalCon
     {
       T temptuple;
       if (done){
+          if(i_buf!=null && i_buf.hf_scan!=null) {
+              i_buf.hf_scan.closescan();
+          }
 	buf =null;
 	return null;
       }
@@ -108,6 +111,9 @@ public abstract class IoBufI<I extends ID, T extends Tuple> implements GlobalCon
 	  if ((temptuple= i_buf.Get(buf)) == null)
 	    {
 	      done = true;
+            if(i_buf!=null && i_buf.hf_scan!=null) {
+                i_buf.hf_scan.closescan();
+            }
 	      return null;
 	    }
 	}
@@ -117,6 +123,9 @@ public abstract class IoBufI<I extends ID, T extends Tuple> implements GlobalCon
 	  if ((curr_page * t_per_pg + t_rd_from_pg) == t_written)
 	    {
 	      done = true;
+          if(i_buf!=null && i_buf.hf_scan!=null) {
+              i_buf.hf_scan.closescan();
+          }
 	      buf = null;
 	      return null;
 	    }

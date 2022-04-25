@@ -5,6 +5,7 @@ import diskmgr.RDFDB;
 import global.AttrType;
 import global.LID;
 import global.NID;
+import global.SystemDefs;
 import heap.FieldNumberOutOfBoundException;
 import heap.InvalidTupleSizeException;
 import iterator.TupleUtils;
@@ -33,7 +34,7 @@ public class BasicPatternUtils {
 	private final static int OBJECT_PID_FLD_NO = 5;
 	private final static int OBJECT_SLOT_FLD_NO = 6;
 	private final static int VALUE_FLD_NO = 7;
-	public static RDFDB rdfdb;
+	public static RDFDB rdfdb = SystemDefs.JavabaseDB;
 
 	private static void populateHashmap(HashMap<Integer, LID> map, LID lid_subject, LID lid_predicate, LID lid_object) {
 		map.put(1, lid_subject);

@@ -37,7 +37,7 @@ public class LID implements ID<LID> {
     }
 
     public String toString(){
-        return slotNo + pageNo.toString();
+        return slotNo + " " + pageNo.toString();
     }
 
     public void copyLid (LID lid) {
