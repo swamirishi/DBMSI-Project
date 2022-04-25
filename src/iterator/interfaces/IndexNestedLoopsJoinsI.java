@@ -188,10 +188,7 @@ public abstract class IndexNestedLoopsJoinsI<I extends ID, T extends Tuple> exte
     public T get_next() throws IOException, JoinsException, IndexException, InvalidTupleSizeException, InvalidTypeException, PageNotReadException, TupleUtilsException, PredEvalException, SortException, LowMemException, UnknowAttrType, UnknownKeyTypeException, Exception {
         // This is a DUMBEST form of a join, not making use of any key information...
 
-        List<KeyClassManager> keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(),
-                LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
-        IDListKeyClassManager idListKeyClassManager = new IDListKeyClassManager(keyClassManagers,
-                20, 10);
+        KeyClassManager idListKeyClassManager = indexOptions.indexKeyClassManagerForIndex(index);
 
         if (done) {
             return null;

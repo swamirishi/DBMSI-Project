@@ -78,8 +78,8 @@ public class Stream extends IteratorI<BasicPattern> {
 
         int indexType = rdfdb.getIndexType();
 
-        quadrupleSort = new QuadrupleSort(rdfDB, orderType, attrTypes, len, strSizes,
-                tScan, 3, tupleOrders, 31, 250);
+//        quadrupleSort = new QuadrupleSort(rdfDB, orderType, attrTypes, len, strSizes,
+//                tScan, 3, tupleOrders, 31, 250);
 
 //        subjectIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.subjectBTreeFileName, subjectFilter);
 //        predicateIndexScan = initializeLabelScan(RDFDB.predicateLabelFileName, RDFDB.predicateBTreeFileName, predicateFilter);
@@ -91,7 +91,7 @@ public class Stream extends IteratorI<BasicPattern> {
 //        return null;
         int option = rdfDB.getIndexType();
         if (option == 6 || option != orderType) {
-            return quadrupleSort.get_next();
+            return tScan.getNext(qid);
         } else {
             switch (option) {
                 case 1:
@@ -310,7 +310,7 @@ public class Stream extends IteratorI<BasicPattern> {
      * Closes the Scan object
      */
     public void closeStream() throws HFBufMgrException, SortException, IOException {
-        quadrupleSort.close();
+        tScan.closescan();
     }
 
     @Override

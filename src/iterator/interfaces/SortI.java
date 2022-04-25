@@ -138,7 +138,7 @@ public abstract class SortI<I extends ID, T extends Tuple> extends IteratorI<T> 
         return;
     }
     public abstract boolean isReferenceBased();
-    public abstract void setDummyValue(T value, T  tuple, int fld_no, AttrType fldType) throws TupleUtilsException, UnknowAttrType, IOException;
+    public abstract void setDummyValue(T value, T  tuple, int fld_no, AttrType fldType) throws TupleUtilsException, UnknowAttrType, IOException, FieldNumberOutOfBoundException;
     public abstract int compare(AttrType fldType, T t1, int t1_fld_no, T value) throws TupleUtilsException, UnknowAttrType, IOException;
     /**
      * Generate sorted runs.
@@ -365,6 +365,7 @@ public abstract class SortI<I extends ID, T extends Tuple> extends IteratorI<T> 
                     try {
                         temp_files[run_num] = getHFileSupplier().getHFile(null);
                     } catch (Exception e) {
+                        e.printStackTrace();
                         throw new SortException(e, "Sort.java: create Heapfile failed");
                     }
                     

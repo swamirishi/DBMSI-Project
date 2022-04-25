@@ -97,7 +97,7 @@ public class BPTripleJoinDriver {
         return new Pair<>(bpNestedLoopJoin,projectionList.length/2);
     }
     
-    public Pair<Integer,AttrType[]> getHdr(int iteratorNumberOfNodes){
+    public static Pair<Integer,AttrType[]> getHdr(int iteratorNumberOfNodes){
         int basicPatternAttrTypesLen = 2*iteratorNumberOfNodes+1;
         AttrType[] basicPatternAttrTypes = IntStream.range(0, basicPatternAttrTypesLen).mapToObj(i -> i == 0 ? floType : intType).collect(
                 Collectors.toList()).toArray(new AttrType[basicPatternAttrTypesLen]);
@@ -122,14 +122,16 @@ public class BPTripleJoinDriver {
         FldSpec[] fldSpecs = projectionList1.toArray(new FldSpec[projectionList1.size()]);
         IteratorI<BasicPattern> bpFileScan = new BPFileScan(relationName, Quadruple.headerTypes, Quadruple.strSizes,
                 (short) Quadruple.headerTypes.length, fldSpecs.length, fldSpecs, rightFilter);
-//        BasicPattern basicPattern = bpFileScan.get_next();
-//        while(basicPattern!=null){
+        BasicPattern basicPattern = bpFileScan.get_next();
+        while(basicPattern!=null){
 //            basicPattern.printBasicPatternValues();
-//            basicPattern = bpFileScan.get_next();
-//        }
-//        bpFileScan.close();
-//        bpFileScan = new BPFileScan(relationName, Quadruple.headerTypes, Quadruple.strSizes,
-//                (short) Quadruple.headerTypes.length, fldSpecs.length, fldSpecs, rightFilter);
+            basicPattern = bpFileScan.get_next();
+        }
+        System.out.println("..........");
+        bpFileScan.close();
+        bpFileScan = new BPFileScan(relationName, Quadruple.headerTypes, Quadruple.strSizes,
+                (short) Quadruple.headerTypes.length, fldSpecs.length, fldSpecs, rightFilter);
+        
         int quadrupleJoinNodePosition = joinOnSubjectOrObject == 0 ? Quadruple.SUBJECT_NODE_INDEX : Quadruple.OBJECT_NODE_INDEX;
 
         IteratorI<BasicPattern> bpSortMergeJoin = new BPSortMerge(

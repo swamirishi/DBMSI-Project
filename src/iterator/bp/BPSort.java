@@ -5,6 +5,7 @@ import bpiterator.BasicPatternUtils;
 import global.AttrType;
 import global.BPID;
 import global.TupleOrder;
+import heap.FieldNumberOutOfBoundException;
 import heap.Tuple;
 import iterator.SortException;
 import iterator.TupleUtils;
@@ -34,9 +35,8 @@ import java.io.IOException;
  * After the sorting is done, the user should call <code>close()</code>
  * to clean up.
  */
-public class BPSort extends SortI<BPID, BasicPattern>
+public abstract class BPSort extends SortI<BPID, BasicPattern>
 {
-    private boolean referenceBased;
     /**
      * Class constructor, take information about the tuples, and set up
      * the sorting
@@ -59,10 +59,8 @@ public class BPSort extends SortI<BPID, BasicPattern>
                   int sort_fld,
                   TupleOrder sort_order,
                   int sort_fld_len,
-                  int n_pages,
-                  boolean referenceBased) throws IOException, SortException {
+                  int n_pages) throws IOException, SortException {
         super(in, len_in, str_sizes, am, sort_fld, sort_order, sort_fld_len, n_pages);
-        this.referenceBased = referenceBased;
     }
     
     @Override
@@ -96,17 +94,11 @@ public class BPSort extends SortI<BPID, BasicPattern>
     }
     
     @Override
-    public boolean isReferenceBased() {
-        return referenceBased;
-    }
-    
-    @Override
     public void setDummyValue(BasicPattern value,
                               BasicPattern tuple,
                               int fld_no,
-                              AttrType fldType) throws TupleUtilsException, UnknowAttrType, IOException {
-        BasicPatternUtils.setValue(value,tuple,fld_no,fldType);
-        
+                              AttrType fldType) throws TupleUtilsException, UnknowAttrType, IOException, FieldNumberOutOfBoundException {
+        value.basicPatternCopy(tuple);
     }
     
     @Override
@@ -114,7 +106,7 @@ public class BPSort extends SortI<BPID, BasicPattern>
                        BasicPattern t1,
                        int t1_fld_no,
                        BasicPattern value) throws TupleUtilsException, UnknowAttrType, IOException {
-        return this.referenceBased?
+        return this.isReferenceBased()?
                BasicPatternUtils.CompareBPWithReference(fldType,t1,t1_fld_no,value):
                BasicPatternUtils.CompareBPWithValue(fldType,t1,t1_fld_no,value);
     }

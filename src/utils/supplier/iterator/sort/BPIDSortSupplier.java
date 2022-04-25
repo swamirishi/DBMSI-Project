@@ -47,6 +47,11 @@ public class BPIDSortSupplier implements SortSupplier<BPID, BasicPattern> {
                                              int sort_fld_len,
                                              int n_pages,
                                              boolean referenceBased) throws IOException, SortException {
-        return new BPSort(in, len_in, str_sizes, am, sort_fld, sort_order, sort_fld_len, n_pages,referenceBased);
+        return new BPSort(in, len_in, str_sizes, am, sort_fld, sort_order, sort_fld_len, n_pages) {
+            @Override
+            public boolean isReferenceBased() {
+                return referenceBased;
+            }
+        };
     }
 }
