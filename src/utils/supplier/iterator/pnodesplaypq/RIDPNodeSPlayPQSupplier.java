@@ -22,12 +22,12 @@ public class RIDPNodeSPlayPQSupplier implements pnodeSplayPQSupplier<Tuple> {
     }
     
     @Override
-    public pnodeSplayPQI<Tuple> getPnodeSplayPQ(int fldNo, AttrType fldType, TupleOrder order) {
+    public pnodeSplayPQI<Tuple> getPnodeSplayPQ(int fldNo, AttrType fldType, TupleOrder order,boolean referenceBased) {
         return new pnodeSplayPQ(fldNo,fldType,order);
     }
     
     @Override
-    public pnodeSplayPQI<Tuple> getPnodeSplayPQ() {
+    public pnodeSplayPQI<Tuple> getPnodeSplayPQ(boolean referenceBased) {
         return new pnodeSplayPQ();
     }
 }

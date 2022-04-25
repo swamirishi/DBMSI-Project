@@ -135,9 +135,9 @@ public abstract class SortI<I extends ID, T extends Tuple> extends IteratorI<T> 
         }
         return;
     }
-    
+    public abstract boolean isReferenceBased();
+    public abstract void setDummyValue(T value, T  tuple, int fld_no, AttrType fldType) throws TupleUtilsException, UnknowAttrType, IOException;
     public abstract int compare(AttrType fldType, T t1, int t1_fld_no, T value) throws TupleUtilsException, UnknowAttrType, IOException;
-    
     /**
      * Generate sorted runs.
      * Using heap sort.
@@ -155,8 +155,8 @@ public abstract class SortI<I extends ID, T extends Tuple> extends IteratorI<T> 
                               int sortFldLen) throws IOException, SortException, UnknowAttrType, TupleUtilsException, JoinsException, Exception {
         T tuple;
         pnodeI<T> cur_node;
-        pnodeSplayPQI<T> Q1 = getPnodeSplayPQSupplier().getPnodeSplayPQ(_sort_fld, sortFldType, order);
-        pnodeSplayPQI<T> Q2 = getPnodeSplayPQSupplier().getPnodeSplayPQ(_sort_fld, sortFldType, order);
+        pnodeSplayPQI<T> Q1 = getPnodeSplayPQSupplier().getPnodeSplayPQ(_sort_fld, sortFldType, order,isReferenceBased());
+        pnodeSplayPQI<T> Q2 = getPnodeSplayPQSupplier().getPnodeSplayPQ(_sort_fld, sortFldType, order,isReferenceBased());
         pnodeSplayPQI<T> pcurr_Q = Q1;
         pnodeSplayPQI<T> pother_Q = Q2;
         T lastElem = getTupleSupplier().getTuple(tuple_size);  // need tuple.java
@@ -238,7 +238,7 @@ public abstract class SortI<I extends ID, T extends Tuple> extends IteratorI<T> 
             } else {
                 // set lastElem to have the value of the current tuple,
                 // need tuple_utils.java
-                TupleUtils.SetValue(lastElem, cur_node.tuple, _sort_fld, sortFldType);
+                this.setDummyValue(lastElem, cur_node.tuple, _sort_fld, sortFldType);
                 // write tuple to output file, need io_bufs.java, type cast???
                 //	System.out.println("Putting tuple into run " + (run_num + 1));
                 //	cur_node.tuple.print(_in);
@@ -636,7 +636,7 @@ public abstract class SortI<I extends ID, T extends Tuple> extends IteratorI<T> 
         max_elems_in_heap = 200;
         sortFldLen = sort_fld_len;
         
-        Q = getPnodeSplayPQSupplier().getPnodeSplayPQ(sort_fld, in[sort_fld - 1], order);
+        Q = getPnodeSplayPQSupplier().getPnodeSplayPQ(sort_fld, in[sort_fld - 1], order,isReferenceBased());
         
         op_buf = getTupleSupplier().getTuple(tuple_size);   // need Tuple.java
         try {

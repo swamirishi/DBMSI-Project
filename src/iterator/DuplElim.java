@@ -42,7 +42,7 @@ public class DuplElim extends Iterator
 		  AttrType in[],         
 		  short      len_in,     
 		  short    s_sizes[],
-		  Iterator am,          
+		  IteratorI am,
 		  int       amt_of_mem,  
 		  boolean     inp_sorted
 		  )throws IOException ,DuplElimException
@@ -117,7 +117,7 @@ public class DuplElim extends Iterator
    *@exception UnknownKeyTypeException key type unknown
    *@exception Exception other exceptions
    */
-  public Tuple get_next() 
+  public Tuple get_next()
     throws IOException,
 	   JoinsException ,
 	   IndexException,

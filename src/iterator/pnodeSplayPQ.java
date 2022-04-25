@@ -1,5 +1,6 @@
 
 package iterator;
+import bpiterator.BasicPatternUtils;
 import global.*;
 import heap.Tuple;
 import iterator.interfaces.pnodeSplayNodeI;
@@ -17,6 +18,15 @@ public class pnodeSplayPQ extends pnodeSplayPQI<Tuple>
 {
 	public pnodeSplayPQ() {
 		super();
+	}
+	
+	@Override
+	public int compare(AttrType fldType,
+	                   Tuple t1,
+	                   int t1_fld_no,
+	                   Tuple t2,
+	                   int t2_fld_no) throws IOException, UnknowAttrType, TupleUtilsException {
+		return TupleUtils.CompareTupleWithTuple(fldType,t1,t1_fld_no,t2,t2_fld_no);
 	}
 	
 	public pnodeSplayPQ(int fldNo, AttrType fldType, TupleOrder order) {

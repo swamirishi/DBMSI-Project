@@ -1,22 +1,34 @@
 package quadrupleheap;
 
 import basicpatternheap.BasicPattern;
-import global.*;
+import global.AttrType;
+import global.EID;
+import global.PID;
 import heap.FieldNumberOutOfBoundException;
 import heap.InvalidTupleSizeException;
 import heap.InvalidTypeException;
 import heap.Tuple;
+import iterator.FldSpec;
+import iterator.RelSpec;
 
 import java.io.IOException;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class Quadruple extends BasicPattern {
 
-    public static final short numberOfFields = 7;
+//    public static final short numberOfFields = 7;
+//    private static final AttrType intType = new AttrType(AttrType.attrInteger);
+//    private static final AttrType floType = new AttrType(AttrType.attrReal);
+//    public static final AttrType[] headerTypes = new AttrType[]{floType,intType,intType,intType,intType,intType,intType};
+//    public static final short[] strSizes = new short[]{0,0,0,0,0,0,0};
+public static final short numberOfNodes = 10;
+    public static final short numberOfFields = 2 * numberOfNodes + 1;
     private static final AttrType intType = new AttrType(AttrType.attrInteger);
     private static final AttrType floType = new AttrType(AttrType.attrReal);
-    public static final AttrType[] headerTypes = new AttrType[]{floType,intType,intType,intType,intType,intType,intType};
-    public static final short[] strSizes = new short[]{0,0,0,0,0,0,0};
+    public static final AttrType[] headerTypes = IntStream.range(0, numberOfFields).mapToObj(i -> i == 0 ? floType : intType).collect(
+            Collectors.toList()).toArray(new AttrType[numberOfFields]);
+    public static final short[] strSizes = null;
     public static final int SUBJECT_NODE_INDEX = 1;
     public static final int OBJECT_NODE_INDEX = 2;
     public static final int PREDICTE_NODE_INDEX = 3;
@@ -62,7 +74,8 @@ public class Quadruple extends BasicPattern {
     }
 
     public void quadrupleCopy(Quadruple fromQuadruple) throws IOException, FieldNumberOutOfBoundException {
-        super.tupleCopy(fromQuadruple);
+        this.tupleCopy(fromQuadruple);
+
     }
 
     public EID getSubject(){
@@ -104,9 +117,15 @@ public class Quadruple extends BasicPattern {
     public void quadrupleSet(byte [] record, int offset, int length) throws InvalidTupleSizeException, FieldNumberOutOfBoundException, IOException {
         this.tupleSet(record,offset,length);
     }
+
     
     public void setHdr() throws InvalidTupleSizeException, IOException, InvalidTypeException {
+//        super.setHdr();
         this.setHdr(numberOfFields,headerTypes,strSizes);
+    }
+
+    private static FldSpec getFldSpec(int idx, RelSpec relSpec) {
+        return new FldSpec(relSpec, idx);
     }
 
     public String toString(){

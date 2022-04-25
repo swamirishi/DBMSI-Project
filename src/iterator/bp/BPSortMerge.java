@@ -1,18 +1,18 @@
 package iterator.bp;
 
 import basicpatternheap.BasicPattern;
+import bpiterator.BasicPatternUtils;
 import global.AttrType;
-import global.BPID;
 import global.BPID;
 import global.TupleOrder;
 import heap.Tuple;
 import iterator.*;
 import iterator.interfaces.IteratorI;
 import iterator.interfaces.SortMergeI;
-import utils.supplier.hfile.HFileSupplier;
 import utils.supplier.hfile.BPIDHFileSupplier;
-import utils.supplier.iterator.iobuf.IoBufSupplier;
+import utils.supplier.hfile.HFileSupplier;
 import utils.supplier.iterator.iobuf.BPIDIoBufSupplier;
+import utils.supplier.iterator.iobuf.IoBufSupplier;
 import utils.supplier.iterator.sort.BPIDSortSupplier;
 import utils.supplier.iterator.sort.SortSupplier;
 import utils.supplier.tuple.BPIDTupleSupplier;
@@ -97,7 +97,8 @@ public class BPSortMerge extends SortMergeI<BPID, BasicPattern>
 		      proj_list,
 		      n_out_flds);
 	}
-	
+
+
 	@Override
 	public TupleSupplier<BasicPattern> getTupleSupplier() {
 		return BPIDTupleSupplier.getSupplier();
@@ -116,6 +117,11 @@ public class BPSortMerge extends SortMergeI<BPID, BasicPattern>
 	@Override
 	public SortSupplier<BPID, BasicPattern> getSortSupplier() {
 		return BPIDSortSupplier.getSupplier();
+	}
+
+	@Override
+	public int compare(AttrType fldType, BasicPattern t1, int t1_fld_no, BasicPattern t2, int t2_fld_no) {
+		return BasicPatternUtils.CompareBPWithBP(fldType,t1,t1_fld_no,t2,t2_fld_no,true);
 	}
 }
 

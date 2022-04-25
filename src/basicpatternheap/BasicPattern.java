@@ -1,6 +1,8 @@
 package basicpatternheap;
 
-import global.*;
+import global.AttrType;
+import global.NID;
+import global.PageId;
 import heap.FieldNumberOutOfBoundException;
 import heap.InvalidTupleSizeException;
 import heap.InvalidTypeException;
@@ -8,7 +10,6 @@ import heap.Tuple;
 import iterator.FldSpec;
 import iterator.RelSpec;
 
-import javax.xml.soap.Node;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,13 +19,13 @@ import java.util.stream.IntStream;
 public class BasicPattern extends Tuple {
     public static final short numberOfNodes = 10;
     public static final short numberOfFields = 2 * numberOfNodes + 1;
-    private static final AttrType intType = new AttrType(AttrType.attrInteger);
-    private static final AttrType floType = new AttrType(AttrType.attrReal);
+    public static final AttrType intType = new AttrType(AttrType.attrInteger);
+    public static final AttrType floType = new AttrType(AttrType.attrReal);
     public static final AttrType[] headerTypes = IntStream.range(0, numberOfFields).mapToObj(i -> i == 0 ? floType : intType).collect(
             Collectors.toList()).toArray(new AttrType[numberOfFields]);
     public static final short[] strSizes = null;
     public static final int VALUE_FLD = 1;
-    private boolean hdrSet = false;
+    protected boolean hdrSet = false;
 
     public BasicPattern() {
         super(max_size);
@@ -36,6 +37,7 @@ public class BasicPattern extends Tuple {
 
     public BasicPattern(BasicPattern fromBasicPattern){
         super(fromBasicPattern);
+        this.hdrSet = fromBasicPattern.hdrSet;
     }
 
     public byte[] getBasicPatternByteArray() {
@@ -94,9 +96,13 @@ public class BasicPattern extends Tuple {
 
     //TODO in getNode on nodeIndex=-1 I want to return float
     public NID getNode(int nodeIndex) {
+        int offset = getOffset(nodeIndex);
+        return getNodeWithOffset(offset);
+    }
+    
+    public NID getNodeWithOffset(int offset){
         try {
             setHdrIfNotSet();
-            int offset = getOffset(nodeIndex);
             return new NID(new PageId(super.getIntFld(offset)), super.getIntFld(offset + 1));
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -142,7 +148,11 @@ public class BasicPattern extends Tuple {
         hdrSet = true;
         super.setHdr(numFlds, types, strSizes);
     }
-
+    public void setHdr(short numberOfNodes) throws IOException, InvalidTupleSizeException, InvalidTypeException {
+        short numberOfFields = (short) (2 * numberOfNodes + 1);
+        this.setHdr(numberOfFields,IntStream.range(0, numberOfFields).mapToObj(i -> i == 0 ? floType : intType).collect(
+                Collectors.toList()).toArray(new AttrType[numberOfFields]),strSizes);
+    }
     public void setHdr() throws InvalidTupleSizeException, IOException, InvalidTypeException {
         this.setHdr(numberOfFields, headerTypes, strSizes);
     }

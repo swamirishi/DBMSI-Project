@@ -11,12 +11,29 @@ import iterator.bp.BPIndexNestedLoopJoins;
 import iterator.bp.BPIterator;
 import iterator.bp.BPNestedLoopJoin;
 import iterator.interfaces.IndexNestedLoopsJoinsI;
+import global.AttrOperator;
+import global.AttrType;
+import global.BPOrder;
+import global.LID;
+import heap.HFBufMgrException;
+import heap.HFDiskMgrException;
+import heap.HFException;
+import heap.InvalidTupleSizeException;
+import iterator.bp.BPFileScan;
+import iterator.bp.BPNestedLoopJoin;
+import iterator.bp.BPSortMerge;
 import iterator.interfaces.IteratorI;
+import javafx.util.Pair;
 import quadrupleheap.Quadruple;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static basicpatternheap.BasicPattern.floType;
+import static basicpatternheap.BasicPattern.intType;
 
 public class BPTripleJoinDriver {
     int memoryAmount;
@@ -49,18 +66,19 @@ public class BPTripleJoinDriver {
         this.outputRightObject = outputRightObject;
     }
 
-    public IteratorI<BasicPattern> getNLJoinIterator(IteratorI<BasicPattern> basicPatternIterator) throws HFDiskMgrException, HFException, HFBufMgrException, IOException, InvalidTupleSizeException, NestedLoopException, InvalidRelation, FileScanException, TupleUtilsException {
+    public Pair<IteratorI<BasicPattern>,Integer> getNLJoinIterator(IteratorI<BasicPattern> basicPatternIterator, int iteratorNumberOfNodes) throws HFDiskMgrException, HFException, HFBufMgrException, IOException, InvalidTupleSizeException, NestedLoopException, InvalidRelation, FileScanException, TupleUtilsException {
         CondExpr[] rightFilter = getRightFilter();
         CondExpr[] outputFilter = getOutputFilter();
         FldSpec[] projectionList = getProjectionList();
-        AttrType[] basicPatternAttrTypes = BasicPattern.headerTypes;
-        int basicPatternAttrTypesLen = BasicPattern.numberOfFields;
+        int basicPatternAttrTypesLen = 2*iteratorNumberOfNodes+1;
+        AttrType[] basicPatternAttrTypes = IntStream.range(0, basicPatternAttrTypesLen).mapToObj(i -> i == 0 ? floType : intType).collect(
+                Collectors.toList()).toArray(new AttrType[basicPatternAttrTypesLen]);
 
-        IteratorI<BasicPattern> bpNestedLoopJoin = new BPNestedLoopJoin(basicPatternAttrTypes, basicPatternAttrTypesLen,
+        IteratorI<BasicPattern> bpNestedLoopJoin = new BPNestedLoopJoin(BasicPattern.headerTypes, BasicPattern.numberOfFields,
                 BasicPattern.strSizes, Quadruple.headerTypes, Quadruple.numberOfFields, Quadruple.strSizes, memoryAmount,
                 basicPatternIterator, RDFDB.quadrupleHeapFileName, outputFilter, rightFilter, projectionList, projectionList.length) {
         };
-        return bpNestedLoopJoin;
+        return new Pair<>(bpNestedLoopJoin,projectionList.length/2);
     }
 
     public IteratorI<BasicPattern> getIndexNLJoinIterator(IteratorI<BasicPattern> basicPatternIterator) throws HFDiskMgrException, HFException, HFBufMgrException, IOException, InvalidTupleSizeException, NestedLoopException, InvalidRelation, FileScanException, TupleUtilsException {
@@ -77,6 +95,59 @@ public class BPTripleJoinDriver {
                 rightSubjectFilter, rightPredicateFilter, rightObjectFilter, new Float(rightConfidenceFilter), indexOptions,
                 projectionList, projectionList.length);
         return bpNestedLoopJoin;
+    }
+    
+    public Pair<Integer,AttrType[]> getHdr(int iteratorNumberOfNodes){
+        int basicPatternAttrTypesLen = 2*iteratorNumberOfNodes+1;
+        AttrType[] basicPatternAttrTypes = IntStream.range(0, basicPatternAttrTypesLen).mapToObj(i -> i == 0 ? floType : intType).collect(
+                Collectors.toList()).toArray(new AttrType[basicPatternAttrTypesLen]);
+        return new Pair<>(basicPatternAttrTypesLen,basicPatternAttrTypes);
+    }
+
+    public Pair<IteratorI<BasicPattern>,Integer>  getJoinIteratorSMJ(IteratorI<BasicPattern> basicPatternIterator, int iteratorNumberOfNodes) throws HFDiskMgrException, HFException, HFBufMgrException, IOException, InvalidTupleSizeException, NestedLoopException, InvalidRelation, FileScanException, TupleUtilsException, SortException, JoinNewFailed, JoinLowMemory {
+        CondExpr[] rightFilter = getRightFilter();
+        CondExpr[] outputFilter = getOutputFilter();
+        FldSpec[] projectionList = getProjectionList();
+        Pair<Integer,AttrType[]> leftHdrs = getHdr(iteratorNumberOfNodes);
+        int basicPatternAttrTypesLen = leftHdrs.getKey();
+        AttrType[] basicPatternAttrTypes = leftHdrs.getValue();
+        Pair<Integer,AttrType[]> rightHdrs = getHdr(2);
+        String relationName = RDFDB.quadrupleHeapFileName;
+        List<FldSpec> projectionList1 = new ArrayList<FldSpec>();
+        projectionList1.add(BasicPattern.getValueProject(new RelSpec(RelSpec.outer)));
+        projectionList1.addAll(BasicPattern.getProjectListForNode(Quadruple.SUBJECT_NODE_INDEX, new RelSpec(RelSpec.outer)));
+        projectionList1.addAll(BasicPattern.getProjectListForNode(Quadruple.OBJECT_NODE_INDEX, new RelSpec(RelSpec.outer)));
+//        projectionList1.addAll(BasicPattern.getProjectListForNode(Quadruple.PREDICTE_NODE_INDEX, new RelSpec(RelSpec.outer)));
+
+        FldSpec[] fldSpecs = projectionList1.toArray(new FldSpec[projectionList1.size()]);
+        IteratorI<BasicPattern> bpFileScan = new BPFileScan(relationName, Quadruple.headerTypes, Quadruple.strSizes,
+                (short) Quadruple.headerTypes.length, fldSpecs.length, fldSpecs, rightFilter);
+
+        int quadrupleJoinNodePosition = joinOnSubjectOrObject == 0 ? Quadruple.SUBJECT_NODE_INDEX : Quadruple.OBJECT_NODE_INDEX;
+
+        IteratorI<BasicPattern> bpSortMergeJoin = new BPSortMerge(
+                basicPatternAttrTypes,
+                basicPatternAttrTypesLen,
+                BasicPattern.strSizes,
+                rightHdrs.getValue(),
+                rightHdrs.getKey(),
+                Quadruple.strSizes,
+                BasicPattern.getOffset(bpJoinNodePosition),
+                4,
+                BasicPattern.getOffset(quadrupleJoinNodePosition),
+                4,
+                memoryAmount,
+                basicPatternIterator,
+                bpFileScan,
+                false,
+                false,
+                new BPOrder(0),
+                outputFilter,
+                projectionList,
+                projectionList.length);
+
+        return new Pair<>(bpSortMergeJoin,projectionList.length/2);
+
     }
 
     private FldSpec[] getProjectionList() {

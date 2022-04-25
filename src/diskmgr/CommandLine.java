@@ -15,9 +15,8 @@ import index.IndexException;
 import index.IndexUtils;
 import index.UnknownIndexTypeException;
 import iterator.*;
-import iterator.bp.BPNestedLoopJoin;
 import iterator.interfaces.IteratorI;
-import iterator.interfaces.NestedLoopsJoinsI;
+import javafx.util.Pair;
 import labelheap.LScan;
 import labelheap.Label;
 import quadrupleheap.Quadruple;
@@ -35,7 +34,8 @@ public class CommandLine {
     public static void main(String[] args) throws Exception {
 //        SystemDefs.MINIBASE_RESTART_FLAG = true;
 
-//        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
+//        batchinsert /Users/swamirishi/Documents/asu/Spring_2022/DBMSI/DBMSI-Project/test.txt 3 swami_db
+//        query swami_db 3 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test1.txt 6 popi
 //        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query bablu 1 1 :Bernhard_A_M_Seefeld :name :Bernhard_A_M_Seefeld * 5000
@@ -44,6 +44,7 @@ public class CommandLine {
 //        query test_db 6 6 :Jorunn_Danielsen * * * 10000
 //        batchinsert Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
 //        query test_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
+//        query gg_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query test_db 3 3 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query test_db 4 4 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query test_db 5 5 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
@@ -73,7 +74,8 @@ public class CommandLine {
             System.out.println("\nNew command loop: ");
             System.out.println("Type exit to stop!");
             Scanner sc = new Scanner(System.in);
-            inputString = sc.nextLine();
+//            inputString = sc.nextLine();
+            inputString = "query swami_db 3 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000";
             String[] input = inputString.split(" ");
             String operationType = input[0];
 
@@ -93,6 +95,7 @@ public class CommandLine {
                 System.out.println("Running Report ......................");
                 runReport(Arrays.copyOfRange(input, 1, input.length));
             }
+            break;
         }
     }
 
@@ -220,16 +223,23 @@ public class CommandLine {
 //                sc.nextLine();
         String secondJoinQuery = "1000,4,1,0,*,*,:Ms,0.5232177,1,1,1";
 //                sc.nextLine();
-        IteratorI<BasicPattern> firstLevelJoinIterator = getJoinIterator(firstJoinQuery, stream);
-        IteratorI<BasicPattern> secondLevelJoinIterator = getJoinIterator(secondJoinQuery, firstLevelJoinIterator);
+        BPTripleJoinDriver bpTripleJoinDriver = getJoinDriver(firstJoinQuery);
+        Pair<IteratorI<BasicPattern>, Integer> firstLevelJoinIterator =
+                bpTripleJoinDriver.getNLJoinIterator(stream, 2);
+
+        bpTripleJoinDriver = getJoinDriver(secondJoinQuery);
+        Pair<IteratorI<BasicPattern>, Integer> secondLevelJoinIterator =
+                bpTripleJoinDriver.getNLJoinIterator(firstLevelJoinIterator.getKey(),
+                        firstLevelJoinIterator.getValue());
 //        sc.close();
-        BasicPattern basicPattern = secondLevelJoinIterator.get_next();
-        while(basicPattern!=null){
+
+        BasicPattern basicPattern = secondLevelJoinIterator.getKey().get_next();
+        while (basicPattern != null) {
             basicPattern.printBasicPatternValues();
-            basicPattern = secondLevelJoinIterator.get_next();
+            basicPattern = secondLevelJoinIterator.getKey().get_next();
         }
-        secondLevelJoinIterator.close();
-        firstLevelJoinIterator.close();
+        secondLevelJoinIterator.getKey().close();
+        firstLevelJoinIterator.getKey().close();
         stream.closeStream();
 
         System.out.println("Disk page READ COUNT: " + PCounter.rcounter);
@@ -238,7 +248,7 @@ public class CommandLine {
         SystemDefs.close();
     }
 
-    private static IteratorI<BasicPattern> getJoinIterator(String joinQuery, IteratorI<BasicPattern> stream) throws HFDiskMgrException, InvalidRelation, HFException, NestedLoopException, FileScanException, HFBufMgrException, InvalidTupleSizeException, IOException, TupleUtilsException, IndexException, UnknownKeyTypeException, UnknownIndexTypeException, InvalidTypeException, IteratorException, ConstructPageException, KeyNotMatchException, ScanIteratorException, PinPageException, UnpinPageException, HashEntryNotFoundException, InvalidFrameNumberException, PageUnpinnedException, ReplacerException, AddFileEntryException, GetFileEntryException {
+    private static BPTripleJoinDriver getJoinDriver(String joinQuery) throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException, IteratorException, HashEntryNotFoundException, IndexException, ScanIteratorException, PinPageException, InvalidFrameNumberException, UnknownIndexTypeException, UnpinPageException, UnknownKeyTypeException, KeyNotMatchException, InvalidTupleSizeException, PageUnpinnedException, InvalidTypeException, ReplacerException, HFDiskMgrException, InvalidRelation, HFException, NestedLoopException, FileScanException, HFBufMgrException, TupleUtilsException {
         String[] firstJoinParams = joinQuery.split(",");
         int memoryAmount = Integer.parseInt(firstJoinParams[0]);
         int numLeftNodes = Integer.parseInt(firstJoinParams[1]);
@@ -268,7 +278,7 @@ public class CommandLine {
                 subjectId, predicateId,
                 objectId, rightConfidenceFilter, leftOutNodePositions,
                 outputRightSubject, outputRightObject);
-        return bpTripleJoinDriver.getNLJoinIterator(stream);
+        return bpTripleJoinDriver;
     }
 }
 

@@ -318,6 +318,7 @@ public class Stream extends IteratorI<BasicPattern> {
             return null;
         }
         BasicPattern basicPattern = new BasicPattern();
+        basicPattern.setHdr((short) 2);
         basicPattern.setNode(1, quadruple.getSubject().returnNid());
         basicPattern.setNode(2, quadruple.getObject().returnNid());
         basicPattern.setValue(quadruple.getValue());
