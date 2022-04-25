@@ -77,7 +77,7 @@ public class Stream extends IteratorI<BasicPattern> {
         int indexType = rdfdb.getIndexType();
 
         quadrupleSort = new QuadrupleSort(rdfDB, orderType, attrTypes, len, strSizes,
-                tScan, 3, tupleOrders, 31, 1024);
+                tScan, 3, tupleOrders, 31, 250);
 
 //        subjectIndexScan = initializeLabelScan(RDFDB.entityLabelFileName, RDFDB.subjectBTreeFileName, subjectFilter);
 //        predicateIndexScan = initializeLabelScan(RDFDB.predicateLabelFileName, RDFDB.predicateBTreeFileName, predicateFilter);

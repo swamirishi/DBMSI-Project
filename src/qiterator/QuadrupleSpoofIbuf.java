@@ -152,7 +152,7 @@ public class QuadrupleSpoofIbuf implements GlobalConst  {
     private  int   TEST_fd;
 
     private  QuadrupleHeapFile _fd;
-    private TScan hf_scan;
+    public TScan hf_scan;
     private  int    _n_pages;
     private  int    t_size;
 

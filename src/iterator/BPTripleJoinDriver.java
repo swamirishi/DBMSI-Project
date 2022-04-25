@@ -81,12 +81,12 @@ public class BPTripleJoinDriver {
         return new Pair<>(bpNestedLoopJoin,projectionList.length/2);
     }
 
-    public IteratorI<BasicPattern> getIndexNLJoinIterator(IteratorI<BasicPattern> basicPatternIterator) throws HFDiskMgrException, HFException, HFBufMgrException, IOException, InvalidTupleSizeException, NestedLoopException, InvalidRelation, FileScanException, TupleUtilsException {
+    public Pair<IteratorI<BasicPattern>,Integer> getIndexNLJoinIterator(IteratorI<BasicPattern> basicPatternIterator, int iteratorNumberOfNodes) throws HFDiskMgrException, HFException, HFBufMgrException, IOException, InvalidTupleSizeException, NestedLoopException, InvalidRelation, FileScanException, TupleUtilsException {
         boolean joinOnSubject = joinOnSubjectOrObject == 0;
         JoinCondition joinCondition = new JoinCondition(bpJoinNodePosition, joinOnSubject);
         FldSpec[] projectionList = getProjectionList();
         AttrType[] basicPatternAttrTypes = BasicPattern.headerTypes;
-        int basicPatternAttrTypesLen = BasicPattern.numberOfFields;
+        int basicPatternAttrTypesLen = 2*iteratorNumberOfNodes+1;
 
         IDIndexOptions indexOptions = new QIDIndexOptions();
         IteratorI<BasicPattern> bpNestedLoopJoin = new BPIndexNestedLoopJoins(basicPatternAttrTypes, basicPatternAttrTypesLen,
@@ -94,7 +94,7 @@ public class BPTripleJoinDriver {
                 basicPatternIterator, RDFDB.quadrupleHeapFileName, joinCondition,
                 rightSubjectFilter, rightPredicateFilter, rightObjectFilter, new Float(rightConfidenceFilter), indexOptions,
                 projectionList, projectionList.length);
-        return bpNestedLoopJoin;
+        return new Pair<>(bpNestedLoopJoin,projectionList.length/2);
     }
     
     public Pair<Integer,AttrType[]> getHdr(int iteratorNumberOfNodes){

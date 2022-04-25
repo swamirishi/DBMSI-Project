@@ -451,16 +451,16 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
             }
         }
 
-        if(currSubjectLabel!=null){
-            System.out.print("SubjectID(LID) " + currSubjectID.toString() + " = " + currSubjectLabel + "  || ");
-        }
-        if(currPredicateLabel!=null){
-            System.out.print("PredicateID(LID) " + currPredicateID.toString() + " = " + currPredicateLabel + "  || ");
-        }
-        if(currObjectLabel!=null){
-            System.out.print("ObjectID(LID) " + currObjectID.toString() + " = " + currObjectLabel + "  || ");
-        }
-        System.out.print("Confidence(float) " + currQuadruple.getValue() + "\n");
+//        if(currSubjectLabel!=null){
+//            System.out.print("SubjectID(LID) " + currSubjectID.toString() + " = " + currSubjectLabel + "  || ");
+//        }
+//        if(currPredicateLabel!=null){
+//            System.out.print("PredicateID(LID) " + currPredicateID.toString() + " = " + currPredicateLabel + "  || ");
+//        }
+//        if(currObjectLabel!=null){
+//            System.out.print("ObjectID(LID) " + currObjectID.toString() + " = " + currObjectLabel + "  || ");
+//        }
+//        System.out.print("Confidence(float) " + currQuadruple.getValue() + "\n");
         return true;
     }
 
@@ -757,7 +757,9 @@ public class QuadrupleSort extends QuadrupleIterator implements GlobalConst {
     public void close() throws SortException, IOException {
         // clean up
         if (!closeFlag) {
-
+            for(int i=0;i< i_buf.length;i++){
+                i_buf[i].hf_scan.closescan();
+            }
             try {
                 _am.closescan();
             } catch (Exception e) {

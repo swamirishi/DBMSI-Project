@@ -17,8 +17,6 @@ import index.UnknownIndexTypeException;
 import iterator.*;
 import iterator.interfaces.IteratorI;
 import javafx.util.Pair;
-import labelheap.LScan;
-import labelheap.Label;
 import quadrupleheap.Quadruple;
 
 import java.io.*;
@@ -39,11 +37,11 @@ public class CommandLine {
 //        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test1.txt 6 popi
 //        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query bablu 1 1 :Bernhard_A_M_Seefeld :name :Bernhard_A_M_Seefeld * 5000
-//        batchinsert D:\DBMSI-Project\phase1.txt 1 test_db
+//        batchinsert D:\DBMSI-Project\phase3.txt 1 gg_db
 //        query test_db_200 1 1 :Jorunn_Danielsen * * * 10
 //        query test_db 6 6 :Jorunn_Danielsen * * * 10000
 //        batchinsert Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
-//        query abhi_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
+//        query gg_db 1 2 * * * * 5000
 //        query gg_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query test_db 3 3 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query test_db 4 4 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
@@ -110,7 +108,7 @@ public class CommandLine {
         File file = new File(dbPath);
         if (file.exists()) {
             //open existing database
-            systemDefs = new SystemDefs(dbPath, 0, 5000, "Clock", index_option);
+            systemDefs = new SystemDefs(dbPath, 0, 10000, "Clock", index_option);
         } else {
             //create a new db
             systemDefs = new SystemDefs(dbPath, 5000, 5050, "Clock", index_option);
@@ -201,7 +199,7 @@ public class CommandLine {
             systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
         } else {
             //create a new db
-            systemDefs = new SystemDefs(dbPath, 2500, numbuf, "Clock", INDEXOPTION);
+            systemDefs = new SystemDefs(dbPath, 5000, numbuf, "Clock", INDEXOPTION);
         }
 
         rdfdb = SystemDefs.JavabaseDB;
@@ -215,8 +213,6 @@ public class CommandLine {
 
         Double confidenceFilter = CONFIDENCEFILTER == null ? null : Double.valueOf(CONFIDENCEFILTER);
 
-        Stream stream = rdfdb.openStream(ORDER, SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
-
         System.out.println("Provide Comma Separated for First Level Join");
 //        Scanner sc = new Scanner(System.in);
         String firstJoinQuery = "1000,4,1,0,*,*,:Eirik_Newth,0.5232177,1,1,1";
@@ -224,15 +220,83 @@ public class CommandLine {
         String secondJoinQuery = "1000,4,1,0,*,*,:Ms,0.5232177,1,1,1";
 //                sc.nextLine();
 
-        BPTripleJoinDriver bpTripleJoinDriver = getJoinDriver(firstJoinQuery);
-        Pair<IteratorI<BasicPattern>, Integer> firstLevelJoinIterator =
-                bpTripleJoinDriver.getNLJoinIterator(stream, 2);
+        BPTripleJoinDriver bpTripleJoinDriver1 = getJoinDriver(firstJoinQuery);
+        BPTripleJoinDriver bpTripleJoinDriver2 = getJoinDriver(secondJoinQuery);
 
-        bpTripleJoinDriver = getJoinDriver(secondJoinQuery);
+        openStreamAndExecuteNLJ(bpTripleJoinDriver1, bpTripleJoinDriver2, ORDER, SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
+        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
+        SystemDefs.close();
+
+        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
+        rdfdb = SystemDefs.JavabaseDB;
+        rdfdb.name = dbPath;
+        openStreamAndExecuteIndexNLJ(bpTripleJoinDriver1, bpTripleJoinDriver2, ORDER, SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
+        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
+        SystemDefs.close();
+//
+//        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
+//        rdfdb = SystemDefs.JavabaseDB;
+//        rdfdb.name = dbPath;
+//        openStreamAndExecuteSMJ(bpTripleJoinDriver1, bpTripleJoinDriver2, ORDER, SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
+//        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
+//        SystemDefs.close();
+    }
+
+    private static void openStreamAndExecuteSMJ(BPTripleJoinDriver bpTripleJoinDriver1, BPTripleJoinDriver bpTripleJoinDriver2, int order, String subjectfilter, String predicatefilter, String objectfilter, Double confidenceFilter) throws Exception {
+        Stream stream = rdfdb.openStream(order, subjectfilter, predicatefilter, objectfilter, confidenceFilter);
+        Pair<IteratorI<BasicPattern>, Integer> firstLevelJoinIterator = bpTripleJoinDriver1.
+                getJoinIteratorSMJ(stream, 2);
+
         Pair<IteratorI<BasicPattern>, Integer> secondLevelJoinIterator =
-                bpTripleJoinDriver.getNLJoinIterator(firstLevelJoinIterator.getKey(),
+                bpTripleJoinDriver2.getJoinIteratorSMJ(firstLevelJoinIterator.getKey(),
                         firstLevelJoinIterator.getValue());
-//        sc.close();
+
+        BasicPattern basicPattern = secondLevelJoinIterator.getKey().get_next();
+//        Quadruple q = stream.getNext();
+        while (basicPattern != null) {
+            basicPattern.printBasicPatternValues();
+            basicPattern = secondLevelJoinIterator.getKey().get_next();
+        }
+
+        secondLevelJoinIterator.getKey().close();
+        firstLevelJoinIterator.getKey().close();
+        stream.closeStream();
+
+        System.out.println("Disk page READ COUNT: " + PCounter.rcounter);
+        System.out.println("Disk page WRITE COUNT: " + PCounter.wcounter);
+    }
+
+    private static void openStreamAndExecuteIndexNLJ(BPTripleJoinDriver bpTripleJoinDriver1, BPTripleJoinDriver bpTripleJoinDriver2, int order, String subjectfilter, String predicatefilter, String objectfilter, Double confidenceFilter) throws Exception {
+        Stream stream = rdfdb.openStream(order, subjectfilter, predicatefilter, objectfilter, confidenceFilter);
+        Pair<IteratorI<BasicPattern>, Integer> firstLevelJoinIterator = bpTripleJoinDriver1.
+                getIndexNLJoinIterator(stream, 2);
+
+        Pair<IteratorI<BasicPattern>, Integer> secondLevelJoinIterator =
+                bpTripleJoinDriver2.getIndexNLJoinIterator(firstLevelJoinIterator.getKey(),
+                        firstLevelJoinIterator.getValue());
+
+        BasicPattern basicPattern = secondLevelJoinIterator.getKey().get_next();
+//        Quadruple q = stream.getNext();
+        while (basicPattern != null) {
+            basicPattern.printBasicPatternValues();
+            basicPattern = secondLevelJoinIterator.getKey().get_next();
+        }
+        secondLevelJoinIterator.getKey().close();
+        firstLevelJoinIterator.getKey().close();
+        stream.closeStream();
+
+        System.out.println("Disk page READ COUNT: " + PCounter.rcounter);
+        System.out.println("Disk page WRITE COUNT: " + PCounter.wcounter);
+    }
+
+    private static void openStreamAndExecuteNLJ(BPTripleJoinDriver bpTripleJoinDriver1, BPTripleJoinDriver bpTripleJoinDriver2, int ORDER, String SUBJECTFILTER, String PREDICATEFILTER, String OBJECTFILTER, Double confidenceFilter) throws Exception {
+        Stream stream = rdfdb.openStream(ORDER, SUBJECTFILTER, PREDICATEFILTER, OBJECTFILTER, confidenceFilter);
+        Pair<IteratorI<BasicPattern>, Integer> firstLevelJoinIterator = bpTripleJoinDriver1.
+                getNLJoinIterator(stream, 2);
+
+        Pair<IteratorI<BasicPattern>, Integer> secondLevelJoinIterator =
+                bpTripleJoinDriver2.getNLJoinIterator(firstLevelJoinIterator.getKey(),
+                        firstLevelJoinIterator.getValue());
 
         BasicPattern basicPattern = secondLevelJoinIterator.getKey().get_next();
         while (basicPattern != null) {
@@ -245,31 +309,6 @@ public class CommandLine {
 
         System.out.println("Disk page READ COUNT: " + PCounter.rcounter);
         System.out.println("Disk page WRITE COUNT: " + PCounter.wcounter);
-        PCounter.initialize();
-
-        bpTripleJoinDriver = getJoinDriver(firstJoinQuery);
-        firstLevelJoinIterator =
-                bpTripleJoinDriver.getJoinIteratorSMJ(stream, 2);
-
-        bpTripleJoinDriver = getJoinDriver(secondJoinQuery);
-        secondLevelJoinIterator =
-                bpTripleJoinDriver.getJoinIteratorSMJ(firstLevelJoinIterator.getKey(),
-                        firstLevelJoinIterator.getValue());
-//        sc.close();
-
-        basicPattern = secondLevelJoinIterator.getKey().get_next();
-        while (basicPattern != null) {
-            basicPattern.printBasicPatternValues();
-            basicPattern = secondLevelJoinIterator.getKey().get_next();
-        }
-        secondLevelJoinIterator.getKey().close();
-        firstLevelJoinIterator.getKey().close();
-        stream.closeStream();
-        System.out.println("Disk page READ COUNT: " + PCounter.rcounter);
-        System.out.println("Disk page WRITE COUNT: " + PCounter.wcounter);
-        PCounter.initialize();
-
-        SystemDefs.close();
     }
 
     private static BPTripleJoinDriver getJoinDriver(String joinQuery) throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException, IteratorException, HashEntryNotFoundException, IndexException, ScanIteratorException, PinPageException, InvalidFrameNumberException, UnknownIndexTypeException, UnpinPageException, UnknownKeyTypeException, KeyNotMatchException, InvalidTupleSizeException, PageUnpinnedException, InvalidTypeException, ReplacerException, HFDiskMgrException, InvalidRelation, HFException, NestedLoopException, FileScanException, HFBufMgrException, TupleUtilsException {
