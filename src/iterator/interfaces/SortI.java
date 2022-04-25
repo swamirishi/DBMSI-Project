@@ -485,6 +485,7 @@ public abstract class SortI<I extends ID, T extends Tuple> extends IteratorI<T> 
             case AttrType.attrInteger:
                 //      lastElem.setHdr(fld_no, junk, null);
                 lastElem.setIntFld(_sort_fld, Integer.MIN_VALUE);
+                lastElem.setIntFld(_sort_fld+1, Integer.MIN_VALUE);
                 break;
             case AttrType.attrReal:
                 //      lastElem.setHdr(fld-no, junk, null);
@@ -526,6 +527,7 @@ public abstract class SortI<I extends ID, T extends Tuple> extends IteratorI<T> 
             case AttrType.attrInteger:
                 //      lastElem.setHdr(fld_no, junk, null);
                 lastElem.setIntFld(_sort_fld, Integer.MAX_VALUE);
+                lastElem.setIntFld(_sort_fld+1, Integer.MAX_VALUE);
                 break;
             case AttrType.attrReal:
                 //      lastElem.setHdr(fld_no, junk, null);
