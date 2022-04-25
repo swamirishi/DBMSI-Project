@@ -331,12 +331,14 @@ public class CommandLine {
                 tupleOrder,
                 sortNumberOfPages);
         BasicPattern basicPattern = sortIterator.get_next();
+        int cnt =0;
 //        Quadruple q = stream.getNext();
         while (basicPattern != null) {
+            cnt+=1;
             basicPattern.printBasicPatternValues();
             basicPattern = sortIterator.get_next();
         }
-
+        System.out.println(String.format("Total Number of Records = %d",cnt));
         sortIterator.close();
         secondLevelJoinIterator.getKey().close();
         firstLevelJoinIterator.getKey().close();
@@ -373,11 +375,13 @@ public class CommandLine {
                 sortNumberOfPages);
         BasicPattern basicPattern = sortIterator.get_next();
 //        Quadruple q = stream.getNext();
+        int cnt =0;
         while (basicPattern != null) {
+            cnt+=1;
             basicPattern.printBasicPatternValues();
             basicPattern = sortIterator.get_next();
         }
-
+        System.out.println(String.format("Total Number of Records = %d",cnt));
         sortIterator.close();
         secondLevelJoinIterator.getKey().close();
         firstLevelJoinIterator.getKey().close();
@@ -414,11 +418,14 @@ public class CommandLine {
                 tupleOrder,
                 sortNumberOfPages);
         BasicPattern basicPattern = sortIterator.get_next();
+        int cnt = 0;
 //        Quadruple q = stream.getNext();
         while (basicPattern != null) {
             basicPattern.printBasicPatternValues();
             basicPattern = sortIterator.get_next();
+            cnt+=1;
         }
+        System.out.println(String.format("Total Number of Records = %d",cnt));
 
         sortIterator.close();
         secondLevelJoinIterator.getKey().close();
