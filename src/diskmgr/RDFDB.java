@@ -13,6 +13,7 @@ import heap.*;
 import index.IndexException;
 import index.IndexUtils;
 import index.UnknownIndexTypeException;
+import index.indexOptions.QIDIndexOptions;
 import iterator.UnknownKeyTypeException;
 import javafx.util.Pair;
 import labelheap.Label;
@@ -30,7 +31,7 @@ import java.util.List;
 public class RDFDB extends DB {
 
     private String curr_dbname;                //RDF Database name
-    private static final short REC_LEN1 = 150;
+    public static final short REC_LEN1 = 150;
 
     private QuadrupleHeapFile quadrupleHeapFile;
     private LabelHeapFile entityLabelHeapFile;
@@ -43,17 +44,21 @@ public class RDFDB extends DB {
     public static String subjectBTreeFileName = "SubjectLabelBTreeIndexFile";
     public static String predicateBTreeFileName = "PredicateLabelBTreeIndexFile";
     public static String objectBTreeFileName = "ObjectLabelBTreeIndexFile";
-    public static String qidBTreeFileName = "QIDBTreeIndex";
+
+    public static String sopQidBtreeFileName = "sopQidBtreeFile";
+    public static String spQidBtreeFileName = "spQidBtreeFile";
+    public static String ospQidBtreeFileName = "ospQidBtreeFile";
+    public static String opQidBtreeFileName = "opQidBtreeFile";
 
     private int indexType = 0;
 
     private LIDBTreeFile<Void> subjectBtreeIndexFile;
     private LIDBTreeFile<Void> predicateBtreeIndexFile;
     private LIDBTreeFile<Void> objectBtreeIndexFile;
-    private QIDBTreeFile<List<?>> qidBtreeFile;
-    private QIDBTreeFile<List<?>> qidBtreeFile2;
-    private QIDBTreeFile<List<?>> qidBtreeFile3;
-    private QIDBTreeFile<List<?>> qidBtreeFile4;
+    private QIDBTreeFile<List<?>> sopQidBtreeFile;
+    private QIDBTreeFile<List<?>> spQidBtreeFile;
+    private QIDBTreeFile<List<?>> ospQidBtreeFile;
+    private QIDBTreeFile<List<?>> opQidBtreeFile;
 
     private int subjectCount = 0; //TODO Sure these values are updated correctly?
     private int objectCount = 0;
@@ -77,16 +82,38 @@ public class RDFDB extends DB {
     }
 
     public void initializeIndexesAsPerType() throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
-        List<KeyClassManager> keyClassManagers = null;
-        keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
-        IDListKeyClassManager idListKeyClassManager = new IDListKeyClassManager(keyClassManagers, 20, 10);
-        QIDBTreeFile<List<?>> qtf = new QIDBTreeFile<List<?>>(qidBTreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
+        QIDIndexOptions qidIndexOptions = new QIDIndexOptions();
+        KeyClassManager sopIdListKeyClassManager = qidIndexOptions.indexKeyClassManagerForIndex(1);
+        this.sopQidBtreeFile = new QIDBTreeFile<List<?>>(sopQidBtreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
             @Override
             public KeyClassManager<List<?>> getKeyClassManager() {
-                return idListKeyClassManager;
+                return sopIdListKeyClassManager;
             }
         };
-        this.qidBtreeFile = qtf;
+
+        KeyClassManager spIdListKeyClassManager = qidIndexOptions.indexKeyClassManagerForIndex(2);
+        this.spQidBtreeFile = new QIDBTreeFile<List<?>>(spQidBtreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
+            @Override
+            public KeyClassManager<List<?>> getKeyClassManager() {
+                return spIdListKeyClassManager;
+            }
+        };
+
+        KeyClassManager ospIdListKeyClassManager = qidIndexOptions.indexKeyClassManagerForIndex(3);
+        this.ospQidBtreeFile = new QIDBTreeFile<List<?>>(ospQidBtreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
+            @Override
+            public KeyClassManager<List<?>> getKeyClassManager() {
+                return ospIdListKeyClassManager;
+            }
+        };
+
+        KeyClassManager opIdListKeyClassManager = qidIndexOptions.indexKeyClassManagerForIndex(4);
+        this.opQidBtreeFile = new QIDBTreeFile<List<?>>(ospQidBtreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
+            @Override
+            public KeyClassManager<List<?>> getKeyClassManager() {
+                return opIdListKeyClassManager;
+            }
+        };
     }
 
     public void initializePredicateBTreeFile() throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
@@ -231,25 +258,8 @@ public class RDFDB extends DB {
                 quadrupleHeapFile.updateRecord(qid, givenQuadruple);
             }
         }
-        qidBtreeFile.close();
+        this.closeQIDBTreeFiles();
         return qid;
-
-        //No need to fetch again
-//        QID qidFoundQ = getQIDFromHeapFileScan(foundQ.getQuadrupleByteArray());
-
-//        if (thisQuadruple.getValue() > foundQ.getValue()) {
-
-        //if record exist, store only the quadruple with higher confidence!
-//            boolean updated = quadrupleHeapFile.updateRecord(qid, thisQuadruple);
-//            QID qidThisQuadruple = new QID();
-//            if(updated) {
-//                qidThisQuadruple = getQIDFromHeapFileScan(thisQuadruple.getQuadrupleByteArray());
-//            }
-
-//            return qidThisQuadruple;
-//        }
-
-//        return qid;
     }
 
     public boolean deleteQuadruple(byte[] quadruplePtr) throws Exception {
@@ -279,24 +289,6 @@ public class RDFDB extends DB {
     }
 
     private LID getLIDPredicateFromHeapFileScan(String heapFileName, String inputLabel) throws InvalidTupleSizeException, IOException, HFDiskMgrException, HFException, HFBufMgrException, IndexException, UnknownKeyTypeException, UnknownIndexTypeException, InvalidTypeException, IteratorException, ConstructPageException, KeyNotMatchException, ScanIteratorException, PinPageException, UnpinPageException, HashEntryNotFoundException, InvalidFrameNumberException, PageUnpinnedException, ReplacerException {
-//        if(this.indexType !=3 || this.indexType)
-//        LID lid = new LID();
-//        LScan scan = (LScan) getCorresponsingHeapFile(heapFileName).openScan();
-//        boolean isFound = false;
-//        Label label = scan.getNext(lid);
-//        while (label!=null) {
-//            if (inputLabel.equals(label.getLabel())) {
-////                System.out.println("Found " + inputLabel + " wont create new");
-//                isFound = true;
-//                break;
-//            }
-//            label = scan.getNext(lid);
-//        }
-//        if (!isFound) {
-//            lid.getPageNo().pid = -1;
-//        }
-//        scan.closescan();
-//        return lid;
         LID predicateId = IndexUtils.isLabelRecordInBtreeFound(predicateBtreeIndexFile, inputLabel);
         return predicateId;
     }
@@ -304,18 +296,10 @@ public class RDFDB extends DB {
     private QID getQIDFromHeapFileScan(byte[] inputData) throws InvalidTupleSizeException, IOException, KeyTooLongException, UnknownKeyTypeException, IndexException, KeyNotMatchException, UnknownIndexTypeException, InvalidTypeException, IteratorException, HashEntryNotFoundException, ConstructPageException, ScanIteratorException, PinPageException, InvalidFrameNumberException, PageUnpinnedException, UnpinPageException, ReplacerException {
         Quadruple q = new Quadruple(inputData, 0, inputData.length);
         List<KeyClassManager> keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
-        List<?> ids = Arrays.asList(q.getSubject().returnLid(), q.getPredicate().returnLid(), q.getObject().returnLid());
+        List<?> ids = Arrays.asList(q.getSubject().returnLid(), q.getObject().returnLid(), q.getPredicate().returnLid());
         IDListKeyClassManager idListKeyClassManager = new IDListKeyClassManager(keyClassManagers, 20, 10);
-        QID qid = IndexUtils.getQIDFromQIDTree(qidBtreeFile, idListKeyClassManager, ids);
+        QID qid = IndexUtils.getQIDFromQIDTree(sopQidBtreeFile, idListKeyClassManager, ids);
         return qid;
-    }
-
-    private Pair<QID, Quadruple> getQIDQuadrupleFromHeapFileScan(Quadruple q) throws InvalidTupleSizeException, IOException, KeyTooLongException, UnknownKeyTypeException, IndexException, KeyNotMatchException, UnknownIndexTypeException, InvalidTypeException {
-        List<KeyClassManager> keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
-        List<?> ids = Arrays.asList(q.getSubject().returnLid(), q.getPredicate().returnLid(), q.getObject().returnLid());
-        IDListKeyClassManager idListKeyClassManager = new IDListKeyClassManager(keyClassManagers, 20, 10);
-        Pair<QID, Quadruple> itr = IndexUtils.getQIDQuadrupleFromQIDTree(quadrupleHeapFileName, qidBTreeFileName, idListKeyClassManager, ids, 1);
-        return itr;
     }
 
     public QuadrupleHeapFile getQuadrupleHeapFile() {
@@ -342,10 +326,6 @@ public class RDFDB extends DB {
         return objectBtreeIndexFile;
     }
 
-    public QIDBTreeFile<List<?>> getQidBtreeFile() {
-        return qidBtreeFile;
-    }
-
     public void insertInLabelBTree(String subjectLabel, EID subjectId, String predicateLabel, PID predicateId, String objectLabel, EID objectId) throws IteratorException, ConstructPageException, ConvertException, InsertException, IndexInsertRecException, LeafDeleteException, NodeNotMatchException, LeafInsertRecException, PinPageException, IOException, UnpinPageException, DeleteRecException, KeyTooLongException, KeyNotMatchException, IndexSearchException {
         subjectBtreeIndexFile.insert(new StringKey(subjectLabel), subjectId.returnLid());
         predicateBtreeIndexFile.insert(new StringKey(predicateLabel), predicateId.returnLid());
@@ -361,9 +341,42 @@ public class RDFDB extends DB {
         LID predicateId = q.getPredicate().returnLid();
         LID objectId = q.getObject().returnLid();
         float confidence = q.getValue();
-        List keyList;
-        keyList = Arrays.asList(subjectId, predicateId, objectId);
-        qidBtreeFile.insert(keyList, qid);
+        List sopkeyList = Arrays.asList(subjectId, objectId, predicateId);
+        List spkeyList = Arrays.asList(subjectId, predicateId);
+        List ospkeyList = Arrays.asList(objectId, subjectId, predicateId);
+        List opKeyList = Arrays.asList(objectId, predicateId);
+        QIDIndexOptions qidIndexOptions = new QIDIndexOptions();
+
+        KeyClassManager keyClassManager = qidIndexOptions.indexKeyClassManagerForIndex(1);
+        KeyClass keyClass = qidIndexOptions.getKeyClassForIndexOption(keyClassManager, 1, q);
+        sopQidBtreeFile.insert(keyClass, qid);
+
+        KeyClassManager keyClassManager2 = qidIndexOptions.indexKeyClassManagerForIndex(2);
+        KeyClass keyClass2 = qidIndexOptions.getKeyClassForIndexOption(keyClassManager2, 2, q);
+        spQidBtreeFile.insert(keyClass2, qid);
+
+        KeyClassManager keyClassManager3 = qidIndexOptions.indexKeyClassManagerForIndex(3);
+        KeyClass keyClass3 = qidIndexOptions.getKeyClassForIndexOption(keyClassManager3, 3, q);
+        ospQidBtreeFile.insert(keyClass3, qid);
+
+        KeyClassManager keyClassManager4 = qidIndexOptions.indexKeyClassManagerForIndex(4);
+        KeyClass keyClass4 = qidIndexOptions.getKeyClassForIndexOption(keyClassManager4, 4, q);
+        opQidBtreeFile.insert(keyClass4, qid);
+    }
+
+    public void closeQIDBTreeFiles() throws HashEntryNotFoundException, InvalidFrameNumberException, PageUnpinnedException, ReplacerException {
+        if(sopQidBtreeFile!=null) {
+            sopQidBtreeFile.close();
+        }
+        if(spQidBtreeFile!=null) {
+            spQidBtreeFile.close();
+        }
+        if(ospQidBtreeFile!=null) {
+            ospQidBtreeFile.close();
+        }
+        if(opQidBtreeFile!=null) {
+            opQidBtreeFile.close();
+        }
     }
 
     public void setIndexType(int indexoption) {
@@ -388,10 +401,7 @@ public class RDFDB extends DB {
             if (objectBtreeIndexFile != null) {
                 objectBtreeIndexFile.close();
             }
-            if (this.qidBtreeFile != null) {
-                qidBtreeFile.close();
-                //dup_tree.destroyFile();
-            }
+            this.closeQIDBTreeFiles();
             new Heapfile("tempHeapFileabhishek0").deleteFile();
         } catch (Exception e) {
             // TODO Auto-generated catch block

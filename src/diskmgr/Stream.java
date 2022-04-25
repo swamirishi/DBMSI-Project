@@ -86,6 +86,7 @@ public class Stream extends IteratorI<BasicPattern> {
 
 
     public Quadruple getNext() throws Exception {
+//        return null;
         int option = rdfDB.getIndexType();
         if (option == 6 || option != orderType) {
             return quadrupleSort.get_next();
@@ -237,7 +238,7 @@ public class Stream extends IteratorI<BasicPattern> {
         expr[1] = null;
 
         IndexType indexType = new IndexType(IndexType.B_Index);
-        QIDIndexScan<List<?>> qidScan = new QIDIndexScan<List<?>>(indexType, RDFDB.quadrupleHeapFileName, RDFDB.qidBTreeFileName,
+        QIDIndexScan<List<?>> qidScan = new QIDIndexScan<List<?>>(indexType, RDFDB.quadrupleHeapFileName, RDFDB.sopQidBtreeFileName,
                 Quadruple.headerTypes, Quadruple.strSizes, 7, 7, projlist2, null, 1, false, filter, rdfDB.getIndexType()) {
             @Override
             public KeyClassManager<List<?>> getKeyClassManager() {

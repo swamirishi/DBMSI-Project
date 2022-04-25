@@ -175,6 +175,7 @@ public abstract class NestedLoopsJoinsI<I extends ID, T extends Tuple> extends I
                 if (inner != null)     // If this not the first time,
                 {
                     // close scan
+                    inner.closescan();
                     inner = null;
                 }
 
@@ -187,7 +188,7 @@ public abstract class NestedLoopsJoinsI<I extends ID, T extends Tuple> extends I
                 if ((outer_tuple = outer.get_next()) == null) {
                     done = true;
                     if (inner != null) {
-
+                        inner.closescan();
                         inner = null;
                     }
 
@@ -233,6 +234,7 @@ public abstract class NestedLoopsJoinsI<I extends ID, T extends Tuple> extends I
         if (!closeFlag) {
 
             try {
+//                inner.closescan();
                 outer.close();
             } catch (Exception e) {
                 throw new JoinsException(e, "NestedLoopsJoin.java: error in closing iterator.");

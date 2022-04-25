@@ -5,6 +5,8 @@ public class PCounter {
     public static int wcounter = 0;
 
     public static void initialize() {
+        rcounter = 0;
+        wcounter = 0;
     }
 
     public static void readIncrement() {

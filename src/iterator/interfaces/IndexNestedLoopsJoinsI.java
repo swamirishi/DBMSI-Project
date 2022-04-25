@@ -1,23 +1,30 @@
 package iterator.interfaces;
 
+import basicpatternheap.BasicPattern;
+import btree.KeyClass;
+import btree.quadraple.QIDBTFileScan;
+import btree.quadraple.QIDBTreeFile;
+import btree.quadraple.QIDKeyDataEntry;
+import btree.quadraple.QIDLeafData;
 import bufmgr.PageNotReadException;
-import global.AttrType;
-import global.ID;
-import global.JoinCondition;
-import global.LID;
+import global.*;
 import heap.InvalidTupleSizeException;
 import heap.InvalidTypeException;
 import heap.Tuple;
-import heap.interfaces.HFile;
-import heap.interfaces.ScanI;
 import index.IndexException;
 import index.indexOptions.IDIndexOptions;
+import index.indexOptions.QIDIndexOptions;
 import iterator.*;
 import utils.supplier.hfile.HFileSupplier;
 import utils.supplier.id.IDSupplier;
+import utils.supplier.keyclass.IDListKeyClassManager;
+import utils.supplier.keyclass.KeyClassManager;
+import utils.supplier.keyclass.LIDKeyClassManager;
+import utils.supplier.keyclass.QIDKeyClassManager;
 import utils.supplier.tuple.TupleSupplier;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -36,9 +43,9 @@ public abstract class IndexNestedLoopsJoinsI<I extends ID, T extends Tuple> exte
     private IteratorI<T> outer;
     private short t2_str_sizescopy[];
     private JoinCondition joinCondition;
-    private LID subjectFilter;
-    private LID objectFilter;
-    private LID predicateFilter;
+    private LID rightSubjectFilter;
+    private LID rightObjectFilter;
+    private LID rightPredicateFilter;
     private Float confidenceFilter;
     private int n_buf_pgs;        // # of buffer pages available.
     private boolean done,         // Is the join complete
@@ -47,9 +54,11 @@ public abstract class IndexNestedLoopsJoinsI<I extends ID, T extends Tuple> exte
     private T Jtuple;           // Joined tuple
     private FldSpec perm_mat[];
     private int nOutFlds;
-    private HFile<I, T> hf;
-    private ScanI<I, T> inner;
+    public QIDBTreeFile<List<?>> btreeIndexFile;
+    private QIDBTFileScan<List<?>> inner;
     private IDIndexOptions<T> indexOptions;
+    private String relationName;
+    private int index;
 
     public abstract IDSupplier<I> getIDSupplier();
 
@@ -96,8 +105,8 @@ public abstract class IndexNestedLoopsJoinsI<I extends ID, T extends Tuple> exte
                                   String relationName,
                                   JoinCondition joinCondition,
                                   LID subjectFilter,
-                                  LID objectFilter,
                                   LID predicateFilter,
+                                  LID objectFilter,
                                   Float confidenceFilter,
                                   IDIndexOptions<T> indexOptions,
                                   FldSpec proj_list[],
@@ -116,10 +125,11 @@ public abstract class IndexNestedLoopsJoinsI<I extends ID, T extends Tuple> exte
         inner_tuple = getTupleSupplier().getTuple();
         Jtuple = getTupleSupplier().getTuple();
         this.joinCondition = joinCondition;
-        this.subjectFilter = subjectFilter;
-        this.objectFilter = objectFilter;
-        this.predicateFilter = predicateFilter;
+        this.rightSubjectFilter = subjectFilter;
+        this.rightObjectFilter = objectFilter;
+        this.rightPredicateFilter = predicateFilter;
         this.confidenceFilter = confidenceFilter;
+        this.relationName = relationName;
 
         n_buf_pgs = amt_of_mem;
         inner = null;
@@ -148,8 +158,11 @@ public abstract class IndexNestedLoopsJoinsI<I extends ID, T extends Tuple> exte
 
 
         try {
-
-            hf = getHFileSupplier().getHFile(relationName);
+            boolean subjectFilterGiven = rightSubjectFilter != null ? true : false;
+            boolean objectFilterGiven = rightObjectFilter != null ? true : false;
+            boolean joinOnSubject = joinCondition.isJoinOnSubject();
+            index = QIDIndexOptions.getIndexOption(joinOnSubject, subjectFilterGiven, objectFilterGiven);
+            btreeIndexFile = indexOptions.getBTFile(index);
 
         } catch (Exception e) {
             throw new NestedLoopException(e, "Create new heapfile failed.");
@@ -175,6 +188,10 @@ public abstract class IndexNestedLoopsJoinsI<I extends ID, T extends Tuple> exte
     public T get_next() throws IOException, JoinsException, IndexException, InvalidTupleSizeException, InvalidTypeException, PageNotReadException, TupleUtilsException, PredEvalException, SortException, LowMemException, UnknowAttrType, UnknownKeyTypeException, Exception {
         // This is a DUMBEST form of a join, not making use of any key information...
 
+        List<KeyClassManager> keyClassManagers = Arrays.asList(LIDKeyClassManager.getSupplier(),
+                LIDKeyClassManager.getSupplier(), LIDKeyClassManager.getSupplier());
+        IDListKeyClassManager idListKeyClassManager = new IDListKeyClassManager(keyClassManagers,
+                20, 10);
 
         if (done) {
             return null;
@@ -191,43 +208,45 @@ public abstract class IndexNestedLoopsJoinsI<I extends ID, T extends Tuple> exte
                 if (inner != null)     // If this not the first time,
                 {
                     // close scan
-                    inner.closescan();
+                    inner.DestroyBTreeFileScan();
                     inner = null;
-                }
-
-                try {
-                    inner = hf.openScan();
-                } catch (Exception e) {
-                    throw new NestedLoopException(e, "openScan failed");
                 }
 
                 if ((outer_tuple = outer.get_next()) == null) {
                     done = true;
                     if (inner != null) {
-
+                        inner.DestroyBTreeFileScan();
                         inner = null;
                     }
 
                     return null;
                 }
-            }  // ENDS: if (get_from_outer == TRUE)
 
+                try {
+                    if (!evalLeftRightFilter()) {
+                        get_from_outer = true;
+                        continue;
+                    }
+                    KeyClass lowKey = idListKeyClassManager.getKeyClass(getMinFilterList());
+                    KeyClass hiKey = idListKeyClassManager.getKeyClass(getMaxFilterList());
+                    inner = btreeIndexFile.new_scan(lowKey, hiKey);
+                } catch (Exception e) {
+                    throw new NestedLoopException(e, "openScan failed");
+                }
+            }  // ENDS: if (get_from_outer == TRUE)
 
             // The next step is to get a tuple from the inner,
             // while the inner is not completely scanned && there
             // is no match (with pred),get a tuple from the inner.
 
-
-            I rid = getIDSupplier().getID();
-            while ((inner_tuple = inner.getNext(rid)) != null) {
+            QIDKeyDataEntry filterQidKeyDataEntry = inner.get_next();
+            while (filterQidKeyDataEntry != null) {
+                I qid = (I) ((QIDLeafData) filterQidKeyDataEntry.data).getData();
+                inner_tuple = this.getHFileSupplier().getHFile(relationName).getRecord(qid);
+                // Apply a projection on the outer and inner tuples.
                 inner_tuple.setHdr((short) in2_len, _in2, t2_str_sizescopy);
-                if (this.predictedEvaluation(RightFilter, inner_tuple, null, _in2, null) == true) {
-                    if (this.predictedEvaluation(OutputFilter, outer_tuple, inner_tuple, _in1, _in2) == true) {
-                        // Apply a projection on the outer and inner tuples.
-                        this.projectionEvaluation(outer_tuple, _in1, inner_tuple, _in2, Jtuple, perm_mat, nOutFlds);
-                        return Jtuple;
-                    }
-                }
+                this.projectionEvaluation(outer_tuple, _in1, inner_tuple, _in2, Jtuple, perm_mat, nOutFlds);
+                return Jtuple;
             }
 
             // There has been no match. (otherwise, we would have
@@ -236,6 +255,57 @@ public abstract class IndexNestedLoopsJoinsI<I extends ID, T extends Tuple> exte
 
             get_from_outer = true; // Loop back to top and get next outer tuple.
         } while (true);
+    }
+
+    private List<?> getMaxFilterList() {
+        LID rightSubjectFilter = this.rightSubjectFilter != null ? this.rightSubjectFilter : new LID(new PageId(QIDKeyClassManager.MAX_PAGE_NO), QIDKeyClassManager.MAX_SLOT_NO);
+        LID rightPredicateFilter = this.rightPredicateFilter != null ? this.rightPredicateFilter : new LID(new PageId(QIDKeyClassManager.MAX_PAGE_NO), QIDKeyClassManager.MAX_SLOT_NO);
+        LID rightObjectFilter = this.rightObjectFilter != null ? this.rightObjectFilter : new LID(new PageId(QIDKeyClassManager.MAX_PAGE_NO), QIDKeyClassManager.MAX_SLOT_NO);
+
+        switch (index) {
+            case 1:
+                return Arrays.asList(rightSubjectFilter, rightObjectFilter, rightPredicateFilter);
+            case 2:
+                return Arrays.asList(rightSubjectFilter, rightPredicateFilter);
+            case 3:
+                return Arrays.asList(rightObjectFilter, rightSubjectFilter, rightPredicateFilter);
+            case 4:
+                return Arrays.asList(rightObjectFilter, rightPredicateFilter);
+        }
+        return null;
+    }
+
+    private List<?> getMinFilterList() {
+        LID rightSubjectFilter = this.rightSubjectFilter != null ? this.rightSubjectFilter : new LID(new PageId(0), 0);
+        LID rightPredicateFilter = this.rightPredicateFilter != null ? this.rightPredicateFilter : new LID(new PageId(0), 0);
+        LID rightObjectFilter = this.rightObjectFilter != null ? this.rightObjectFilter : new LID(new PageId(0), 0);
+
+        switch (index) {
+            case 1:
+                return Arrays.asList(rightSubjectFilter, rightObjectFilter, rightPredicateFilter);
+            case 2:
+                return Arrays.asList(rightSubjectFilter, rightPredicateFilter);
+            case 3:
+                return Arrays.asList(rightObjectFilter, rightSubjectFilter, rightPredicateFilter);
+            case 4:
+                return Arrays.asList(rightObjectFilter, rightPredicateFilter);
+        }
+        return null;
+    }
+
+    private boolean evalLeftRightFilter() {
+        NID leftFilter = ((BasicPattern) outer_tuple).getNode(joinCondition.getLeftNodePosition());
+        if (joinCondition.isJoinOnSubject()) {
+            if(rightSubjectFilter==null) {
+                this.rightSubjectFilter = leftFilter.returnLid();
+            }
+            return leftFilter.returnLid().equals(rightSubjectFilter);
+        } else {
+            if(rightObjectFilter==null){
+                this.rightObjectFilter = leftFilter.returnLid();
+            }
+            return leftFilter.returnLid().equals(rightObjectFilter);
+        }
     }
 
     /**
@@ -248,8 +318,8 @@ public abstract class IndexNestedLoopsJoinsI<I extends ID, T extends Tuple> exte
      */
     public void close() throws JoinsException, IOException, IndexException {
         if (!closeFlag) {
-
             try {
+                btreeIndexFile.close();
                 outer.close();
             } catch (Exception e) {
                 throw new JoinsException(e, "NestedLoopsJoin.java: error in closing iterator.");

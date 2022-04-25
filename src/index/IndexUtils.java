@@ -280,7 +280,7 @@ public class IndexUtils {
         expr[1] = null;
 
         IndexType indexType = new IndexType(IndexType.B_Index);
-        QIDIndexScan<K> qidScan = new QIDIndexScan<K>(indexType, RDFDB.quadrupleHeapFileName, RDFDB.qidBTreeFileName,
+        QIDIndexScan<K> qidScan = new QIDIndexScan<K>(indexType, RDFDB.quadrupleHeapFileName, RDFDB.sopQidBtreeFileName,
                 Quadruple.headerTypes, Quadruple.strSizes, Quadruple.numberOfFields, Quadruple.numberOfFields, projlist2, null, 1, false, filter, index) {
             @Override
             public KeyClassManager<K> getKeyClassManager() {

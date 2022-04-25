@@ -1,14 +1,16 @@
 package index.indexOptions;
 
 import basicpatternheap.BasicPattern;
-import btree.KeyClass;
-import btree.KeyNotMatchException;
-import btree.KeyTooLongException;
+import btree.*;
+import btree.interfaces.BTFileScanI;
+import btree.quadraple.QIDBTreeFile;
+import global.QID;
 import quadrupleheap.Quadruple;
 import utils.supplier.keyclass.IDListKeyClassManager;
 import utils.supplier.keyclass.KeyClassManager;
 import utils.supplier.keyclass.LIDKeyClassManager;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -54,7 +56,17 @@ public class BPIDIndexOptions implements IDIndexOptions<BasicPattern>{
     public List<Integer> getNumberOfOptions() {
         return indexOptions;
     }
-    
+
+    @Override
+    public QIDBTreeFile<List<?>> getBTFile(int indexOption) throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
+        return null;
+    }
+
+    @Override
+    public BTFileScanI<QID, Quadruple, KeyClassManager> getBTFileScan(int indexOption) {
+        return null;
+    }
+
     public static int getIndexOption(boolean joinOnSubject, boolean subjectFilterGiven, boolean objectFilterGiven){
         if(joinOnSubject){
             return objectFilterGiven?1:2;

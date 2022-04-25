@@ -1,18 +1,17 @@
 package index.indexOptions;
 
-import btree.KeyClass;
-import btree.KeyNotMatchException;
-import btree.KeyTooLongException;
+import btree.*;
 import btree.interfaces.BTFileScanI;
-import btree.label.LIDBTFileScan;
-import btree.quadraple.QIDBTFileScan;
-import global.ID;
+import btree.quadraple.QIDBTreeFile;
+import diskmgr.RDFDB;
+import global.AttrType;
 import global.QID;
 import quadrupleheap.Quadruple;
 import utils.supplier.keyclass.IDListKeyClassManager;
 import utils.supplier.keyclass.KeyClassManager;
 import utils.supplier.keyclass.LIDKeyClassManager;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -56,7 +55,33 @@ public class QIDIndexOptions implements IDIndexOptions<Quadruple>{
     
     @Override
     public BTFileScanI<QID, Quadruple, KeyClassManager> getBTFileScan(int indexOption){
-    
+        return null;
+    }
+
+    public QIDBTreeFile<List<?>> getBTFile(int indexOption) throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
+        QIDBTreeFile<List<?>> bTreeFile = null;
+        String bTreeFileName = null;
+        switch (indexOption){
+            case 1:
+                bTreeFileName = RDFDB.sopQidBtreeFileName;
+                break;
+            case 2:
+                bTreeFileName = RDFDB.spQidBtreeFileName;
+                break;
+            case 3:
+                bTreeFileName = RDFDB.ospQidBtreeFileName;
+                break;
+            case 4:
+                bTreeFileName = RDFDB.opQidBtreeFileName;
+                break;
+        }
+        bTreeFile =  new QIDBTreeFile<List<?>>(bTreeFileName, AttrType.attrString, RDFDB.REC_LEN1, 1/*delete*/) {
+            @Override
+            public KeyClassManager<List<?>> getKeyClassManager() {
+                return indexKeyClassManagerForIndex(indexOption);
+            }
+        };
+        return bTreeFile;
     }
     
     @Override
