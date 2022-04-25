@@ -30,7 +30,7 @@ public class CommandLine {
     public static void main(String[] args) throws Exception {
 //        SystemDefs.MINIBASE_RESTART_FLAG = true;
 
-//        batchinsert D:\DBMSI-Project\Phase1.txt 1 swami_db
+//        batchinsert D:\DBMSI-Project\Phase2.txt 1 swami_db
 //        query swami_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query swami_db 3 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test1.txt 6 popi
@@ -230,23 +230,23 @@ public class CommandLine {
         BPTripleJoinDriver bpTripleJoinDriver1 = getJoinDriver(firstJoinQuery);
         BPTripleJoinDriver bpTripleJoinDriver2 = getJoinDriver(secondJoinQuery);
 
-//        openStreamAndExecuteNLJ(bpTripleJoinDriver1,
-//                                bpTripleJoinDriver2,
-//                                ORDER,
-//                                SUBJECTFILTER,
-//                                PREDICATEFILTER,
-//                                OBJECTFILTER,
-//                                confidenceFilter,
-//                                sortNodePosition,
-//                                bpOrder,
-//                                sortNumberOfPages);
-//        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
-//        SystemDefs.close();
-//
-//        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
-//        rdfdb = SystemDefs.JavabaseDB;
-//        rdfdb.name = dbPath;
-//        PCounter.initialize();
+        openStreamAndExecuteNLJ(bpTripleJoinDriver1,
+                                bpTripleJoinDriver2,
+                                ORDER,
+                                SUBJECTFILTER,
+                                PREDICATEFILTER,
+                                OBJECTFILTER,
+                                confidenceFilter,
+                                sortNodePosition,
+                                bpOrder,
+                                sortNumberOfPages);
+        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
+        SystemDefs.close();
+
+        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
+        rdfdb = SystemDefs.JavabaseDB;
+        rdfdb.name = dbPath;
+
         openStreamAndExecuteIndexNLJ(bpTripleJoinDriver1,
                 bpTripleJoinDriver2,
                 ORDER,
@@ -428,7 +428,8 @@ public class CommandLine {
         String rightSubjectFilter = firstJoinParams[4];
         String rightPredicateFilter = firstJoinParams[5];
         String rightObjectFilter = firstJoinParams[6];
-        double rightConfidenceFilter = Double.parseDouble(firstJoinParams[7]);
+        double rightConfidenceFilter = firstJoinParams[7].equals("*") ? 0 :
+                Double.parseDouble(firstJoinParams[7]);
         int[] leftOutNodePositions = new int[]{Integer.parseInt(firstJoinParams[8])};
         int outputRightSubject = Integer.parseInt(firstJoinParams[9]);
         int outputRightObject = Integer.parseInt(firstJoinParams[10]);
