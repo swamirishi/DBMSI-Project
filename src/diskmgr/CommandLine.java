@@ -43,7 +43,7 @@ public class CommandLine {
 //        query test_db_200 1 1 :Jorunn_Danielsen * * * 10
 //        query test_db 6 6 :Jorunn_Danielsen * * * 10000
 //        batchinsert Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
-//        query test_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
+//        query abhi_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query gg_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query test_db 3 3 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query test_db 4 4 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
@@ -74,8 +74,8 @@ public class CommandLine {
             System.out.println("\nNew command loop: ");
             System.out.println("Type exit to stop!");
             Scanner sc = new Scanner(System.in);
-//            inputString = sc.nextLine();
-            inputString = "query swami_db 3 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000";
+            inputString = sc.nextLine();
+//            inputString = "query swami_db 3 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000";
             String[] input = inputString.split(" ");
             String operationType = input[0];
 
@@ -95,7 +95,7 @@ public class CommandLine {
                 System.out.println("Running Report ......................");
                 runReport(Arrays.copyOfRange(input, 1, input.length));
             }
-            break;
+//            break;
         }
     }
 
@@ -223,6 +223,7 @@ public class CommandLine {
 //                sc.nextLine();
         String secondJoinQuery = "1000,4,1,0,*,*,:Ms,0.5232177,1,1,1";
 //                sc.nextLine();
+
         BPTripleJoinDriver bpTripleJoinDriver = getJoinDriver(firstJoinQuery);
         Pair<IteratorI<BasicPattern>, Integer> firstLevelJoinIterator =
                 bpTripleJoinDriver.getNLJoinIterator(stream, 2);
@@ -244,6 +245,29 @@ public class CommandLine {
 
         System.out.println("Disk page READ COUNT: " + PCounter.rcounter);
         System.out.println("Disk page WRITE COUNT: " + PCounter.wcounter);
+        PCounter.initialize();
+
+        bpTripleJoinDriver = getJoinDriver(firstJoinQuery);
+        firstLevelJoinIterator =
+                bpTripleJoinDriver.getJoinIteratorSMJ(stream, 2);
+
+        bpTripleJoinDriver = getJoinDriver(secondJoinQuery);
+        secondLevelJoinIterator =
+                bpTripleJoinDriver.getJoinIteratorSMJ(firstLevelJoinIterator.getKey(),
+                        firstLevelJoinIterator.getValue());
+//        sc.close();
+
+        basicPattern = secondLevelJoinIterator.getKey().get_next();
+        while (basicPattern != null) {
+            basicPattern.printBasicPatternValues();
+            basicPattern = secondLevelJoinIterator.getKey().get_next();
+        }
+        secondLevelJoinIterator.getKey().close();
+        firstLevelJoinIterator.getKey().close();
+        stream.closeStream();
+        System.out.println("Disk page READ COUNT: " + PCounter.rcounter);
+        System.out.println("Disk page WRITE COUNT: " + PCounter.wcounter);
+        PCounter.initialize();
 
         SystemDefs.close();
     }
