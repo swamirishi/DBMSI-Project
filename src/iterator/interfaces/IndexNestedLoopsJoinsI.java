@@ -15,6 +15,7 @@ import index.IndexException;
 import index.indexOptions.IDIndexOptions;
 import index.indexOptions.QIDIndexOptions;
 import iterator.*;
+import quadrupleheap.Quadruple;
 import utils.supplier.hfile.HFileSupplier;
 import utils.supplier.id.IDSupplier;
 import utils.supplier.keyclass.IDListKeyClassManager;
@@ -59,6 +60,7 @@ public abstract class IndexNestedLoopsJoinsI<I extends ID, T extends Tuple> exte
     private IDIndexOptions<T> indexOptions;
     private String relationName;
     private int index;
+    CondExpr[] confidenceCondExpr;
 
     public abstract IDSupplier<I> getIDSupplier();
 
@@ -167,6 +169,22 @@ public abstract class IndexNestedLoopsJoinsI<I extends ID, T extends Tuple> exte
         } catch (Exception e) {
             throw new NestedLoopException(e, "Create new heapfile failed.");
         }
+        
+        confidenceCondExpr = getConfidenceCondExpr();
+    }
+
+    private CondExpr[] getConfidenceCondExpr() {
+        CondExpr[] exprs = new CondExpr[2];
+        CondExpr expr = new CondExpr();
+        expr.op = new AttrOperator(AttrOperator.aopGE);
+        expr.next = null;
+        expr.type1 = new AttrType(AttrType.attrSymbol);
+        expr.type2 = new AttrType(AttrType.attrReal);
+        expr.operand1.symbol = new FldSpec(new RelSpec(RelSpec.outer), Quadruple.VALUE_FLD);
+        expr.operand2.real = confidenceFilter.floatValue();
+        exprs[0] = expr;
+        exprs[1] = null;
+        return exprs;
     }
 
     /**
@@ -242,8 +260,12 @@ public abstract class IndexNestedLoopsJoinsI<I extends ID, T extends Tuple> exte
                 inner_tuple = this.getHFileSupplier().getHFile(relationName).getRecord(qid);
                 // Apply a projection on the outer and inner tuples.
                 inner_tuple.setHdr((short) in2_len, _in2, t2_str_sizescopy);
-                this.projectionEvaluation(outer_tuple, _in1, inner_tuple, _in2, Jtuple, perm_mat, nOutFlds);
-                return Jtuple;
+
+                if (this.predictedEvaluation(confidenceCondExpr, inner_tuple, null, _in2, null) == true) {
+                    this.projectionEvaluation(outer_tuple, _in1, inner_tuple, _in2, Jtuple, perm_mat, nOutFlds);
+                    return Jtuple;
+                }
+                filterQidKeyDataEntry = inner.get_next();
             }
 
             // There has been no match. (otherwise, we would have

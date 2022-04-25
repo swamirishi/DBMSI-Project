@@ -271,7 +271,17 @@ public class RDFDB extends DB {
                              String objectFilter, Double confidenceFilter) {
         Stream stream = null;
         try {
-            stream = new Stream(this, orderType, subjectFilter, predicateFilter, objectFilter, confidenceFilter);
+            this.initializeEntityBTreeFiles();
+            this.initializePredicateBTreeFile();
+            LID subjectId = IndexUtils.isLabelRecordInBtreeFound(this.getSubjectBtreeIndexFile(),
+                    subjectFilter);
+            LID predicateId = IndexUtils.isLabelRecordInBtreeFound(this.getPredicateBtreeIndexFile(),
+                    predicateFilter);
+            LID objectId = IndexUtils.isLabelRecordInBtreeFound(this.getObjectBtreeIndexFile(),
+                    objectFilter);
+            this.closeEntityBTreeFile();
+            this.closePredicateBTreeFile();
+            stream = new Stream(this, orderType, subjectId, predicateId, objectId, confidenceFilter);
         } catch (Exception e) {
             e.printStackTrace();
         }
