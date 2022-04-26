@@ -1,5 +1,6 @@
 package utils.supplier.btfile;
 
+import btree.AddFileEntryException;
 import btree.ConstructPageException;
 import btree.GetFileEntryException;
 import btree.PinPageException;
@@ -10,14 +11,22 @@ import global.LID;
 import global.QID;
 import labelheap.Label;
 import quadrupleheap.Quadruple;
+import utils.supplier.keyclass.KeyClassManager;
 
-public class LIDBTreeFileSupplier implements BTreeFileSupplier<LID, Label> {
+import java.io.IOException;
+
+public class LIDBTreeFileSupplier<K> implements BTreeFileSupplier<LID, Label,K> {
     @Override
-    public BTreeFileI<LID, Label> getBTreeFile(String name) throws ConstructPageException, GetFileEntryException, PinPageException {
-        return new LIDBTreeFile(name);
+    public BTreeFileI<LID, Label,K> getBTreeFile(String name, KeyClassManager<K> KeyClassManager) throws ConstructPageException, GetFileEntryException, PinPageException, IOException, AddFileEntryException {
+        return new LIDBTreeFile<K>(name) {
+            @Override
+            public utils.supplier.keyclass.KeyClassManager<K> getKeyClassManager() {
+                return KeyClassManager;
+            }
+        };
     }
     
-    private LIDBTreeFileSupplier() {
+    public LIDBTreeFileSupplier() {
     }
     
     private static LIDBTreeFileSupplier supplier;

@@ -5,6 +5,7 @@ import global.*;
 import bufmgr.*;
 import diskmgr.*;
 import index.*;
+import iterator.interfaces.IteratorI;
 
 import java.lang.*;
 import java.io.*;
@@ -18,7 +19,7 @@ public class DuplElim extends Iterator
   private short       in_len;
   private short[]    str_lens;
   
-  private Iterator _am;
+  private IteratorI _am;
   private boolean      done;
   
   private AttrType  sortFldType;
@@ -41,7 +42,7 @@ public class DuplElim extends Iterator
 		  AttrType in[],         
 		  short      len_in,     
 		  short    s_sizes[],
-		  Iterator am,          
+		  IteratorI am,
 		  int       amt_of_mem,  
 		  boolean     inp_sorted
 		  )throws IOException ,DuplElimException
@@ -116,7 +117,7 @@ public class DuplElim extends Iterator
    *@exception UnknownKeyTypeException key type unknown
    *@exception Exception other exceptions
    */
-  public Tuple get_next() 
+  public Tuple get_next()
     throws IOException,
 	   JoinsException ,
 	   IndexException,

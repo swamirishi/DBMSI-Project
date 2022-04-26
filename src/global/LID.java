@@ -37,7 +37,7 @@ public class LID implements ID<LID> {
     }
 
     public String toString(){
-        return slotNo + pageNo.toString();
+        return slotNo + " " + pageNo.toString();
     }
 
     public void copyLid (LID lid) {
@@ -84,6 +84,10 @@ public class LID implements ID<LID> {
     public PID returnPid() {
         return new PID(this.pageNo, this.slotNo);
     }
+
+//    public NID returnNid() {
+//        return new NID(this.pageNo, this.slotNo);
+//    }
     
     @Override
     public boolean equals(Object o) {

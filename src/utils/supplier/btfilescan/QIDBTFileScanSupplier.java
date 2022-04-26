@@ -7,24 +7,13 @@ import global.RID;
 import heap.Tuple;
 import quadrupleheap.Quadruple;
 
-public class QIDBTFileScanSupplier implements BTFileScanSupplier<QID, Quadruple> {
+public class QIDBTFileScanSupplier<K> implements BTFileScanSupplier<QID, Quadruple,K> {
     @Override
-    public QIDBTFileScan getBTFileScan() {
-        return new QIDBTFileScan();
+    public QIDBTFileScan<K> getBTFileScan() {
+        return new QIDBTFileScan<K>();
     }
     
-    private QIDBTFileScanSupplier() {
+    public QIDBTFileScanSupplier() {
     }
     
-    private static QIDBTFileScanSupplier supplier;
-    public static QIDBTFileScanSupplier getSupplier(){
-        if(supplier == null){
-            synchronized (QIDBTFileScanSupplier.class){
-                if(supplier == null){
-                    supplier = new QIDBTFileScanSupplier();
-                }
-            }
-        }
-        return supplier;
-    }
 }

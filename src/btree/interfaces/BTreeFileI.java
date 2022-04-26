@@ -22,6 +22,7 @@ import utils.supplier.btindexpage.BTIndexPageSupplier;
 import utils.supplier.btleafpage.BTLeafPageSupplier;
 import utils.supplier.btsortedpage.BTSortedPageSupplier;
 import utils.supplier.id.IDSupplier;
+import utils.supplier.keyclass.KeyClassManager;
 import utils.supplier.keydataentry.KeyDataEntrySupplier;
 import utils.supplier.leafdata.LeafDataSupplier;
 
@@ -34,7 +35,7 @@ import java.io.IOException;
  * abstract base class IndexFile.
  * It provides an insert/delete interface.
  */
-public abstract class BTreeFileI<I extends ID, T extends Tuple> extends IndexFile<I>
+public abstract class BTreeFileI<I extends ID, T extends Tuple,K> extends IndexFile<I,K>
   implements GlobalConst {
   
   private final static int MAGIC0=1989;
@@ -43,7 +44,6 @@ public abstract class BTreeFileI<I extends ID, T extends Tuple> extends IndexFil
   
   private static FileOutputStream fos;
   private static DataOutputStream trace;
-  
   public abstract BTreeHeaderPageSupplier<I,T> getBTreeHeaderPageSupplier();
   public abstract BTSortedPageSupplier<I,T> getBTSortedPageSupplier();
   public abstract BTIndexPageSupplier<I,T> getBTIndexPageSupplier();
@@ -51,7 +51,7 @@ public abstract class BTreeFileI<I extends ID, T extends Tuple> extends IndexFil
   public abstract IDSupplier<I> getIDSupplier();
   public abstract LeafDataSupplier<I> getLeafDataSupplier();
 	public abstract KeyDataEntrySupplier<I> getKeyDataEntrySupplier();
-	public abstract BTFileScanSupplier<I,T> getBTFileScanSupplier();
+	public abstract BTFileScanSupplier<I,T,K> getBTFileScanSupplier();
   
   /** It causes a structured trace to be written to a
    * file.  This output is
@@ -227,9 +227,9 @@ public abstract class BTreeFileI<I extends ID, T extends Tuple> extends IndexFil
    */
   public BTreeFileI(String filename, int keytype,
                     int keysize, int delete_fashion)
-    throws GetFileEntryException, 
+    throws GetFileEntryException,
 	   ConstructPageException,
-	   IOException, 
+	   IOException,
 	   AddFileEntryException
     {
       
@@ -252,8 +252,7 @@ public abstract class BTreeFileI<I extends ID, T extends Tuple> extends IndexFil
       }
       
       dbname=new String(filename);
-      
-    }
+	}
   
   /** Close the B+ tree file.  Unpin header page.
    *@exception PageUnpinnedException  error from the lower layer
@@ -1786,7 +1785,7 @@ public abstract class BTreeFileI<I extends ID, T extends Tuple> extends IndexFil
    *@exception PinPageException error when pin a page
    *@exception UnpinPageException error when unpin a page
    */
-  public BTFileScanI<I,T> new_scan(KeyClass lo_key, KeyClass hi_key)
+  public BTFileScanI<I,T,K> new_scan(KeyClass lo_key, KeyClass hi_key)
     throws IOException,  
 	   KeyNotMatchException, 
 	   IteratorException, 
@@ -1795,7 +1794,7 @@ public abstract class BTreeFileI<I extends ID, T extends Tuple> extends IndexFil
 	   UnpinPageException
 	   
     {
-      BTFileScanI<I,T> scan = getBTFileScanSupplier().getBTFileScan();
+      BTFileScanI<I,T,K> scan = getBTFileScanSupplier().getBTFileScan();
       if ( headerPage.get_rootId().pid==INVALID_PAGE) {
 	scan.leafPage=null;
 	return scan;

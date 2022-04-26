@@ -10,25 +10,20 @@ import global.QID;
 import global.RID;
 import heap.Tuple;
 import quadrupleheap.Quadruple;
+import utils.supplier.keyclass.KeyClassManager;
 
-public class QIDBTreeFileSupplier implements BTreeFileSupplier<QID, Quadruple> {
+public class QIDBTreeFileSupplier<K> implements BTreeFileSupplier<QID, Quadruple,K> {
     @Override
-    public BTreeFileI<QID, Quadruple> getBTreeFile(String name) throws ConstructPageException, GetFileEntryException, PinPageException {
-        return new QIDBTreeFile(name);
-    }
-    
-    private QIDBTreeFileSupplier() {
-    }
-    
-    private static QIDBTreeFileSupplier supplier;
-    public static QIDBTreeFileSupplier getSupplier(){
-        if(supplier == null){
-            synchronized (QIDBTreeFileSupplier.class){
-                if(supplier == null){
-                    supplier = new QIDBTreeFileSupplier();
-                }
+    public BTreeFileI<QID, Quadruple,K> getBTreeFile(String name, KeyClassManager<K> keyClassManager) throws ConstructPageException, GetFileEntryException, PinPageException {
+        return new QIDBTreeFile<K>(name) {
+            @Override
+            public KeyClassManager<K> getKeyClassManager() {
+                return keyClassManager;
             }
-        }
-        return supplier;
+        };
     }
+    
+    public QIDBTreeFileSupplier() {
+    }
+    
 }

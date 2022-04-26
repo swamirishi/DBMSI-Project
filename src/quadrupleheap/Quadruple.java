@@ -1,202 +1,128 @@
 package quadrupleheap;
 
-import global.*;
+import basicpatternheap.BasicPattern;
+import global.AttrType;
+import global.EID;
+import global.PID;
 import heap.FieldNumberOutOfBoundException;
 import heap.InvalidTupleSizeException;
 import heap.InvalidTypeException;
 import heap.Tuple;
+import iterator.FldSpec;
+import iterator.RelSpec;
 
 import java.io.IOException;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class Quadruple extends Tuple {
-    private EID subject;
-    private PID predicate;
-    private EID object;
-    private float value;
-    private static final short numberOfFields = 7;
+public class Quadruple extends BasicPattern {
+
+    public static final short numberOfFields = 7;
     private static final AttrType intType = new AttrType(AttrType.attrInteger);
     private static final AttrType floType = new AttrType(AttrType.attrReal);
-    private static final AttrType[] headerTypes = new AttrType[]{intType,intType,intType,intType,intType,intType,floType};
-    private static final int[] offsets = new int[]{0,4,8,12,16,20,24};
-    
-    public Quadruple() {
-        this(max_size);
-    }
+    public static final AttrType[] headerTypes = new AttrType[]{floType,intType,intType,intType,intType,intType,intType};
+    public static final short[] strSizes = new short[]{0,0,0,0,0,0,0};
+    public static final int SUBJECT_NODE_INDEX = 1;
+    public static final int OBJECT_NODE_INDEX = 2;
+    public static final int PREDICTE_NODE_INDEX = 3;
 
-    public Quadruple(byte [] aQuadruple, int offset, int length) {
-        super(aQuadruple,offset,length);
-        try {
-            this.setAttributes();
-        } catch (IOException | FieldNumberOutOfBoundException e) {
-            e.printStackTrace();
-        }
-    }
-    private void setAttributes() throws IOException, FieldNumberOutOfBoundException {
-        if(this.getLength()>=28){
-            this.subject = new EID(new PageId(Convert.getIntValue(offsets[0],super.getData())),Convert.getIntValue(offsets[1],super.getData()));
-            this.predicate = new PID(new PageId(Convert.getIntValue(offsets[2],super.getData())),Convert.getIntValue(offsets[3],super.getData()));
-            this.object = new EID(new PageId(Convert.getIntValue(offsets[4],super.getData())),Convert.getIntValue(offsets[5],super.getData()));
-            this.value = Convert.getFloValue(offsets[6],super.getData());
-        }
-    }
 
-    public Quadruple(EID subject, PID predicate, EID object, float value) throws IOException, FieldNumberOutOfBoundException, InvalidTupleSizeException, InvalidTypeException {
+    public Quadruple(EID subject, PID predicate, EID object, float value) throws InvalidTupleSizeException, IOException, InvalidTypeException {
         this();
         this.setSubject(subject);
         this.setPredicate(predicate);
         this.setObject(object);
         this.setValue(value);
+
+    }
+    public Quadruple() {
+        super(max_size);
     }
 
-    public Quadruple(Quadruple fromQuadruple) throws InvalidTupleSizeException {
-        this(fromQuadruple.getQuadrupleByteArray(),fromQuadruple.getLength(),0);
+    public Quadruple(byte [] aQuadruple, int offset, int length) {
+        super(aQuadruple,offset,length);
+    }
+
+//    public Quadruple(EID subject, PID predicate, EID object, float value) throws IOException, FieldNumberOutOfBoundException, InvalidTupleSizeException, InvalidTypeException {
+//        this.setSubject(subject);
+//        this.setPredicate(predicate);
+//        this.setObject(object);
+//        this.setValue(value);
+//        this.quadrupleCopy(this);
+//    }
+
+    public Quadruple(Quadruple fromQuadruple){
+        super(fromQuadruple);
     }
 
     public byte[] getQuadrupleByteArray() {
-        byte[] ret = new byte[28];
-        try {
-            if(this.subject!=null){
-                Convert.setIntValue(this.subject.getPageNo().pid,offsets[0],ret);
-                Convert.setIntValue(this.subject.getSlotNo(),offsets[1],ret);
-            }
-            if(this.predicate!=null){
-                Convert.setIntValue(this.predicate.getPageNo().pid,offsets[2],ret);
-                Convert.setIntValue(this.predicate.getSlotNo(),offsets[3],ret);
-            }
-            if(this.object!=null){
-                Convert.setIntValue(this.object.getPageNo().pid,offsets[4],ret);
-                Convert.setIntValue(this.object.getSlotNo(),offsets[5],ret);
-            }
-            Convert.setFloValue(this.value,offsets[6],ret);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         return super.getTupleByteArray();
     }
 
-    public short noOfFlds() {
-        return super.noOfFlds();
-    }
-
-    public short[] copyFldOffset() {
-        return super.copyFldOffset();
-    }
-
-    public int getLength() {
-        return super.getLength();
-    }
     //TODO: Check this
     public Quadruple(int size) {
-        this(new byte[size],0,size);
+        super(size);
 
         //not handled setAttributes here
     }
-    public void tupleCopy(Quadruple quadruple){
-        super.tupleCopy(quadruple);
-    }
+
     public void quadrupleCopy(Quadruple fromQuadruple) throws IOException, FieldNumberOutOfBoundException {
         this.tupleCopy(fromQuadruple);
+
     }
 
-    public LID getGenericObjectFromByteArray(int pidFld, int slotNoFld) throws FieldNumberOutOfBoundException, IOException {
-        LID result;
-        int genericObjectPid = getIntFld(pidFld);
-        int genericObjectSlotNo = getIntFld(slotNoFld);
-        return new LID(new PageId(genericObjectPid), genericObjectSlotNo);
+    public EID getSubject(){
+        return super.getNode(SUBJECT_NODE_INDEX).returnEID();
     }
 
-    public short size() {
-        return super.size();
+    public PID getPredicate(){
+        return super.getNode(PREDICTE_NODE_INDEX).returnPID();
     }
 
-    public EID getSubject() {
-        return subject;
-    }
-
-    public PID getPredicate() {
-        return predicate;
-    }
-
-    public EID getObject() {
-        return object;
-    }
-
-    public float getValue() {
-        return value;
-    }
-
-    public void setSubject(EID subject) throws IOException, FieldNumberOutOfBoundException {
-        this.subject = subject;
-        this.setIntFld(1,subject.getPageNo().pid);
-        this.setIntFld(2,subject.getSlotNo());
-    }
-
-    public void setPredicate(PID predicate) throws IOException, FieldNumberOutOfBoundException {
-        this.predicate = predicate;
-        this.setIntFld(3,predicate.getPageNo().pid);
-        this.setIntFld(4,predicate.getSlotNo());
-    }
-
-    public void setObject(EID object) throws IOException, FieldNumberOutOfBoundException {
-        this.object = object;
-        this.setIntFld(5,object.getPageNo().pid);
-        this.setIntFld(6,object.getSlotNo());
-    }
-
-    public void setValue(float value) throws IOException, FieldNumberOutOfBoundException {
-        this.value = value;
-        this.setFloFld(7,value);
-    }
-
-
-    public int getIntFld(int fldNo)
-            throws IOException, FieldNumberOutOfBoundException {
-        return super.getIntFld(fldNo);
-    }
-
-    public float getFloFld(int fldNo)
-            throws IOException, FieldNumberOutOfBoundException {
-        return super.getFloFld(fldNo);
-    }
-
-    public String getStrFld(int fldNo)
-            throws IOException, FieldNumberOutOfBoundException {
-        return super.getStrFld(fldNo);
-    }
-
-    public char getCharFld(int fldNo)
-            throws IOException, FieldNumberOutOfBoundException {
-        return super.getCharFld(fldNo);
-    }
-
-    public Quadruple setIntFld(int fldNo, int val)
-            throws IOException, FieldNumberOutOfBoundException {
-        return (Quadruple) super.setIntFld(fldNo,val);
-    }
-
-    public Quadruple setFloFld(int fldNo, float val)
-            throws IOException, FieldNumberOutOfBoundException {
-        return (Quadruple)  super.setFloFld(fldNo,val);
-    }
-
-    public Quadruple setStrFld(int fldNo, String val)
-            throws IOException, FieldNumberOutOfBoundException {
-        return (Quadruple) super.setStrFld(fldNo,val);
-    }
-
-    public byte[] returnQuadrupleByteArray() {
-        return super.getTupleByteArray();
-    }
-
-    public int getOffset() {
-        return super.getOffset();
+    public EID getObject(){
+        return super.getNode(OBJECT_NODE_INDEX).returnEID();
     }
     
-    public void tupleSet(byte[] record,int offset, int length) throws InvalidTupleSizeException {
-        super.tupleSet(record,offset,length);
+    public float getValue(){
+        return super.getValue();
     }
-    public void quadrupleSet(byte [] record, int offset, int length) throws InvalidTupleSizeException {
+
+    public void setSubject(EID subject) throws InvalidTupleSizeException, IOException, InvalidTypeException {
+        super.setNode(SUBJECT_NODE_INDEX,subject.returnNid());
+    }
+
+    public void setPredicate(PID predicate) throws InvalidTupleSizeException, IOException, InvalidTypeException {
+        super.setNode(PREDICTE_NODE_INDEX,predicate.returnNid());
+    }
+
+    public void setObject(EID object) throws InvalidTupleSizeException, IOException, InvalidTypeException {
+        super.setNode(OBJECT_NODE_INDEX, object.returnNid());
+    }
+
+    public void setValue(float value){
+        super.setValue(value);
+    }
+
+    @Deprecated
+    public byte[] returnQuadrupleByteArray() {
+        return super.returnTupleByteArray();
+    }
+    public void quadrupleSet(byte [] record, int offset, int length) throws InvalidTupleSizeException, FieldNumberOutOfBoundException, IOException {
         this.tupleSet(record,offset,length);
+    }
+
+    
+    public void setHdr() throws InvalidTupleSizeException, IOException, InvalidTypeException {
+//        super.setHdr();
+        this.setHdr(numberOfFields,headerTypes,strSizes);
+    }
+
+    private static FldSpec getFldSpec(int idx, RelSpec relSpec) {
+        return new FldSpec(relSpec, idx);
+    }
+
+    public String toString(){
+        //make sure it variables are not null
+        return this.getSubject().toString() + " " + this.getPredicate().toString() + " " + this.getObject().toString() + " " + this.getValue();
     }
 }

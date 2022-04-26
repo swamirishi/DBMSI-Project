@@ -130,6 +130,7 @@ public class PredEval
 	      try {
 		comp_res = TupleUtils.CompareTupleWithTuple(comparison_type, tuple1, fld1, tuple2, fld2);
 	      }catch (TupleUtilsException e){
+			  e.printStackTrace();
 		throw new PredEvalException (e,"TupleUtilsException is caught by PredEval.java");
 	      }
 	      op_res = false;
