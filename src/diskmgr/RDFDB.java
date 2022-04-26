@@ -63,6 +63,10 @@ public class RDFDB extends DB {
     private int subjectCount = 0; //TODO Sure these values are updated correctly?
     private int objectCount = 0;
 
+    private int quadrupleCount = 0;
+
+    private int predicateCount = 0;
+
     public RDFDB() throws HFDiskMgrException, HFException, HFBufMgrException, IOException {
 //        quadrupleHeapFile = new QuadrupleHeapFile(quadrupleHeapFileName);
 //        entityLabelHeapFile = new LabelHeapFile(entityLabelFileName);
@@ -127,33 +131,33 @@ public class RDFDB extends DB {
 
     public void initializeEntityBTreeFiles() throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException {
 //        if(isSubject) {
-            subjectBtreeIndexFile = new LIDBTreeFile<Void>(subjectBTreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
-                @Override
-                public KeyClassManager<Void> getKeyClassManager() {
-                    return null;
-                }
-            };
+        subjectBtreeIndexFile = new LIDBTreeFile<Void>(subjectBTreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
+            @Override
+            public KeyClassManager<Void> getKeyClassManager() {
+                return null;
+            }
+        };
 //        }else {
 
-            objectBtreeIndexFile = new LIDBTreeFile<Void>(objectBTreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
-                @Override
-                public KeyClassManager<Void> getKeyClassManager() {
-                    return null;
-                }
-            };
+        objectBtreeIndexFile = new LIDBTreeFile<Void>(objectBTreeFileName, AttrType.attrString, REC_LEN1, 1/*delete*/) {
+            @Override
+            public KeyClassManager<Void> getKeyClassManager() {
+                return null;
+            }
+        };
 //        }
     }
 
     public int getQuadrupleCnt() throws HFDiskMgrException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException {
-        return quadrupleHeapFile.getRecCnt();
+        return quadrupleCount;
     }
 
     public int getEntityCnt() throws HFDiskMgrException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException {
-        return entityLabelHeapFile.getRecCnt();
+        return subjectCount + objectCount;
     }
 
     public int getPredicateCnt() throws HFDiskMgrException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException {
-        return predicateLabelHeapFile.getRecCnt();
+        return predicateCount;
     }
 
     public int getSubjectCnt() {
@@ -171,7 +175,7 @@ public class RDFDB extends DB {
             LID lid = null;
             lid = getLIDEntityFromHeapFileScan("entityLabelHeapFile", entityLabel);
             if (lid == null) {
-            lid = entityLabelHeapFile.insertRecord(new Label(entityLabel).getLabelByteArray());
+                lid = entityLabelHeapFile.insertRecord(new Label(entityLabel).getLabelByteArray());
 //
 //                updating subject/object counters
                 if (isSubject)
@@ -195,9 +199,9 @@ public class RDFDB extends DB {
 
     public void closeEntityBTreeFile() throws HashEntryNotFoundException, InvalidFrameNumberException, PageUnpinnedException, ReplacerException {
 //        if(isSubject) {
-            subjectBtreeIndexFile.close();
+        subjectBtreeIndexFile.close();
 //        }else {
-            objectBtreeIndexFile.close();
+        objectBtreeIndexFile.close();
 //        }
     }
 
@@ -230,6 +234,7 @@ public class RDFDB extends DB {
             if (lid == null) {
                 lid = predicateLabelHeapFile.insertRecord(new Label(predicateLabel).getLabelByteArray());
                 predicateBtreeIndexFile.insert(new StringKey(predicateLabel), lid);
+                predicateCount++;
             }
             predicateBtreeIndexFile.close();
             return lid.returnPid();
@@ -252,6 +257,7 @@ public class RDFDB extends DB {
         if (qid == null) {
             qid = quadrupleHeapFile.insertRecord(inputData);
             this.insertInQIDBTree(givenQuadruple, qid);
+            quadrupleCount++;
         } else {
             Quadruple found = quadrupleHeapFile.getRecord(qid);
             if (givenQuadruple.getValue() >= found.getValue()) {
@@ -375,16 +381,16 @@ public class RDFDB extends DB {
     }
 
     public void closeQIDBTreeFiles() throws HashEntryNotFoundException, InvalidFrameNumberException, PageUnpinnedException, ReplacerException {
-        if(sopQidBtreeFile!=null) {
+        if (sopQidBtreeFile != null) {
             sopQidBtreeFile.close();
         }
-        if(spQidBtreeFile!=null) {
+        if (spQidBtreeFile != null) {
             spQidBtreeFile.close();
         }
-        if(ospQidBtreeFile!=null) {
+        if (ospQidBtreeFile != null) {
             ospQidBtreeFile.close();
         }
-        if(opQidBtreeFile!=null) {
+        if (opQidBtreeFile != null) {
             opQidBtreeFile.close();
         }
     }
