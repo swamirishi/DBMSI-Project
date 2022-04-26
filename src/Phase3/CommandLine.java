@@ -12,13 +12,13 @@ import heap.InvalidSlotNumberException;
 import heap.InvalidTupleSizeException;
 import quadrupleheap.Quadruple;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class CommandLine {
     public static RDFDB rdfdb;
@@ -138,5 +138,20 @@ class Utils {
     static final String BATCH_INSERT = "batchinsert";
     static final String QUERY = "query";
     static final String REPORT = "report";
+    
+    public static String getFileAsString(String path) throws IOException {
+        
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(path));
+            List<String> content = new ArrayList<>();
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                content.add(line);
+            }
+            return content.stream().collect(Collectors.joining("\n"));
+        } catch (FileNotFoundException e) {
+            return "";
+        }
+    }
 }
 

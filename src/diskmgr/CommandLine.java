@@ -6,6 +6,7 @@ import bufmgr.HashEntryNotFoundException;
 import bufmgr.InvalidFrameNumberException;
 import bufmgr.PageUnpinnedException;
 import bufmgr.ReplacerException;
+import com.google.gson.Gson;
 import global.*;
 import heap.*;
 import index.IndexException;
@@ -16,12 +17,17 @@ import iterator.bp.BPSort;
 import iterator.interfaces.IteratorI;
 import javafx.util.Pair;
 import quadrupleheap.Quadruple;
+import vo.Join;
+import vo.Query;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.sql.Time;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class CommandLine {
     public static RDFDB rdfdb;
@@ -179,13 +185,15 @@ public class CommandLine {
 
     private static void runQuery(String[] input) throws Exception {
         String RDFDBNAME = input[0];
-        int INDEXOPTION = Integer.parseInt(input[1]);
-        int ORDER = Integer.parseInt(input[2]);
-        String SUBJECTFILTER = input[3];
-        String PREDICATEFILTER = input[4];
-        String OBJECTFILTER = input[5];
-        String CONFIDENCEFILTER = input[6];
-        numbuf = input[7] != null ? Integer.parseInt(input[7]) : 0;
+        String queryFilePath = input[1];
+        Query query = new Gson().fromJson(Utils.getFileAsString(queryFilePath),Query.class);
+        int INDEXOPTION = 0;
+        int ORDER = 0;
+        String SUBJECTFILTER = query.getFilter(0);
+        String PREDICATEFILTER = query.getFilter(1);
+        String OBJECTFILTER = query.getFilter(2);
+        String CONFIDENCEFILTER = query.getFilter(3);
+        numbuf = input[2] != null ? Integer.parseInt(input[2]) : 1000;
         String dbPath = RDFDBNAME + "_" + INDEXOPTION;
         File file = new File(dbPath);
 
@@ -203,24 +211,15 @@ public class CommandLine {
         System.out.println("Warning!: Number of Buffers changed to: " + SystemDefs.JavabaseBM.getNumBuffers());
 
         Double confidenceFilter = "*".equals(CONFIDENCEFILTER) ? 0 : Double.parseDouble(CONFIDENCEFILTER);
-
-        System.out.println("Provide Comma Separated for First Level Join");
-        Scanner sc = new Scanner(System.in);
-        String firstJoinQuery = "20,4,1,0,*,*,*,0.5232177,1,1,1";
-//        sc.nextLine();
-        String secondJoinQuery = "20,4,1,0,*,*,*,0.5232177,1,1,1";
-//      sc.nextLine();
-        System.out.println("Provide Sort Node Position");
-        int sortNodePosition = Integer.parseInt(sc.nextLine());
+        
+        int sortNodePosition = query.getSort().getSortNodePosition();
 //        int sortNodePosition = sc.nextInt();
         sortNodePosition = sortNodePosition == -1 ? BasicPattern.VALUE_FLD : BasicPattern.getOffset(sortNodePosition);
-        System.out.println("Provide Sort Order: 0 for Ascending, 1 for Descending");
-        int sortOrder = Integer.parseInt(sc.nextLine());;
+        int sortOrder = query.getSort().getSortOrder();
         TupleOrder bpOrder = new TupleOrder(sortOrder);
-        System.out.println("Enter number of Sort Pages");
-        int sortNumberOfPages = Integer.parseInt(sc.nextLine());
-        BPTripleJoinDriver bpTripleJoinDriver1 = getJoinDriver(1,sc);
-        BPTripleJoinDriver bpTripleJoinDriver2 = getJoinDriver(2,sc);
+        int sortNumberOfPages = query.getSort().getNumberOfPages();
+        BPTripleJoinDriver bpTripleJoinDriver1 = getJoinDriver(query.getJoin1());
+        BPTripleJoinDriver bpTripleJoinDriver2 = getJoinDriver(query.getJoin2());
         String finalSUBJECTFILTER = SUBJECTFILTER;
         String finalPREDICATEFILTER = PREDICATEFILTER;
         String finalOBJECTFILTER = OBJECTFILTER;
@@ -427,28 +426,22 @@ public class CommandLine {
         System.out.println("Disk page WRITE COUNT: " + PCounter.wcounter);
     }
 
-    private static BPTripleJoinDriver getJoinDriver(int joinNumber,Scanner sc) throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException, IteratorException, HashEntryNotFoundException, IndexException, ScanIteratorException, PinPageException, InvalidFrameNumberException, UnknownIndexTypeException, UnpinPageException, UnknownKeyTypeException, KeyNotMatchException, InvalidTupleSizeException, PageUnpinnedException, InvalidTypeException, ReplacerException, HFDiskMgrException, InvalidRelation, HFException, NestedLoopException, FileScanException, HFBufMgrException, TupleUtilsException {
+    private static BPTripleJoinDriver getJoinDriver(Join join) throws ConstructPageException, AddFileEntryException, GetFileEntryException, IOException, IteratorException, HashEntryNotFoundException, IndexException, ScanIteratorException, PinPageException, InvalidFrameNumberException, UnknownIndexTypeException, UnpinPageException, UnknownKeyTypeException, KeyNotMatchException, InvalidTupleSizeException, PageUnpinnedException, InvalidTypeException, ReplacerException, HFDiskMgrException, InvalidRelation, HFException, NestedLoopException, FileScanException, HFBufMgrException, TupleUtilsException {
 //        System.out.println(String.format("Enter Memory Amount for %d Level Join",joinNumber));
         int memoryAmount = 20;
 //        System.out.println(String.format("Enter Memory Amount for %d Level Join",joinNumber));
         int numLeftNodes = 10;
-        System.out.println(String.format("Enter Left Join Node Position for %d Level Join",joinNumber));
-        int bpJoinNodePosition = Integer.parseInt(sc.nextLine());
-        System.out.println(String.format("Enter 0 to Join on Subject & 1 to Join on Object for %d Level Join",joinNumber));
-        int joinOnSubjectOrObject = Integer.parseInt(sc.nextLine());
-        System.out.println(String.format("Enter comma separated Right Filters * to select all for %d Level Join",joinNumber));
-        String[] rightFilters = sc.nextLine().split(",");
+        int bpJoinNodePosition = join.getJoinNodePosition();
+        int joinOnSubjectOrObject = join.getJoinOnSubjectOrObject();
+        String[] rightFilters = join.getRightFilters().toArray(new String[join.getRightFilters().size()]);
         String rightSubjectFilter = rightFilters[0];
         String rightPredicateFilter = rightFilters[1];
         String rightObjectFilter = rightFilters[2];
         String inputConfidenceFilter = rightFilters[3];
         double rightConfidenceFilter = "*".equals(inputConfidenceFilter)?0:Double.parseDouble(inputConfidenceFilter);
-        System.out.println(String.format("Enter Comma Separated Left OutNode Positions for %d Level Join",joinNumber));
-        int[] leftOutNodePositions = Arrays.stream(sc.nextLine().split(",")).mapToInt(s->Integer.parseInt(s)).toArray();
-        System.out.println(String.format("Enter 1 to Project Subject from Right else 0 for %d Level Join",joinNumber));
-        int outputRightSubject = Integer.parseInt(sc.nextLine());
-        System.out.println(String.format("Enter 1 to Project Object from Right else 0 for %d Level Join",joinNumber));
-        int outputRightObject = Integer.parseInt(sc.nextLine());
+        int[] leftOutNodePositions = join.getLeftOutNodePositions().stream().mapToInt(i->i).toArray();
+        int outputRightSubject = join.getOutputRightSubject();
+        int outputRightObject = join.getOutputRightObject();
 
         rdfdb.initializeEntityBTreeFiles();
         rdfdb.initializePredicateBTreeFile();
@@ -480,5 +473,20 @@ class Utils {
     static final String BATCH_INSERT = "batchinsert";
     static final String QUERY = "query";
     static final String REPORT = "report";
+    
+    public static String getFileAsString(String path) throws IOException {
+        
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(path));
+            List<String> content = new ArrayList<>();
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                content.add(line);
+            }
+            return content.stream().collect(Collectors.joining("\n"));
+        } catch (FileNotFoundException e) {
+            return "";
+        }
+    }
 }
 
