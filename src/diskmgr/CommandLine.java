@@ -41,8 +41,8 @@ public class CommandLine {
         System.out.println("batchinsert DATAFILENAME RDFDBNAME");
         System.out.println("query RDFDBNAME QUERYFILE NUMBUF");
 
-//        batchinsert X:\Phase3\dataset_2000.txt test_db
-//        query test_db X:\Phase3\queryFile1.txt 500
+//        batchinsert X:\Phase3\dataset_1000.txt test_db
+//        query test_db X:\Phase3\queryFile2.txt 1000
 
 //        batchinsert /Users/swamirishi/Documents/asu/Spring_2022/DBMSI/DBMSI-Project/phase1.txt 1 swami_db
 //        query real_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
@@ -230,41 +230,41 @@ public class CommandLine {
 //        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
 //        SystemDefs.close();
         
-        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
-        rdfdb = SystemDefs.JavabaseDB;
-        rdfdb.name = dbPath;
-        PCounter.initialize();
-        new TimeElapsed("Index Based Nested Loop Join") {
-            @Override
-            public void doMethod() throws Exception {
-                openStreamAndExecuteIndexNLJ(bpTripleJoinDriver1,
-                                             bpTripleJoinDriver2,
-                                             ORDER,
-                                             finalSUBJECTFILTER, finalPREDICATEFILTER, finalOBJECTFILTER,
-                                             confidenceFilter, finalSortNodePosition,
-                                             bpOrder,
-                                             sortNumberOfPages);
-            }
-        }.run();
-        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
-        SystemDefs.close();
-////
 //        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
 //        rdfdb = SystemDefs.JavabaseDB;
 //        rdfdb.name = dbPath;
-//        new TimeElapsed("Sort Merge Join") {
+//        PCounter.initialize();
+//        new TimeElapsed("Index Based Nested Loop Join") {
 //            @Override
 //            public void doMethod() throws Exception {
-//                openStreamAndExecuteSMJ(bpTripleJoinDriver1,
-//                                        bpTripleJoinDriver2,
-//                                        ORDER,
-//                                        finalSUBJECTFILTER, finalPREDICATEFILTER, finalOBJECTFILTER,
-//                                        confidenceFilter, finalSortNodePosition, bpOrder, sortNumberOfPages
-//                                       );
+//                openStreamAndExecuteIndexNLJ(bpTripleJoinDriver1,
+//                                             bpTripleJoinDriver2,
+//                                             ORDER,
+//                                             finalSUBJECTFILTER, finalPREDICATEFILTER, finalOBJECTFILTER,
+//                                             confidenceFilter, finalSortNodePosition,
+//                                             bpOrder,
+//                                             sortNumberOfPages);
 //            }
 //        }.run();
 //        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
 //        SystemDefs.close();
+////
+//        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
+//        rdfdb = SystemDefs.JavabaseDB;
+//        rdfdb.name = dbPath;
+        new TimeElapsed("Sort Merge Join") {
+            @Override
+            public void doMethod() throws Exception {
+                openStreamAndExecuteSMJ(bpTripleJoinDriver1,
+                                        bpTripleJoinDriver2,
+                                        ORDER,
+                                        finalSUBJECTFILTER, finalPREDICATEFILTER, finalOBJECTFILTER,
+                                        confidenceFilter, finalSortNodePosition, bpOrder, sortNumberOfPages
+                                       );
+            }
+        }.run();
+        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
+        SystemDefs.close();
     }
 
     private static IteratorI<BasicPattern> getSortIterator(IteratorI<BasicPattern> bpIterator,
