@@ -41,8 +41,8 @@ public class CommandLine {
         System.out.println("batchinsert DATAFILENAME RDFDBNAME");
         System.out.println("query RDFDBNAME QUERYFILE NUMBUF");
 
-//        batchinsert X:\Phase3\dataset_1000.txt test_db
-//        query test_db X:\Phase3\queryFile1.txt 100
+//        batchinsert X:\Phase3\dataset_2000.txt test_db
+//        query test_db X:\Phase3\queryFile1.txt 500
 
 //        batchinsert /Users/swamirishi/Documents/asu/Spring_2022/DBMSI/DBMSI-Project/phase1.txt 1 swami_db
 //        query real_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
