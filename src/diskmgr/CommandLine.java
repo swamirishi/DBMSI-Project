@@ -32,12 +32,12 @@ public class CommandLine {
 //        SystemDefs.MINIBASE_RESTART_FLAG = true;
 
 //        batchinsert /Users/swamirishi/Documents/asu/Spring_2022/DBMSI/DBMSI-Project/phase1.txt 1 swami_db
-//        query swami_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
+//        query real_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query swami_db 3 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        batchinsert /Users/dhruv/ASU/Sem2/DBMSI/Project2/test1.txt 6 popi
 //        query bablu 1 1 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query bablu 1 1 :Bernhard_A_M_Seefeld :name :Bernhard_A_M_Seefeld * 5000
-//        batchinsert D:\DBMSI-Project\phase3.txt 1 real_db
+//        batchinsert D:\DBMSI-Project\phase1.txt 1 real_db
 //        query test_db_200 1 1 :Jorunn_Danielsen * * * 10
 //        query test_db 6 6 :Jorunn_Danielsen * * * 10000
 //        batchinsert Users/dhruv/ASU/Sem2/DBMSI/Project2/test2.txt 1 popi
@@ -177,13 +177,6 @@ public class CommandLine {
                 "Record Count of Predicate in the database(" + rdfdb.db_name() + ") = " + recordCountPredicate);
     }
 
-    private static String applyToFilter(String filter) {
-        if (filter.equals("*")) {
-            return null;
-        }
-        return filter;
-    }
-
     private static void runQuery(String[] input) throws Exception {
         String RDFDBNAME = input[0];
         int INDEXOPTION = Integer.parseInt(input[1]);
@@ -208,12 +201,8 @@ public class CommandLine {
         rdfdb.name = dbPath;
 
         System.out.println("Warning!: Number of Buffers changed to: " + SystemDefs.JavabaseBM.getNumBuffers());
-        SUBJECTFILTER = applyToFilter(SUBJECTFILTER);
-        PREDICATEFILTER = applyToFilter(PREDICATEFILTER);
-        OBJECTFILTER = applyToFilter(OBJECTFILTER);
-        CONFIDENCEFILTER = applyToFilter(CONFIDENCEFILTER);
 
-        Double confidenceFilter = CONFIDENCEFILTER == null ? null : Double.valueOf(CONFIDENCEFILTER);
+        Double confidenceFilter = "*".equals(CONFIDENCEFILTER) ? 0 : Double.parseDouble(CONFIDENCEFILTER);
 
         System.out.println("Provide Comma Separated for First Level Join");
         Scanner sc = new Scanner(System.in);
@@ -225,9 +214,11 @@ public class CommandLine {
         int sortNodePosition = Integer.parseInt(sc.nextLine());
 //        int sortNodePosition = sc.nextInt();
         sortNodePosition = sortNodePosition == -1 ? BasicPattern.VALUE_FLD : BasicPattern.getOffset(sortNodePosition);
-        int sortOrder = 1;
+        System.out.println("Provide Sort Order: 0 for Ascending, 1 for Descending");
+        int sortOrder = Integer.parseInt(sc.nextLine());;
         TupleOrder bpOrder = new TupleOrder(sortOrder);
-        int sortNumberOfPages = 10;
+        System.out.println("Enter number of Sort Pages");
+        int sortNumberOfPages = Integer.parseInt(sc.nextLine());
         BPTripleJoinDriver bpTripleJoinDriver1 = getJoinDriver(1,sc);
         BPTripleJoinDriver bpTripleJoinDriver2 = getJoinDriver(2,sc);
         String finalSUBJECTFILTER = SUBJECTFILTER;
@@ -445,20 +436,18 @@ public class CommandLine {
         int bpJoinNodePosition = Integer.parseInt(sc.nextLine());
         System.out.println(String.format("Enter 0 to Join on Subject & 1 to Join on Object for %d Level Join",joinNumber));
         int joinOnSubjectOrObject = Integer.parseInt(sc.nextLine());
-        System.out.println(String.format("Enter Right Subject Filter * to select all for %d Level Join",joinNumber));
-        String rightSubjectFilter = sc.nextLine();
-        System.out.println(String.format("Enter Right Predicate Filter * to select all for %d Level Join",joinNumber));
-        String rightPredicateFilter = sc.nextLine();
-        System.out.println(String.format("Enter Right Object Filter * to select all for %d Level Join",joinNumber));
-        String rightObjectFilter = sc.nextLine();
-        System.out.println(String.format("Enter Right Confidence Filter * to select all for %d Level Join",joinNumber));
-        String inputConfidenceFilter = sc.nextLine();
+        System.out.println(String.format("Enter comma separated Right Filters * to select all for %d Level Join",joinNumber));
+        String[] rightFilters = sc.nextLine().split(",");
+        String rightSubjectFilter = rightFilters[0];
+        String rightPredicateFilter = rightFilters[1];
+        String rightObjectFilter = rightFilters[2];
+        String inputConfidenceFilter = rightFilters[3];
         double rightConfidenceFilter = "*".equals(inputConfidenceFilter)?0:Double.parseDouble(inputConfidenceFilter);
         System.out.println(String.format("Enter Comma Separated Left OutNode Positions for %d Level Join",joinNumber));
         int[] leftOutNodePositions = Arrays.stream(sc.nextLine().split(",")).mapToInt(s->Integer.parseInt(s)).toArray();
         System.out.println(String.format("Enter 1 to Project Subject from Right else 0 for %d Level Join",joinNumber));
         int outputRightSubject = Integer.parseInt(sc.nextLine());
-        System.out.println(String.format("Enter 0 to Project Subject from Right else 0 for %d Level Join",joinNumber));
+        System.out.println(String.format("Enter 1 to Project Object from Right else 0 for %d Level Join",joinNumber));
         int outputRightObject = Integer.parseInt(sc.nextLine());
 
         rdfdb.initializeEntityBTreeFiles();

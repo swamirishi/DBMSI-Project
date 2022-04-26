@@ -45,7 +45,7 @@ public class Stream extends IteratorI<BasicPattern> {
         subjectFilter = subjectFil;
         predicateFilter = predicateFil;
         objectFilter = objectFil;
-        confidenceFilter = confidenceFil == null ? 0 : confidenceFil.floatValue();
+        confidenceFilter = confidenceFil.floatValue();
 
         List<FldSpec> projectionList1 = new ArrayList<FldSpec>();
         projectionList1.add(BasicPattern.getValueProject(new RelSpec(RelSpec.outer)));
