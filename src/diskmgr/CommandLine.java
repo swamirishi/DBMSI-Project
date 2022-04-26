@@ -41,6 +41,7 @@ public class CommandLine {
         System.out.println("Input formats: ");
         System.out.println("batchinsert DATAFILENAME RDFDBNAME");
         System.out.println("query RDFDBNAME QUERYFILE NUMBUF");
+        System.out.println("report 0(show counters for each entities) or report 1(show in/out degree for each unique Subject/Objects inserted)");
 
 //        batchinsert X:\Phase3\phase2.txt report_db
 //        query test_db X:\Phase3\queryFile1.txt 500
@@ -89,7 +90,7 @@ public class CommandLine {
 
             } else if ((input[0].equals(Utils.REPORT))) {
                 System.out.println("Running Report ......................");
-                runReport(Arrays.copyOfRange(input, 1, input.length));
+                runReport(Integer.parseInt(input[1]));
             }
 //            break;
         }
@@ -159,7 +160,7 @@ public class CommandLine {
         rdfdb.insertQuadruple(q.getQuadrupleByteArray());
     }
 
-    private static void runReport(String[] input) throws HFDiskMgrException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException {
+    private static void runReport(int detailed) throws HFDiskMgrException, InvalidSlotNumberException, InvalidTupleSizeException, HFBufMgrException, IOException {
         int recordCountQuadruple = rdfdb.getQuadrupleCnt();
         int recordCountEntity = rdfdb.getEntityCnt();
         int recordCountSubject = rdfdb.getSubjectCnt();
@@ -174,7 +175,7 @@ public class CommandLine {
         System.out.println("Record Count of Objects in the database(" + rdfdb.db_name() + ") = " + recordCountObject);
         System.out.println(
                 "Record Count of Predicate in the database(" + rdfdb.db_name() + ") = " + recordCountPredicate);
-        if(fileName!=null){
+        if(fileName!=null && detailed==1){
             StatUtils.printReport(fileName);
         }
         
