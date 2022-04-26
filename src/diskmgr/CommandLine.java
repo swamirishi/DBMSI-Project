@@ -42,7 +42,7 @@ public class CommandLine {
         System.out.println("query RDFDBNAME QUERYFILE NUMBUF");
 
 //        batchinsert X:\Phase3\dataset_1000.txt test4_db
-//        query test_db X:\Phase3\queryFile2.txt 2000
+//        query test4_db X:\Phase3\queryFile2.txt 2000
 
 //        batchinsert /Users/swamirishi/Documents/asu/Spring_2022/DBMSI/DBMSI-Project/phase1.txt 1 swami_db
 //        query real_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
