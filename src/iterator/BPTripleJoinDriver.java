@@ -122,15 +122,6 @@ public class BPTripleJoinDriver {
         FldSpec[] fldSpecs = projectionList1.toArray(new FldSpec[projectionList1.size()]);
         IteratorI<BasicPattern> bpFileScan = new BPFileScan(relationName, Quadruple.headerTypes, Quadruple.strSizes,
                 (short) Quadruple.headerTypes.length, fldSpecs.length, fldSpecs, rightFilter);
-        BasicPattern basicPattern = bpFileScan.get_next();
-        while(basicPattern!=null){
-//            basicPattern.printBasicPatternValues();
-            basicPattern = bpFileScan.get_next();
-        }
-        System.out.println("..........");
-        bpFileScan.close();
-        bpFileScan = new BPFileScan(relationName, Quadruple.headerTypes, Quadruple.strSizes,
-                (short) Quadruple.headerTypes.length, fldSpecs.length, fldSpecs, rightFilter);
         
         int quadrupleJoinNodePosition = joinOnSubjectOrObject == 0 ? Quadruple.SUBJECT_NODE_INDEX : Quadruple.OBJECT_NODE_INDEX;
 

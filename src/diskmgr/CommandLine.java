@@ -37,6 +37,13 @@ public class CommandLine {
     public static void main(String[] args) throws Exception {
 //        SystemDefs.MINIBASE_RESTART_FLAG = true;
 
+        System.out.println("Input formats: ");
+        System.out.println("batchinsert DATAFILENAME RDFDBNAME");
+        System.out.println("query RDFDBNAME QUERYFILE NUMBUF");
+
+//        batchinsert X:\Phase3\dataset_1000.txt test_db
+//        query test_db X:\Phase3\queryFile1.txt 100
+
 //        batchinsert /Users/swamirishi/Documents/asu/Spring_2022/DBMSI/DBMSI-Project/phase1.txt 1 swami_db
 //        query real_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
 //        query swami_db 3 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
@@ -55,23 +62,7 @@ public class CommandLine {
         //        query test_db 1 1 * * * * 5000
 
 //        report
-        System.out.println("By default, we are creating indexes on subject label, "
-                + "object label and predicate label. This helps us in duplicate records selection.");
-        System.out.println("Please choose Index Option from 1 to 5 for Batch Insert.");
-        System.out.println("1. Index on Subject, Predicate, Object");
-        System.out.println("2. Index on Predicate, Subject, Object");
-        System.out.println("3. Index on Subject");
-        System.out.println("4. Index on Predicate");
-        System.out.println("5. Index on Object");
-        System.out.println("----------------------------------------");
-        System.out.println("----------------------------------------");
-        System.out.println("Please choose Index Option from 1 to 6 for Query.");
-        System.out.println("1. Index on Subject, Predicate, Object");
-        System.out.println("2. Index on Predicate, Subject, Object");
-        System.out.println("3. Index on Subject");
-        System.out.println("4. Index on Predicate");
-        System.out.println("5. Index on Object");
-        System.out.println("6. This doesn't use an Index. It uses the Quadruple Sort, an extension to Sort Tuples");
+
 
         String inputString = " ";
         while (!inputString.equals("exit")) {
@@ -104,11 +95,11 @@ public class CommandLine {
     }
 
     private static void runBatchInsert(String[] input) throws Exception {
-        //batchinsert DATAFILENAME INDEXOPTION RDFDBNAME,        input => 0-indexed
+        //batchinsert DATAFILENAME RDFDBNAME,        input => 0-indexed
         System.out.println("Insertion Started");
         long startTime = System.currentTimeMillis();
-        String dbName = input[3];
-        int index_option = Integer.parseInt(input[2]);
+        String dbName = input[2];
+        int index_option = 0;
         String dbPath = dbName + "_" + index_option;
 
         File file = new File(dbPath);
@@ -184,6 +175,7 @@ public class CommandLine {
     }
 
     private static void runQuery(String[] input) throws Exception {
+        //query RDFDBNAME QUERYFILE NUMBUF
         String RDFDBNAME = input[0];
         String queryFilePath = input[1];
         Query query = new Gson().fromJson(Utils.getFileAsString(queryFilePath),Query.class);
@@ -238,41 +230,41 @@ public class CommandLine {
         System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
         SystemDefs.close();
         
-        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
-        rdfdb = SystemDefs.JavabaseDB;
-        rdfdb.name = dbPath;
-        PCounter.initialize();
-        new TimeElapsed("Index Based Nested Loop Join") {
-            @Override
-            public void doMethod() throws Exception {
-                openStreamAndExecuteIndexNLJ(bpTripleJoinDriver1,
-                                             bpTripleJoinDriver2,
-                                             ORDER,
-                                             finalSUBJECTFILTER, finalPREDICATEFILTER, finalOBJECTFILTER,
-                                             confidenceFilter, finalSortNodePosition,
-                                             bpOrder,
-                                             sortNumberOfPages);
-            }
-        }.run();
-        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
-        SystemDefs.close();
+//        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
+//        rdfdb = SystemDefs.JavabaseDB;
+//        rdfdb.name = dbPath;
+//        PCounter.initialize();
+//        new TimeElapsed("Index Based Nested Loop Join") {
+//            @Override
+//            public void doMethod() throws Exception {
+//                openStreamAndExecuteIndexNLJ(bpTripleJoinDriver1,
+//                                             bpTripleJoinDriver2,
+//                                             ORDER,
+//                                             finalSUBJECTFILTER, finalPREDICATEFILTER, finalOBJECTFILTER,
+//                                             confidenceFilter, finalSortNodePosition,
+//                                             bpOrder,
+//                                             sortNumberOfPages);
+//            }
+//        }.run();
+//        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
+//        SystemDefs.close();
 ////
-        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
-        rdfdb = SystemDefs.JavabaseDB;
-        rdfdb.name = dbPath;
-        new TimeElapsed("Sort Merge Join") {
-            @Override
-            public void doMethod() throws Exception {
-                openStreamAndExecuteSMJ(bpTripleJoinDriver1,
-                                        bpTripleJoinDriver2,
-                                        ORDER,
-                                        finalSUBJECTFILTER, finalPREDICATEFILTER, finalOBJECTFILTER,
-                                        confidenceFilter, finalSortNodePosition, bpOrder, sortNumberOfPages
-                                       );
-            }
-        }.run();
-        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
-        SystemDefs.close();
+//        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
+//        rdfdb = SystemDefs.JavabaseDB;
+//        rdfdb.name = dbPath;
+//        new TimeElapsed("Sort Merge Join") {
+//            @Override
+//            public void doMethod() throws Exception {
+//                openStreamAndExecuteSMJ(bpTripleJoinDriver1,
+//                                        bpTripleJoinDriver2,
+//                                        ORDER,
+//                                        finalSUBJECTFILTER, finalPREDICATEFILTER, finalOBJECTFILTER,
+//                                        confidenceFilter, finalSortNodePosition, bpOrder, sortNumberOfPages
+//                                       );
+//            }
+//        }.run();
+//        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
+//        SystemDefs.close();
     }
 
     private static IteratorI<BasicPattern> getSortIterator(IteratorI<BasicPattern> bpIterator,
