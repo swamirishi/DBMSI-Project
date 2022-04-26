@@ -41,8 +41,8 @@ public class CommandLine {
         System.out.println("batchinsert DATAFILENAME RDFDBNAME");
         System.out.println("query RDFDBNAME QUERYFILE NUMBUF");
 
-//        batchinsert X:\Phase3\dataset_1000.txt test4_db
-//        query test_db X:\Phase3\queryFile2.txt 2000
+//        batchinsert X:\Phase3\dataset_1000.txt test5_db
+//        query test_db X:\Phase3\queryFile1.txt 1500
 
 //        batchinsert /Users/swamirishi/Documents/asu/Spring_2022/DBMSI/DBMSI-Project/phase1.txt 1 swami_db
 //        query real_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
@@ -216,38 +216,38 @@ public class CommandLine {
         String finalPREDICATEFILTER = PREDICATEFILTER;
         String finalOBJECTFILTER = OBJECTFILTER;
         int finalSortNodePosition = sortNodePosition;
-        new TimeElapsed("Nested Loop Join") {
-            @Override
-            public void doMethod() throws Exception {
-                openStreamAndExecuteNLJ(bpTripleJoinDriver1,
-                                        bpTripleJoinDriver2,
-                                        ORDER, finalSUBJECTFILTER, finalPREDICATEFILTER, finalOBJECTFILTER,
-                                        confidenceFilter, finalSortNodePosition,
-                                        bpOrder,
-                                        sortNumberOfPages);
-            }
-        }.run();
-        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
-        SystemDefs.close();
+//        new TimeElapsed("Nested Loop Join") {
+//            @Override
+//            public void doMethod() throws Exception {
+//                openStreamAndExecuteNLJ(bpTripleJoinDriver1,
+//                                        bpTripleJoinDriver2,
+//                                        ORDER, finalSUBJECTFILTER, finalPREDICATEFILTER, finalOBJECTFILTER,
+//                                        confidenceFilter, finalSortNodePosition,
+//                                        bpOrder,
+//                                        sortNumberOfPages);
+//            }
+//        }.run();
+//        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
+//        SystemDefs.close();
         
 //        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
 //        rdfdb = SystemDefs.JavabaseDB;
 //        rdfdb.name = dbPath;
 //        PCounter.initialize();
-//        new TimeElapsed("Index Based Nested Loop Join") {
-//            @Override
-//            public void doMethod() throws Exception {
-//                openStreamAndExecuteIndexNLJ(bpTripleJoinDriver1,
-//                                             bpTripleJoinDriver2,
-//                                             ORDER,
-//                                             finalSUBJECTFILTER, finalPREDICATEFILTER, finalOBJECTFILTER,
-//                                             confidenceFilter, finalSortNodePosition,
-//                                             bpOrder,
-//                                             sortNumberOfPages);
-//            }
-//        }.run();
-//        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
-//        SystemDefs.close();
+        new TimeElapsed("Index Based Nested Loop Join") {
+            @Override
+            public void doMethod() throws Exception {
+                openStreamAndExecuteIndexNLJ(bpTripleJoinDriver1,
+                                             bpTripleJoinDriver2,
+                                             ORDER,
+                                             finalSUBJECTFILTER, finalPREDICATEFILTER, finalOBJECTFILTER,
+                                             confidenceFilter, finalSortNodePosition,
+                                             bpOrder,
+                                             sortNumberOfPages);
+            }
+        }.run();
+        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
+        SystemDefs.close();
 ////
 //        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
 //        rdfdb = SystemDefs.JavabaseDB;
