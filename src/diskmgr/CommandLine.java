@@ -41,7 +41,7 @@ public class CommandLine {
         System.out.println("batchinsert DATAFILENAME RDFDBNAME");
         System.out.println("query RDFDBNAME QUERYFILE NUMBUF");
 
-//        batchinsert X:\Phase3\dataset_2000.txt test_db
+//        batchinsert X:\Phase3\dataset_1000.txt test_db
 //        query test_db X:\Phase3\queryFile1.txt 500
 
 //        batchinsert /Users/swamirishi/Documents/asu/Spring_2022/DBMSI/DBMSI-Project/phase1.txt 1 swami_db
@@ -229,11 +229,11 @@ public class CommandLine {
 //        }.run();
 //        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
 //        SystemDefs.close();
-        
-        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
-        rdfdb = SystemDefs.JavabaseDB;
-        rdfdb.name = dbPath;
-        PCounter.initialize();
+//
+//        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
+//        rdfdb = SystemDefs.JavabaseDB;
+//        rdfdb.name = dbPath;
+//        PCounter.initialize();
         new TimeElapsed("Index Based Nested Loop Join") {
             @Override
             public void doMethod() throws Exception {
