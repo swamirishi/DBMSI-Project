@@ -33,6 +33,7 @@ public class CommandLine {
     public static RDFDB rdfdb;
     public static int numbuf;
     public static SystemDefs systemDefs;
+    public static String fileName;
 
     public static void main(String[] args) throws Exception {
 //        SystemDefs.MINIBASE_RESTART_FLAG = true;
@@ -114,7 +115,8 @@ public class CommandLine {
         rdfdb = SystemDefs.JavabaseDB;
         rdfdb.name = dbPath;
 
-        String fileName = input[1];
+        fileName = input[1];
+        
         try {
             FileInputStream fis = new FileInputStream(fileName);
             InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8);
@@ -172,6 +174,10 @@ public class CommandLine {
         System.out.println("Record Count of Objects in the database(" + rdfdb.db_name() + ") = " + recordCountObject);
         System.out.println(
                 "Record Count of Predicate in the database(" + rdfdb.db_name() + ") = " + recordCountPredicate);
+        if(fileName!=null){
+            StatUtils.printReport(fileName);
+        }
+        
     }
 
     private static void runQuery(String[] input) throws Exception {
@@ -230,41 +236,40 @@ public class CommandLine {
         System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
         SystemDefs.close();
         
-//        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
-//        rdfdb = SystemDefs.JavabaseDB;
-//        rdfdb.name = dbPath;
-//        PCounter.initialize();
-//        new TimeElapsed("Index Based Nested Loop Join") {
-//            @Override
-//            public void doMethod() throws Exception {
-//                openStreamAndExecuteIndexNLJ(bpTripleJoinDriver1,
-//                                             bpTripleJoinDriver2,
-//                                             ORDER,
-//                                             finalSUBJECTFILTER, finalPREDICATEFILTER, finalOBJECTFILTER,
-//                                             confidenceFilter, finalSortNodePosition,
-//                                             bpOrder,
-//                                             sortNumberOfPages);
-//            }
-//        }.run();
-//        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
-//        SystemDefs.close();
-//////
-//        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
-//        rdfdb = SystemDefs.JavabaseDB;
-//        rdfdb.name = dbPath;
-//        new TimeElapsed("Sort Merge Join") {
-//            @Override
-//            public void doMethod() throws Exception {
-//                openStreamAndExecuteSMJ(bpTripleJoinDriver1,
-//                                        bpTripleJoinDriver2,
-//                                        ORDER,
-//                                        finalSUBJECTFILTER, finalPREDICATEFILTER, finalOBJECTFILTER,
-//                                        confidenceFilter, finalSortNodePosition, bpOrder, sortNumberOfPages
-//                                       );
-//            }
-//        }.run();
-//        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
-//        SystemDefs.close();
+        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
+        rdfdb = SystemDefs.JavabaseDB;
+        rdfdb.name = dbPath;
+        new TimeElapsed("Index Based Nested Loop Join") {
+            @Override
+            public void doMethod() throws Exception {
+                openStreamAndExecuteIndexNLJ(bpTripleJoinDriver1,
+                                             bpTripleJoinDriver2,
+                                             ORDER,
+                                             finalSUBJECTFILTER, finalPREDICATEFILTER, finalOBJECTFILTER,
+                                             confidenceFilter, finalSortNodePosition,
+                                             bpOrder,
+                                             sortNumberOfPages);
+            }
+        }.run();
+        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
+        SystemDefs.close();
+//
+        systemDefs = new SystemDefs(dbPath, 0, numbuf, "Clock", INDEXOPTION);
+        rdfdb = SystemDefs.JavabaseDB;
+        rdfdb.name = dbPath;
+        new TimeElapsed("Sort Merge Join") {
+            @Override
+            public void doMethod() throws Exception {
+                openStreamAndExecuteSMJ(bpTripleJoinDriver1,
+                                        bpTripleJoinDriver2,
+                                        ORDER,
+                                        finalSUBJECTFILTER, finalPREDICATEFILTER, finalOBJECTFILTER,
+                                        confidenceFilter, finalSortNodePosition, bpOrder, sortNumberOfPages
+                                       );
+            }
+        }.run();
+        System.out.println("Unpinned: " + SystemDefs.JavabaseBM.getNumUnpinnedBuffers());
+        SystemDefs.close();
     }
 
     private static IteratorI<BasicPattern> getSortIterator(IteratorI<BasicPattern> bpIterator,

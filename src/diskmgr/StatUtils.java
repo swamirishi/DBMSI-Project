@@ -11,8 +11,10 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class StatUtils {
-    public static void main(String[] args) {
-        String fileName = "/Users/suyash/Desktop/cse548-4/Stat/src/main/java/data.txt";
+    public static void printReport(String fileName) {
+        if(fileName==null){
+            return;
+        }
         HashSet<String> subjectSet = new HashSet<>();
         HashSet<String> objectSet = new HashSet<>();
         HashMap<String, Integer> subjectIndegreeMap = new HashMap<>();
