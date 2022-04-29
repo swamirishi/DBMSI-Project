@@ -449,6 +449,15 @@ public class CommandLine {
                 rightPredicateFilter);
         LID objectId = IndexUtils.isLabelRecordInBtreeFound(SystemDefs.JavabaseDB.getObjectBtreeIndexFile(),
                 rightObjectFilter);
+        if((!"*".equals(rightSubjectFilter)) && subjectId==null){
+            subjectId = new LID(new PageId(GlobalConst.INVALID_PAGE),GlobalConst.INVALID_PAGE);
+        }
+        if((!"*".equals(rightPredicateFilter)) && predicateId==null){
+            predicateId = new LID(new PageId(GlobalConst.INVALID_PAGE),GlobalConst.INVALID_PAGE);
+        }
+        if((!"*".equals(rightObjectFilter)) && objectId==null){
+            objectId = new LID(new PageId(GlobalConst.INVALID_PAGE),GlobalConst.INVALID_PAGE);
+        }
         rdfdb.closeEntityBTreeFile();
         rdfdb.closePredicateBTreeFile();
 
