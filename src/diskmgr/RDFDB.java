@@ -173,7 +173,22 @@ public class RDFDB extends DB {
         try {
             initializeEntityBTreeFiles();
             LID lid = null;
-            lid = getLIDEntityFromHeapFileScan("entityLabelHeapFile", entityLabel);
+//            lid = getLIDEntityFromHeapFileScan("entityLabelHeapFile", entityLabel);
+            LID subjectId = IndexUtils.isLabelRecordInBtreeFound(subjectBtreeIndexFile, entityLabel);
+            LID objectId = IndexUtils.isLabelRecordInBtreeFound(objectBtreeIndexFile, entityLabel);
+            if(subjectId!=null && objectId!=null){
+                lid = subjectId;
+            }else if(subjectId!=null){
+                lid = subjectId;
+                if(!isSubject){
+                    objectBtreeIndexFile.insert(new StringKey(entityLabel), lid);
+                }
+            }else if(objectId!=null){
+                lid = objectId;
+                if(isSubject){
+                    subjectBtreeIndexFile.insert(new StringKey(entityLabel), lid);
+                }
+            }
             if (lid == null) {
                 lid = entityLabelHeapFile.insertRecord(new Label(entityLabel).getLabelByteArray());
 //
