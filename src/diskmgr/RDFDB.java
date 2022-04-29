@@ -302,6 +302,15 @@ public class RDFDB extends DB {
                     objectFilter);
             this.closeEntityBTreeFile();
             this.closePredicateBTreeFile();
+            if("*".equals(subjectFilter) && subjectId==null){
+                subjectId = new LID(new PageId(GlobalConst.INVALID_PAGE),GlobalConst.INVALID_PAGE);
+            }
+            if("*".equals(predicateFilter) && predicateId==null){
+                predicateId = new LID(new PageId(GlobalConst.INVALID_PAGE),GlobalConst.INVALID_PAGE);
+            }
+            if("*".equals(objectFilter) && objectId==null){
+                objectId = new LID(new PageId(GlobalConst.INVALID_PAGE),GlobalConst.INVALID_PAGE);
+            }
             stream = new Stream(this, orderType, subjectId, predicateId, objectId, confidenceFilter);
         } catch (Exception e) {
             e.printStackTrace();
