@@ -43,8 +43,8 @@ public class CommandLine {
         System.out.println("query RDFDBNAME QUERYFILE NUMBUF");
         System.out.println("report 0(show counters for each entities) or report 1(show in/out degree for each unique Subject/Objects inserted)");
 
-//        batchinsert X:\Phase3\phase2.txt report_db
-//        query test_db X:\Phase3\queryFile1.txt 500
+//        batchinsert X:\Phase3\ds_10_10a.txt demo1_db
+//        query demo1_db X:\Phase3\queryFile1.txt 1000
 
 //        batchinsert /Users/swamirishi/Documents/asu/Spring_2022/DBMSI/DBMSI-Project/phase1.txt 1 swami_db
 //        query real_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
@@ -107,7 +107,7 @@ public class CommandLine {
         File file = new File(dbPath);
         if (file.exists()) {
             //open existing database
-            systemDefs = new SystemDefs(dbPath, 0, 10000, "Clock", index_option);
+            systemDefs = new SystemDefs(dbPath, 0, 100, "Clock", index_option);
         } else {
             //create a new db
             systemDefs = new SystemDefs(dbPath, 50000, 50000, "Clock", index_option);
@@ -449,6 +449,15 @@ public class CommandLine {
                 rightPredicateFilter);
         LID objectId = IndexUtils.isLabelRecordInBtreeFound(SystemDefs.JavabaseDB.getObjectBtreeIndexFile(),
                 rightObjectFilter);
+        if((!"*".equals(rightSubjectFilter)) && subjectId==null){
+            subjectId = new LID(new PageId(GlobalConst.INVALID_PAGE),GlobalConst.INVALID_PAGE);
+        }
+        if((!"*".equals(rightPredicateFilter)) && predicateId==null){
+            predicateId = new LID(new PageId(GlobalConst.INVALID_PAGE),GlobalConst.INVALID_PAGE);
+        }
+        if((!"*".equals(rightObjectFilter)) && objectId==null){
+            objectId = new LID(new PageId(GlobalConst.INVALID_PAGE),GlobalConst.INVALID_PAGE);
+        }
         rdfdb.closeEntityBTreeFile();
         rdfdb.closePredicateBTreeFile();
 

@@ -216,6 +216,7 @@ public class BPTripleJoinDriver {
             expr.type2 = new AttrType(AttrType.attrReal);
             expr.operand1.symbol = new FldSpec(new RelSpec(RelSpec.outer), Quadruple.VALUE_FLD);
             expr.operand2.real = rightConfidenceFilter.floatValue();
+            exprs.add(expr);
         }
 
         CondExpr[] condExprs = new CondExpr[exprs.size() + 1];

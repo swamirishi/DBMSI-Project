@@ -1,0 +1,24 @@
+{
+	"filters":[":Jorunn_Danielsen", "*", "*", "*"],
+	"sort": {
+		"sortOrder": 1,
+		"sortNodeIdPos": 2,
+		"nPages": 20
+	},
+	"join1": {
+		"joinNodePosition": 1,
+		"joinOnSubjectOrObject": 1,
+		"rightFilters": ["*", "*", "*", "*"],
+		"leftOutNodePositions": [2,1],
+		"outputRightSubject": 1,
+		"outputRightObject": 0
+	},
+	"join2": {
+		"joinNodePosition": 3,
+		"joinOnSubjectOrObject": 0,
+		"rightFilters": ["*", ":knows", "*", "0.2"],
+		"leftOutNodePositions": [1,2,3],
+		"outputRightSubject": 1,
+		"outputRightObject": 1
+	}
+}
