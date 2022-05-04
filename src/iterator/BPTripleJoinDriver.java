@@ -85,12 +85,14 @@ public class BPTripleJoinDriver {
         boolean joinOnSubject = joinOnSubjectOrObject == 0;
         JoinCondition joinCondition = new JoinCondition(bpJoinNodePosition, joinOnSubject);
         FldSpec[] projectionList = getProjectionList();
-        AttrType[] basicPatternAttrTypes = BasicPattern.headerTypes;
-        int basicPatternAttrTypesLen = 2*iteratorNumberOfNodes+1;
+        Pair<Integer,AttrType[]> leftHdrs = getHdr(iteratorNumberOfNodes);
+        int basicPatternAttrTypesLen = leftHdrs.getKey();
+        AttrType[] basicPatternAttrTypes = leftHdrs.getValue();
+        Pair<Integer,AttrType[]> rightHdrs = getHdr(3);
 
         IDIndexOptions indexOptions = new QIDIndexOptions();
         IteratorI<BasicPattern> bpNestedLoopJoin = new BPIndexNestedLoopJoins(basicPatternAttrTypes, basicPatternAttrTypesLen,
-                BasicPattern.strSizes, Quadruple.headerTypes, Quadruple.numberOfFields, Quadruple.strSizes, memoryAmount,
+                BasicPattern.strSizes, rightHdrs.getValue(), rightHdrs.getKey(), BasicPattern.strSizes, memoryAmount,
                 basicPatternIterator, RDFDB.quadrupleHeapFileName, joinCondition,
                 rightSubjectFilter, rightPredicateFilter, rightObjectFilter, new Float(rightConfidenceFilter), indexOptions,
                 projectionList, projectionList.length);

@@ -302,15 +302,6 @@ public class RDFDB extends DB {
                     objectFilter);
             this.closeEntityBTreeFile();
             this.closePredicateBTreeFile();
-            if((!"*".equals(subjectFilter)) && subjectId==null){
-                subjectId = new LID(new PageId(GlobalConst.INVALID_PAGE),GlobalConst.INVALID_PAGE);
-            }
-            if((!"*".equals(predicateFilter)) && predicateId==null){
-                predicateId = new LID(new PageId(GlobalConst.INVALID_PAGE),GlobalConst.INVALID_PAGE);
-            }
-            if((!"*".equals(objectFilter)) && objectId==null){
-                objectId = new LID(new PageId(GlobalConst.INVALID_PAGE),GlobalConst.INVALID_PAGE);
-            }
             stream = new Stream(this, orderType, subjectId, predicateId, objectId, confidenceFilter);
         } catch (Exception e) {
             e.printStackTrace();
@@ -399,9 +390,9 @@ public class RDFDB extends DB {
         KeyClass keyClass3 = qidIndexOptions.getKeyClassForIndexOption(keyClassManager3, 3, q);
         ospQidBtreeFile.insert(keyClass3, qid);
 
-        KeyClassManager keyClassManager4 = qidIndexOptions.indexKeyClassManagerForIndex(4);
-        KeyClass keyClass4 = qidIndexOptions.getKeyClassForIndexOption(keyClassManager4, 4, q);
-        opQidBtreeFile.insert(keyClass4, qid);
+//        KeyClassManager keyClassManager4 = qidIndexOptions.indexKeyClassManagerForIndex(4);
+//        KeyClass keyClass4 = qidIndexOptions.getKeyClassForIndexOption(keyClassManager4, 4, q);
+//        opQidBtreeFile.insert(keyClass4, qid);
     }
 
     public void closeQIDBTreeFiles() throws HashEntryNotFoundException, InvalidFrameNumberException, PageUnpinnedException, ReplacerException {

@@ -44,7 +44,7 @@ public class CommandLine {
         System.out.println("report 0(show counters for each entities) or report 1(show in/out degree for each unique Subject/Objects inserted)");
 
 //        batchinsert X:\Phase3\ds_10_10a.txt demo1_db
-//        query demo1_db X:\Phase3\queryFile1.txt 1000
+//        query demo1_db X:\queryFile3.txt 500
 
 //        batchinsert /Users/swamirishi/Documents/asu/Spring_2022/DBMSI/DBMSI-Project/phase1.txt 1 swami_db
 //        query real_db 1 2 :Jorunn_Danielsen :knows :Eirik_Newth * 5000
@@ -310,7 +310,7 @@ public class CommandLine {
                         stream,
                         2);
 
-        Pair<IteratorI<BasicPattern>, Integer> secondLevelJoinIterator = bpTripleJoinDriver2.getJoinIteratorSMJ(
+        Pair<IteratorI<BasicPattern>, Integer> secondLevelJoinIterator = bpTripleJoinDriver2.getIndexNLJoinIterator(
                 firstLevelJoinIterator.getKey(),
                 firstLevelJoinIterator.getValue());
         IteratorI<BasicPattern> sortIterator = getSortIterator(secondLevelJoinIterator.getKey(),
@@ -449,15 +449,15 @@ public class CommandLine {
                 rightPredicateFilter);
         LID objectId = IndexUtils.isLabelRecordInBtreeFound(SystemDefs.JavabaseDB.getObjectBtreeIndexFile(),
                 rightObjectFilter);
-        if((!"*".equals(rightSubjectFilter)) && subjectId==null){
-            subjectId = new LID(new PageId(GlobalConst.INVALID_PAGE),GlobalConst.INVALID_PAGE);
-        }
-        if((!"*".equals(rightPredicateFilter)) && predicateId==null){
-            predicateId = new LID(new PageId(GlobalConst.INVALID_PAGE),GlobalConst.INVALID_PAGE);
-        }
-        if((!"*".equals(rightObjectFilter)) && objectId==null){
-            objectId = new LID(new PageId(GlobalConst.INVALID_PAGE),GlobalConst.INVALID_PAGE);
-        }
+//        if((!"*".equals(rightSubjectFilter)) && subjectId==null){
+//            subjectId = new LID(new PageId(GlobalConst.INVALID_PAGE),GlobalConst.INVALID_PAGE);
+//        }
+//        if((!"*".equals(rightPredicateFilter)) && predicateId==null){
+//            predicateId = new LID(new PageId(GlobalConst.INVALID_PAGE),GlobalConst.INVALID_PAGE);
+//        }
+//        if((!"*".equals(rightObjectFilter)) && objectId==null){
+//            objectId = new LID(new PageId(GlobalConst.INVALID_PAGE),GlobalConst.INVALID_PAGE);
+//        }
         rdfdb.closeEntityBTreeFile();
         rdfdb.closePredicateBTreeFile();
 

@@ -93,6 +93,6 @@ public class QIDIndexOptions implements IDIndexOptions<Quadruple>{
         if(joinOnSubject){
             return objectFilterGiven?1:2;
         }
-        return subjectFilterGiven?3:4;
+        return subjectFilterGiven?3:3;
     }
 }
